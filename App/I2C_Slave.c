@@ -8,10 +8,13 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-#define RxSIZE  6
+#define RxSIZE  2
 uint8_t RxData[RxSIZE];
+uint8_t RegAdres;
+uint8_t RegData = 0x31;
+uint8_t SlaveDirection;
 
-int count = 0;
+int rxcount = 0;
 
 /* Callbacks */
 void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
@@ -21,19 +24,46 @@ void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-  if(TransferDirection == I2C_DIRECTION_TRANSMIT)  // if the master wants to transmit the data
+  if (TransferDirection == I2C_DIRECTION_TRANSMIT)  // if the master wants to transmit the data
   {
-    HAL_I2C_Slave_Sequential_Receive_IT(hi2c, RxData, 6, I2C_FIRST_AND_LAST_FRAME);
+    HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, 1, I2C_FIRST_FRAME);
   }
-  else  // master requesting the data is not supported yet
+  else if (TransferDirection == I2C_DIRECTION_RECEIVE)
   {
-    Error_Handler();
+    HAL_I2C_Slave_Seq_Transmit_IT(hi2c, &RegData, 1, I2C_LAST_FRAME);
   }
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  count++;
+  rxcount++;
+  if(rxcount == 1)
+  {
+    RegAdres = RxData[0];
+  }
+  if(rxcount < RxSIZE)
+  {
+    if (rxcount == RxSIZE-1)
+    {
+      HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_LAST_FRAME);
+    }
+    else
+    {
+      HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_NEXT_FRAME);
+    }
+  }
+
+  if(rxcount == RxSIZE)
+  {
+    rxcount = 0;
+    RegData = RxData[1];
+    // Process data
+  }
+}
+
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
