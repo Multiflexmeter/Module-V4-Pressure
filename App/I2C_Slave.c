@@ -1,21 +1,19 @@
-/*
- * I2C_Slave.c
- *
- *  Created on: Jul 11, 2023
- *      Author: danny.kerstens
- */
+
 #include <string.h>
+#include <stdbool.h>
 #include "I2C_Slave.h"
 #include "SensorRegister.h"
 
 extern I2C_HandleTypeDef hi2c1;
 
-#define RxSIZE  3
+#define RxSIZE  5
 uint8_t RxData[RxSIZE];
-uint8_t RegAdres;
+uint8_t regWriteData[RxSIZE];
 uint8_t txBuffer[10];
+
 int8_t regIndex;
 uint8_t regSize;
+bool writeFlag = false;
 int rxcount = 0;
 
 /* Callbacks */
@@ -29,7 +27,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   // Receive the sensor register adres
   if (TransferDirection == I2C_DIRECTION_TRANSMIT)  // if the master wants to transmit the data
   {
-    HAL_I2C_Slave_Seq_Receive_IT(hi2c, &RegAdres, 1, I2C_FIRST_FRAME);
+    HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, 1, I2C_FIRST_FRAME);
+    rxcount = 0;
   }
 
   // Transmit the data in the selected register
@@ -38,22 +37,22 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
     memcpy(txBuffer, registers[regIndex].regPtr, regSize);
     HAL_I2C_Slave_Seq_Transmit_IT(hi2c, txBuffer, regSize, I2C_FIRST_AND_LAST_FRAME);
   }
-  rxcount = 0;
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
   if(rxcount == 0)
   {
-    regIndex = findRegIndex(RegAdres);
+    regIndex = findRegIndex(RxData[0]);
     regSize = registers[regIndex].datatype * registers[regIndex].size;
     if(regSize < 0)
       return;
   }
 
-  if(rxcount < regSize)
+  rxcount++;
+  if(rxcount <= regSize)
   {
-    if (rxcount == regSize-1)
+    if (rxcount == regSize)
     {
       HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_LAST_FRAME);
     }
@@ -63,19 +62,13 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     }
   }
 
-  if(rxcount >= regSize)
+  if(rxcount > regSize)
   {
     rxcount = 0;
-    if(registers[regIndex].RW == READWRITE)
-    {
-      if(registers[regIndex].datatype == UINT8_T)
-        *((uint8_t *) registers[regIndex].regPtr) = RxData[0];
-      else if(registers[regIndex].datatype == UINT16_T)
-        *((uint16_t *) registers[regIndex].regPtr) = ((RxData[1]<<8) & 0xFF00) + (RxData[0] & 0xFF);
-    }
+    memcpy(regWriteData, RxData, RxSIZE);
+    writeFlag = true;
     // Process data
   }
-  rxcount++;
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)

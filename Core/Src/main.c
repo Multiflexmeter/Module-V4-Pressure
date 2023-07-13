@@ -21,12 +21,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
+#include "SensorRegister.h"
 #include "I2C_Slave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum
+{
+  POLL_SENSOR,
+  WRITE_REGISTER,
+  SLEEP,
+} state_machine_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -45,7 +52,9 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+state_machine_t state = SLEEP;
+extern bool writeFlag;
+extern uint8_t regWriteData[5];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,6 +109,22 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    switch (state)
+    {
+      case POLL_SENSOR:
+        //readSensor();
+        break;
+      case WRITE_REGISTER:
+        writeRegister(regWriteData);
+        writeFlag = false;
+        state = SLEEP;
+        break;
+      case SLEEP:
+        if(writeFlag)
+          state = WRITE_REGISTER;
+        //sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
