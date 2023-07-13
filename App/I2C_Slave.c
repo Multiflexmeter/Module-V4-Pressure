@@ -33,7 +33,7 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   }
 
   // Transmit the data in the selected register
-  else if (TransferDirection == I2C_DIRECTION_RECEIVE)
+  else
   {
     memcpy(txBuffer, registers[regIndex].regPtr, regSize);
     HAL_I2C_Slave_Seq_Transmit_IT(hi2c, txBuffer, regSize, I2C_FIRST_AND_LAST_FRAME);
@@ -66,16 +66,17 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
   if(rxcount >= regSize)
   {
     rxcount = 0;
-    *((uint8_t *) registers[regIndex].regPtr) = RxData[0];
+    if(registers[regIndex].RW == READWRITE)
+    {
+      if(registers[regIndex].datatype == UINT8_T)
+        *((uint8_t *) registers[regIndex].regPtr) = RxData[0];
+      else if(registers[regIndex].datatype == UINT16_T)
+        *((uint16_t *) registers[regIndex].regPtr) = ((RxData[1]<<8) & 0xFF00) + (RxData[0] & 0xFF);
+    }
     // Process data
   }
   rxcount++;
 }
-
-//void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
-//{
-//
-//}
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {

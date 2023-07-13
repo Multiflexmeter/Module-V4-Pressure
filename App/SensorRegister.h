@@ -26,7 +26,7 @@
 #define REG_SENSOR_DATA           0x39
 
 /* Registers Defaults*/
-#define DEF_FIRMWARE_VERSION  "x.y"
+#define DEF_FIRMWARE_VERSION  "0t4.y"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
 #define DEF_MEAS_START        0x00
@@ -55,11 +55,11 @@ typedef enum{
 
 typedef struct
 {
-    uint8_t adres;
-    void *regPtr;
-    tENUM_Datatype datatype;
-    uint8_t size;
-    tENUM_READWRITE RW;
+  uint8_t adres;
+  void *regPtr;
+  tENUM_Datatype datatype;
+  uint8_t size;
+  tENUM_READWRITE RW;
 }SensorReg;
 
 /* Register Declaration */
@@ -100,7 +100,6 @@ static const SensorReg registers[] =
 };
 
 /* Functions */
-
 int8_t findRegIndex(uint8_t regAddress);
 //void writeRegister(uint8_t *data, size_t lenght);
 //void readRegister(uint8_t *data, size_t lenght);
