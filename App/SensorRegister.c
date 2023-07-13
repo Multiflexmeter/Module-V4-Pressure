@@ -9,7 +9,7 @@
 #include "SensorRegister.h"
 
 
-uint8_t findRegIndex(uint8_t regAddress)
+int8_t findRegIndex(uint8_t regAddress)
 {
   uint8_t index = 0;
   uint8_t size = sizeof(registers) / sizeof(registers[0]);
