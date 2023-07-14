@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "SensorRegister.h"
+#include "crc16.h"
 
 /* Register Declaration */
 static uint8_t registerFirmwareVersion[10];
@@ -50,24 +51,42 @@ int8_t findRegIndex(uint8_t regAddress)
 
   while((index < size) && (registers[index].adres != regAddress)) ++index;
 
+  if(index == size)
+    registerErrorStatus = ADDRESS_ERROR;
+
   return (index == size ? -1 : index);
 }
 
-void writeRegister(uint8_t *data)
+void writeRegister(uint8_t *data, size_t lenght)
 {
   int8_t regIndex = findRegIndex(data[0]);
 
   if(registers[regIndex].RW == READWRITE)
   {
-    if(registers[regIndex].datatype == UINT8_T)
+    uint16_t crc = calculateCRC_CCITT(data, lenght);
+    if(crc == 0)
     {
-      uint8_t writeData = data[1];
-      memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint8_t));
+      if(registers[regIndex].datatype == UINT8_T)
+      {
+        uint8_t writeData = data[1];
+        memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint8_t));
+      }
+      else if(registers[regIndex].datatype == UINT16_T)
+      {
+        uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
+        memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
+      }
     }
-    else if(registers[regIndex].datatype == UINT16_T)
-    {
-      uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
-      memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
-    }
+    else
+      registerErrorStatus = CRC_ERROR;
+  }
+  else
+  {
+    registerErrorStatus = WRITE_ERROR;
   }
 }
+
+//void readRegister(uint8_t *data, size_t lenght)
+//{
+//
+//}

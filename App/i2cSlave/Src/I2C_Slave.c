@@ -7,6 +7,7 @@
 extern I2C_HandleTypeDef hi2c1;
 
 #define RxSIZE  5
+#define crcSize 2
 uint8_t RxData[RxSIZE];
 uint8_t regWriteData[RxSIZE];
 uint8_t txBuffer[10];
@@ -50,9 +51,9 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
   }
 
   rxcount++;
-  if(rxcount <= regSize)
+  if(rxcount <= regSize + crcSize)
   {
-    if (rxcount == regSize)
+    if (rxcount == regSize + crcSize)
     {
       HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_LAST_FRAME);
     }
@@ -62,7 +63,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     }
   }
 
-  if(rxcount > regSize)
+  if(rxcount > regSize + crcSize)
   {
     rxcount = 0;
     memcpy(regWriteData, RxData, RxSIZE);
