@@ -44,6 +44,11 @@ const SensorReg registers[] =
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
 };
 
+/**
+ * @brief Find the index of the register in the constant register array.
+ * @param regAddress The register address for which the index must be determined
+ * @return The index of the provided register
+ */
 int8_t findRegIndex(uint8_t regAddress)
 {
   uint8_t index = 0;
@@ -57,14 +62,20 @@ int8_t findRegIndex(uint8_t regAddress)
   return (index == size ? -1 : index);
 }
 
+/**
+ * @brief
+ * @param data
+ * @param lenght
+ */
 void writeRegister(uint8_t *data, size_t lenght)
 {
   int8_t regIndex = findRegIndex(data[0]);
 
+  // Check if writing to register is allowed
   if(registers[regIndex].RW == READWRITE)
   {
-    uint16_t crc = calculateCRC_CCITT(data, lenght);
-    if(crc == 0)
+    // Check the CRC of the message
+    if(calculateCRC_CCITT(data, lenght) == 0)
     {
       if(registers[regIndex].datatype == UINT8_T)
       {
@@ -73,20 +84,21 @@ void writeRegister(uint8_t *data, size_t lenght)
       }
       else if(registers[regIndex].datatype == UINT16_T)
       {
+        // convert the 2 uint8_t byte array to a uint16_t
         uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
         memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
       }
     }
+    // Message CRC is not correct. CRC error occurred
     else
       registerErrorStatus = CRC_ERROR;
   }
+  // Register is read only. Write error occurred
   else
-  {
     registerErrorStatus = WRITE_ERROR;
-  }
 }
 
-//void readRegister(uint8_t *data, size_t lenght)
-//{
-//
-//}
+void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
+{
+  memcpy(data, registers[regIndex].regPtr, size);
+}

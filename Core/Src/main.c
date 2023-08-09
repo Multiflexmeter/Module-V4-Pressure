@@ -53,9 +53,6 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 state_machine_t state = SLEEP;
-extern bool writeFlag;
-extern uint8_t regWriteData[5];
-extern uint8_t regSize;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
