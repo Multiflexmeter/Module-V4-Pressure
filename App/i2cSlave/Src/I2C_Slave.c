@@ -9,6 +9,7 @@ extern I2C_HandleTypeDef hi2c1;
 
 #define RxSIZE  5
 #define CRC_SIZE 2
+
 uint8_t RxData[RxSIZE];
 uint8_t regWriteData[RxSIZE];
 uint8_t txBuffer[12];
@@ -45,7 +46,7 @@ void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-  // if the master wants to transmit the data
+  // The master wants to transmit data
   if (TransferDirection == I2C_DIRECTION_TRANSMIT)
   {
     // Receive the sensor register adres
@@ -53,9 +54,10 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
     rxcount = 0;
   }
 
-  // Transmit the data in the selected register
+  // Master requests to read the selected register
   else
   {
+    // Transmit the data in the selected register
     readRegister(regIndex, txBuffer, regSize);
     sensorSlaveTransmit(txBuffer, regSize);
   }
@@ -69,7 +71,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     regIndex = findRegIndex(RxData[0]);
     regSize = registers[regIndex].datatype * registers[regIndex].size;
 
-    // Abort if the register cant be found
+    // Abort if the register can't be found
     if(regSize < 0)
     {
       return;
@@ -80,14 +82,15 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
   rxcount++;
   if(rxcount <= regSize + CRC_SIZE)
   {
-    // Receive the last frame of the message
+
     if (rxcount == regSize + CRC_SIZE)
     {
+      // Receive the last frame of the message
       HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_LAST_FRAME);
     }
-    // Receive the next frame of the message
     else
     {
+      // Receive the next frame of the message
       HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+rxcount, 1, I2C_NEXT_FRAME);
     }
   }
