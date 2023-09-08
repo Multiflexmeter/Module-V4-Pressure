@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include "main.h"
 
+#define CRC_SIZE                  2
+#define REQUEST_SIZE              6
+
 /* Modbus Function codes */
 typedef enum
 {
@@ -39,10 +42,11 @@ typedef enum
 }ModBus_Errors_t;
 
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
-void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
-void ModbusWriteMultipleRegister(uint16_t address, uint16_t lenght, uint16_t *data);
 
-void ModbusReadInputRegisters(uint16_t address, uint8_t data);
-void ModbusReadHoldingRegisters(uint16_t address, uint8_t lenght, uint8_t *data);
+void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
+void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
+
+void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
+void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
 
 #endif /* KELLER_MODBUS_H_ */
