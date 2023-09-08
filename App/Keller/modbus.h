@@ -8,6 +8,9 @@
 #ifndef KELLER_MODBUS_H_
 #define KELLER_MODBUS_H_
 
+#include <stdint.h>
+#include "main.h"
+
 /* Modbus Function codes */
 typedef enum
 {
@@ -35,9 +38,9 @@ typedef enum
   ExceptionGatewayTargetNoResponse = 0x0B,
 }ModBus_Errors_t;
 
-
-void ModbusWriteSingleRegister(uint16_t address, uint8_t data);
-void ModbusWriteMultipleRegister(uint16_t address, uint8_t lenght, uint8_t *data);
+void ModbusInit(UART_HandleTypeDef *modbusHandle);
+void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
+void ModbusWriteMultipleRegister(uint16_t address, uint16_t lenght, uint16_t *data);
 
 void ModbusReadInputRegisters(uint16_t address, uint8_t data);
 void ModbusReadHoldingRegisters(uint16_t address, uint8_t lenght, uint8_t *data);
