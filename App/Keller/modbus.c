@@ -18,6 +18,31 @@ void ModbusInit(UART_HandleTypeDef *modbusHandle)
   ModbusHandle = modbusHandle;
 }
 
+void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
+{
+  uint8_t request[8];
+
+  request[0] = slaveAddress;
+  request[1] = FunctionDiagnostics;
+  request[2] = 0x00;
+  request[3] = 0x00;
+  request[4] = (data & 0xFF00) >> 8;
+  request[5] = (data & 0x00FF);
+
+  static uint16_t crc;
+  crc = calculateCRC_CCITT(request, 6);
+  request[6] = (crc & 0xFF00) >> 8;
+  request[7] = (crc & 0x00FF);
+
+  HAL_GPIO_WritePin(USART_RX_Enable_GPIO_Port, USART_RX_Enable_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(USART_TX_Enable_GPIO_Port, USART_TX_Enable_Pin, GPIO_PIN_SET);
+  HAL_UART_Transmit(ModbusHandle, request, 8, 100);
+
+  HAL_GPIO_WritePin(USART_TX_Enable_GPIO_Port, USART_TX_Enable_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(USART_RX_Enable_GPIO_Port, USART_RX_Enable_Pin, GPIO_PIN_RESET);
+  HAL_UART_Receive(ModbusHandle, response, 8, 100);
+}
+
 void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
 {
   uint8_t request[8];

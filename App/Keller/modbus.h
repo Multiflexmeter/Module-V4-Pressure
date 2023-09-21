@@ -23,6 +23,7 @@ typedef enum
   FunctionReadInputRegisters =    0x04,
   FunctionWriteSingleCoil =       0x05,
   FunctionWriteSingleRegister =   0x06,
+  FunctionDiagnostics =           0x08,
   FunctionWriteMultipleCoils =    0x0F,
   FunctionWriteMultipleRegister = 0x10,
 }ModBus_Function_t;
@@ -42,6 +43,8 @@ typedef enum
 }ModBus_Errors_t;
 
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
+
+void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
 void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
