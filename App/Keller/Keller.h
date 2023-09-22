@@ -13,6 +13,20 @@
 #define DEFAULT_ADDRESS           0x01
 
 /* Keller Functions */
+typedef enum
+{
+  FunctionReadCoefficients =      30,
+  FunctionWriteCoefficients =     31,
+  FunctionReadConfigurations =    32,
+  FunctionWriteConfigurations =   33,
+  FunctionInitialiseDevices =     48,
+  FunctionWriteBusAddress =       66,
+  FunctionReadSerialNumber =      69,
+  FunctionReadPressureTempFloat = 73,
+  FunctionReadPressureTempInt =   74,
+  FunctionZeroing =               95,
+}Keller_Function_t;
+
 #define READ_COEFFICIENTS         0x1E  //F30: Read coefficients
 #define WRITE_COEFFICIENTS        0x1F  //F31: Write coefficients
 #define READ_CONFIGURATION        0x20  //F32: Read configuration
