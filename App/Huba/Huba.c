@@ -14,7 +14,9 @@ uint8_t byte1 = 0;
 uint8_t byte2 = 0;
 uint8_t byte3 = 0;
 bool dataReady = false;
-bool startup = true;
+
+float waterheight;
+float temp;
 
 /**
  * @brief Delay function in microseconds
@@ -45,53 +47,48 @@ void HubaReceive(void)
     bit_cnt = 0;
   }
 
-  if(bit_cnt > 7)
-  {
-    bit_cnt = 0;
-    dataState++;
-    if(dataState > BYTE3)
-    {
-      dataState = START1;
-      dataReady = true;
-    }
-
-    return;
-  }
-
   switch(dataState)
   {
     case START1:
-      if(startup)
-      {
-        startup = false;
-      }
     case START2:
     case START3:
-      TIM1->CNT = 0;
-      HAL_TIM_Base_Start(&htim1);
       dataState++;
       break;
 
     case BYTE1:
-      HAL_TIM_Base_Stop(&htim1);
-      strobeTime = TIM1->CNT;
-      delay_us((strobeTime/2) - 4);
+      if(bit_cnt > 7)
+      {
+        bit_cnt = 0;
+        dataState++;
+        return;
+      }
       byte1 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
       bit_cnt++;
       break;
 
     case BYTE2:
-      HAL_TIM_Base_Stop(&htim1);
-      strobeTime = TIM1->CNT;
-      delay_us((strobeTime/2) - 4);
+      if(bit_cnt > 7)
+      {
+        bit_cnt = 0;
+        dataState++;
+        return;
+      }
       byte2 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
+
       bit_cnt++;
       break;
 
     case BYTE3:
-      HAL_TIM_Base_Stop(&htim1);
-      strobeTime = TIM1->CNT;
-      delay_us((strobeTime/2) - 4);
+      if(bit_cnt > 7)
+      {
+        bit_cnt = 0;
+        dataState = START1;
+        dataReady = true;
+        uint16_t digits = (byte1 << 8) | byte2;
+        waterheight = ((((digits-3000)*60000)/8000)/9777.579 * 100);
+        temp = ((byte3*200)/255)-50;
+        return;
+      }
       byte3 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
       bit_cnt++;
       break;

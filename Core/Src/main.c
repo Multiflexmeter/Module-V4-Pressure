@@ -136,22 +136,22 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    switch (state)
-    {
-      case POLL_SENSOR:
-        //readSensor();
-        break;
-      case WRITE_REGISTER:
-        writeRegister(regWriteData, regSize+3);
-        writeFlag = false;
-        state = SLEEP;
-        break;
-      case SLEEP:
-        if(writeFlag)
-          state = WRITE_REGISTER;
-        //sleep();
-        break;
-    }
+//    switch (state)
+//    {
+//      case POLL_SENSOR:
+//        //readSensor();
+//        break;
+//      case WRITE_REGISTER:
+//        writeRegister(regWriteData, regSize+3);
+//        writeFlag = false;
+//        state = SLEEP;
+//        break;
+//      case SLEEP:
+//        if(writeFlag)
+//          state = WRITE_REGISTER;
+//        //sleep();
+//        break;
+//    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
