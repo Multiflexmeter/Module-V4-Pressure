@@ -59,6 +59,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define B1_EXTI_IRQn EXTI4_15_IRQn
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define USART_TX_Enable_Pin GPIO_PIN_1
@@ -73,6 +74,9 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define One_wire2_Pin GPIO_PIN_4
 #define One_wire2_GPIO_Port GPIOB
+#define One_wire2_EXTI_IRQn EXTI4_15_IRQn
+#define debug_Pin GPIO_PIN_5
+#define debug_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
