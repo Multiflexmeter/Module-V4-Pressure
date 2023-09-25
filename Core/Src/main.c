@@ -44,6 +44,7 @@
 #include <stdbool.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
+#include "Huba.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -428,6 +429,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Prevent unused argument(s) compilation warning */
+  if(GPIO_Pin == One_wire2_Pin)
+    HubaReceive();
+  /* NOTE: This function should not be modified, when the callback is needed,
+          the HAL_GPIO_EXTI_Callback could be implemented in the user file
+ */
+}
 
 /* USER CODE END 4 */
 
