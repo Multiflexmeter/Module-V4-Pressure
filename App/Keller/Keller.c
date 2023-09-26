@@ -19,10 +19,8 @@ void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
   request[6] = (crc & 0xFF00) >> 8;
   request[7] = (crc & 0x00FF);
 
-  ModbusEnableTX();
   ModbusTransmit(request, 8);
 
-  ModbusDisableTX();
   ModbusReceive(response, 8);
 }
 //void Keller_WriteConfiguration(uint8_t deviceAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)

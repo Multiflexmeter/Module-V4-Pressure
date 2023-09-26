@@ -21,6 +21,8 @@
 #define TX_ENABLE_PORT            USART_TX_Enable_GPIO_Port
 #define TX_ENABLE_PIN             USART_TX_Enable_Pin
 
+#define MODBUS_TIMEOUT            100
+
 /* Modbus Function codes */
 typedef enum
 {

@@ -32,12 +32,15 @@ void ModbusDisableTX(void)
 
 void ModbusTransmit(uint8_t *data, uint16_t size)
 {
-  HAL_UART_Transmit(ModbusHandle, data, size, 100);
+  ModbusEnableTX();
+  HAL_UART_Transmit(ModbusHandle, data, size, MODBUS_TIMEOUT);
+  ModbusDisableTX();
 }
 
 void ModbusReceive(uint8_t *data, uint16_t size)
 {
-  HAL_UART_Receive(ModbusHandle, data, size, 100);
+  ModbusDisableTX();
+  HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
 }
 
 void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
@@ -56,7 +59,7 @@ void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, u
   request[6] = (crc & 0xFF00) >> 8;
   request[7] = (crc & 0x00FF);
 
-  HAL_UART_Transmit(ModbusHandle, request, 8, 100);
+  ModbusTransmit(request, 8);
 }
 
 void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
@@ -86,7 +89,7 @@ void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, ui
   request[7 + lenght*2] = (crc & 0xFF00) >> 8;
   request[8 + lenght*2] = (crc & 0x00FF);
 
-  HAL_UART_Transmit(ModbusHandle, request, 7 + lenght*2 + CRC_SIZE, 100);
+  ModbusTransmit(request, 7 + lenght*2 + CRC_SIZE);
 }
 
 void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
@@ -109,8 +112,8 @@ void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint1
   request[6] = (crc & 0xFF00) >> 8;
   request[7] = (crc & 0x00FF);
 
-  HAL_UART_Transmit(ModbusHandle, request, 8, 100);
-  HAL_UART_Receive(ModbusHandle, data, 3+lenght*2, 100);
+  ModbusTransmit(request, 8);
+  ModbusReceive(data, 3+lenght*2);
 }
 
 
@@ -134,8 +137,8 @@ void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint
   request[6] = (crc & 0xFF00) >> 8;
   request[7] = (crc & 0x00FF);
 
-  HAL_UART_Transmit(ModbusHandle, request, 8, 100);
-  HAL_UART_Receive(ModbusHandle, data, 3+lenght*2, 100);
+  ModbusTransmit(request, 8);
+  ModbusReceive(data, 3+lenght*2);
 }
 
 #endif /* KELLER_MODBUS_C_ */
