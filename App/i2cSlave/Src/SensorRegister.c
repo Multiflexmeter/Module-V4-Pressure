@@ -99,6 +99,11 @@ void writeRegister(uint8_t *data, size_t lenght)
     registerErrorStatus = WRITE_ERROR;
 }
 
+uint8_t readMeasStart(void)
+{
+  return registerMeasurementStart;
+}
+
 void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
 {
   memcpy(data, registers[regIndex].regPtr, size);

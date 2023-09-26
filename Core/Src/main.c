@@ -165,11 +165,15 @@ int main(void)
     {
       case STORE_MEASUREMENT:
         uint16_t samples = readMeasSamples();
+
+        // Add samples to the array
         if(sampleIndex < samples)
         {
           sensor1Samples[sampleIndex] = digits;
           sampleIndex++;
         }
+
+        // Store the median in the regesiter
         else if(sampleIndex >= samples)
         {
           digits = findMedian(sensor1Samples, samples);
@@ -179,16 +183,28 @@ int main(void)
         dataReady = false;
         state = SLEEP;
         break;
+
       case WRITE_REGISTER:
         writeRegister(regWriteData, regSize+3);
         writeFlag = false;
         state = SLEEP;
         break;
+
       case SLEEP:
+        // Disable/enable the huba sensor interrupt
+        if(readMeasStart())
+          HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+        else
+          HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+
+        // Write the received data to the correct register
         if(writeFlag)
           state = WRITE_REGISTER;
+
+        // if sensor data is ready then store result in register
         if(dataReady)
           state = STORE_MEASUREMENT;
+
         //sleep();
         break;
     }
