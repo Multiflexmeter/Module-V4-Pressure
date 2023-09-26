@@ -14,6 +14,13 @@
 #define CRC_SIZE                  2
 #define REQUEST_SIZE              6
 
+/* User defined enable pins */
+#define RX_ENABLE_PORT            USART_RX_Enable_GPIO_Port
+#define RX_ENABLE_PIN             USART_RX_Enable_Pin
+
+#define TX_ENABLE_PORT            USART_TX_Enable_GPIO_Port
+#define TX_ENABLE_PIN             USART_TX_Enable_Pin
+
 /* Modbus Function codes */
 typedef enum
 {
@@ -43,6 +50,11 @@ typedef enum
 }ModBus_Errors_t;
 
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
+void ModbusEnableTX(void);
+void ModbusDisableTX(void);
+
+void ModbusTransmit(uint8_t *data, uint16_t size);
+void ModbusReceive(uint8_t *data, uint16_t size);
 
 void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 

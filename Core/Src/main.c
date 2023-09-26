@@ -44,7 +44,7 @@
 #include <stdbool.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
-#include "modbus.h"
+#include "keller.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -131,7 +131,7 @@ int main(void)
   uint8_t rxBuffer[16];
   while (1)
   {
-    ModbusEchoTest(0x01, data, rxBuffer);
+    KellerEchoTest(0x01, data, rxBuffer);
     HAL_Delay(1000);
 //    switch (state)
 //    {

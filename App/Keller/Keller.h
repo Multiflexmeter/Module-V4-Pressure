@@ -1,9 +1,5 @@
-/*
- * KellerModbus.h
- *
- *  Created on: 5 sep. 2023
- *      Author: danny.kerstens
- */
+
+#include "modbus.h"
 
 #ifndef KELLER_KELLERMODBUS_H_
 #define KELLER_KELLERMODBUS_H_
@@ -49,5 +45,7 @@ typedef enum
 #define TEMPERATURE_SENSOR2       0x000A
 #define UART_CONFIGURATION        0x0200
 
+/* Keller Functions */
+void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 #endif /* KELLER_KELLERMODBUS_H_ */
