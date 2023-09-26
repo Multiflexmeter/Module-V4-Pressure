@@ -51,7 +51,7 @@
 /* USER CODE BEGIN PTD */
 typedef enum
 {
-  POLL_SENSOR,
+  STORE_MEASUREMENT,
   WRITE_REGISTER,
   SLEEP,
 } state_machine_t;
@@ -77,6 +77,8 @@ TIM_HandleTypeDef htim21;
 
 /* USER CODE BEGIN PV */
 state_machine_t state = SLEEP;
+extern bool dataReady;
+extern uint16_t digits;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -136,22 +138,26 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//    switch (state)
-//    {
-//      case POLL_SENSOR:
-//        //readSensor();
-//        break;
-//      case WRITE_REGISTER:
-//        writeRegister(regWriteData, regSize+3);
-//        writeFlag = false;
-//        state = SLEEP;
-//        break;
-//      case SLEEP:
-//        if(writeFlag)
-//          state = WRITE_REGISTER;
-//        //sleep();
-//        break;
-//    }
+    switch (state)
+    {
+      case STORE_MEASUREMENT:
+        storeMeasurement(digits, 0);
+        dataReady = false;
+        state = SLEEP;
+        break;
+      case WRITE_REGISTER:
+        writeRegister(regWriteData, regSize+3);
+        writeFlag = false;
+        state = SLEEP;
+        break;
+      case SLEEP:
+        if(writeFlag)
+          state = WRITE_REGISTER;
+        if(dataReady)
+          state = STORE_MEASUREMENT;
+        //sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

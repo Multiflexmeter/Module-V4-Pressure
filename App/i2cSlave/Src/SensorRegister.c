@@ -103,3 +103,12 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
 {
   memcpy(data, registers[regIndex].regPtr, size);
 }
+
+uint16_t readMeasSamples(void)
+{
+  return registerMeasurementSamples;
+}
+void storeMeasurement(uint16_t data, uint8_t sensor)
+{
+  registerMeasurementData[sensor] = data;
+}

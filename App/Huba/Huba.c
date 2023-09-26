@@ -13,6 +13,7 @@ uint8_t bit_cnt = 0;
 uint8_t byte1 = 0;
 uint8_t byte2 = 0;
 uint8_t byte3 = 0;
+uint16_t digits;
 bool dataReady = false;
 
 float waterheight;
@@ -84,9 +85,7 @@ void HubaReceive(void)
         bit_cnt = 0;
         dataState = START1;
         dataReady = true;
-        uint16_t digits = (byte1 << 8) | byte2;
-        waterheight = ((((digits-3000)*60000)/8000)/9777.579 * 100);
-        temp = ((byte3*200)/255)-50;
+        digits = ((byte1<<8) & 0xFF00) + (byte2 & 0xFF);
         return;
       }
       byte3 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
