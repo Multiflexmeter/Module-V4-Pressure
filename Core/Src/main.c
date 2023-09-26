@@ -42,6 +42,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "Huba.h"
@@ -59,7 +61,7 @@ typedef enum
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SAMPLE_BUFFER_SIZE  10
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -79,6 +81,9 @@ TIM_HandleTypeDef htim21;
 state_machine_t state = SLEEP;
 extern bool dataReady;
 extern uint16_t digits;
+
+uint16_t sensor1Samples[SAMPLE_BUFFER_SIZE];
+uint8_t sampleIndex = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,6 +100,24 @@ static void MX_TIM21_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// Function to compare two uint16_t for qsort
+int cmpfunc(const void* a, const void* b)
+{
+    return (*(uint16_t*)a - *(uint16_t*)b);
+}
+
+// Function for calculating median
+uint16_t findMedian(uint16_t a[], uint8_t n)
+{
+    // First we sort the array
+    qsort(a, n, sizeof(uint16_t), cmpfunc);
+
+    // check for even case
+    if (n % 2 != 0)
+        return (uint16_t)a[n / 2];
+
+    return (uint16_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -141,7 +164,18 @@ int main(void)
     switch (state)
     {
       case STORE_MEASUREMENT:
-        storeMeasurement(digits, 0);
+        uint16_t samples = readMeasSamples();
+        if(sampleIndex < samples)
+        {
+          sensor1Samples[sampleIndex] = digits;
+          sampleIndex++;
+        }
+        else if(sampleIndex >= samples)
+        {
+          digits = findMedian(sensor1Samples, samples);
+          storeMeasurement(digits, 0);
+          sampleIndex = 0;
+        }
         dataReady = false;
         state = SLEEP;
         break;
