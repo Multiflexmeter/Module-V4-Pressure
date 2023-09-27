@@ -16,7 +16,7 @@ typedef enum
   FunctionReadConfigurations =    32,
   FunctionWriteConfigurations =   33,
   FunctionInitialiseDevices =     48,
-  FunctionWriteBusAddress =       66,
+  FunctionWriteDeviceAddress =    66,
   FunctionReadSerialNumber =      69,
   FunctionReadPressureTempFloat = 73,
   FunctionReadPressureTempInt =   74,
@@ -48,6 +48,7 @@ typedef enum
 /* Keller Functions */
 void KellerInit(uint8_t slaveAddress, uint8_t *response);
 uint32_t KellerSerialnumber(uint8_t slaveAddress);
+uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

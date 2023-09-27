@@ -61,6 +61,7 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 
 void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
+  // Receive the modbus response
   ModbusDisableTX();
   HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
 
@@ -99,7 +100,7 @@ void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, u
 
 void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
 {
-  uint8_t request[7 + lenght*2 + CRC_SIZE];
+  uint8_t request[7 + lenght*2];
 
   request[0] = slaveAddress;
   request[1] = FunctionWriteMultipleRegister;

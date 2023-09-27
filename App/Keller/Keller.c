@@ -30,6 +30,22 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
   return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
 
+uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
+{
+  uint8_t request[3];
+  uint8_t response[5];
+
+  request[0] = currentSlaveAddress;
+  request[1] = FunctionWriteDeviceAddress;
+  request[2] = newSlaveAddress;
+
+  ModbusTransmit(request, 3, CRC_BigEndian);
+
+  ModbusReceive(response, 5, CRC_BigEndian);
+
+  return response[2];
+}
+
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
 {
   uint8_t request[6];
