@@ -8,6 +8,7 @@
 #ifndef KELLER_MODBUS_C_
 #define KELLER_MODBUS_C_
 
+#include <string.h>
 #include "modbus.h"
 #include "crc16.h"
 
@@ -58,10 +59,28 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
   ModbusDisableTX();
 }
 
-void ModbusReceive(uint8_t *data, uint16_t size)
+void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   ModbusDisableTX();
   HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
+
+  // Check the CRC
+  static uint16_t crc;
+  crc = calculateCRC_CCITT(data, size-CRC_SIZE);
+  if(endian == CRC_BigEndian)
+  {
+    if(crc != (data[size-1] << 8) + data[size-2])
+    {
+      memset(data, 0, size);
+    }
+  }
+  else if (endian == CRC_LittleEndian)
+  {
+    if(crc != (data[size-2] << 8) + data[size-1])
+    {
+      memset(data, 0, size);
+    }
+  }
 }
 
 void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
@@ -119,7 +138,7 @@ void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint1
   request[5] = (lenght & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
-  ModbusReceive(data, 3+lenght*2);
+  ModbusReceive(data, 3+lenght*2, CRC_LittleEndian);
 }
 
 
@@ -139,7 +158,7 @@ void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint
   request[5] = (lenght & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
-  ModbusReceive(data, 3+lenght*2);
+  ModbusReceive(data, 3+lenght*2, CRC_LittleEndian);
 }
 
 #endif /* KELLER_MODBUS_C_ */

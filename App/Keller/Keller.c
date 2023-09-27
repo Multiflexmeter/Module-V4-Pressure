@@ -12,7 +12,7 @@ void KellerInit(uint8_t slaveAddress, uint8_t *response)
 
   ModbusTransmit(request, 2, CRC_BigEndian);
 
-  ModbusReceive(response, 10);
+  ModbusReceive(response, 10, CRC_BigEndian);
 }
 
 uint32_t KellerSerialnumber(uint8_t slaveAddress)
@@ -25,7 +25,7 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
 
   ModbusTransmit(request, 2, CRC_BigEndian);
 
-  ModbusReceive(response, 8);
+  ModbusReceive(response, 8, CRC_BigEndian);
 
   return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
@@ -44,6 +44,6 @@ void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
 
-  ModbusReceive(response, 8);
+  ModbusReceive(response, 8, CRC_LittleEndian);
 }
 //void Keller_WriteConfiguration(uint8_t deviceAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)

@@ -62,7 +62,7 @@ void ModbusEnableTX(void);
 void ModbusDisableTX(void);
 
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
-void ModbusReceive(uint8_t *data, uint16_t size);
+void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
 void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
