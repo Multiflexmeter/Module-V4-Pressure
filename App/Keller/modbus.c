@@ -31,6 +31,13 @@ void ModbusDisableTX(void)
   HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET);
 }
 
+void ModbusSetBaudrate(uint32_t baudrate)
+{
+  ModbusHandle->Instance->CR1 &= ~(USART_CR1_UE);
+  ModbusHandle->Instance->BRR = baudrate;
+  ModbusHandle->Instance->CR1 |= USART_CR1_UE;
+}
+
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   // Copy data into the message

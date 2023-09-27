@@ -18,10 +18,29 @@ typedef enum
   FunctionInitialiseDevices =     48,
   FunctionWriteDeviceAddress =    66,
   FunctionReadSerialNumber =      69,
-  FunctionReadPressureTempFloat = 73,
-  FunctionReadPressureTempInt =   74,
+  FunctionReadChannelFloat =      73,
+  FunctionReadShannelInt =        74,
   FunctionZeroing =               95,
 }Keller_Function_t;
+
+/* Keller Channels */
+typedef enum
+{
+  CHANNEL_P1 =                    1,
+  CHANNEL_P2 =                    2,
+  CHANNEL_T =                     3,
+  CHANNEL_TOB1 =                  4,
+  CHANNEL_TOB2 =                  5,
+  CHANNEL_ConTc =                 10,
+  CHANNEL_ConRaw =                11,
+}Keller_Channel_t;
+
+/* Keller Channels */
+typedef enum
+{
+  BAUD_9600 =                      0,
+  BAUD_115200 =                    1,
+}Keller_Baudrate_t;
 
 #define READ_COEFFICIENTS         0x1E  //F30: Read coefficients
 #define WRITE_COEFFICIENTS        0x1F  //F31: Write coefficients
@@ -46,9 +65,12 @@ typedef enum
 #define UART_CONFIGURATION        0x0200
 
 /* Keller Functions */
-void KellerInit(uint8_t slaveAddress, uint8_t *response);
+void KellerInit(uint8_t slaveAddress);
 uint32_t KellerSerialnumber(uint8_t slaveAddress);
+void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
+float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel);
+uint32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel);
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

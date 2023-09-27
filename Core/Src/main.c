@@ -45,6 +45,7 @@
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
+#include "modbus.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -127,14 +128,26 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint16_t data = 0x4FAB;
+  uint8_t data = 0xAB;
   uint8_t rxBuffer[16];
-  uint32_t serialNumber;
+  uint32_t temp;
+  float test;
 
+  KellerInit(0x01);
   while (1)
   {
-    serialNumber = KellerSerialnumber(0x01);
     HAL_Delay(1000);
+    KellerSetBaudrate(0x01, BAUD_115200);
+    HAL_Delay(1000);
+    KellerSetBaudrate(0x01, BAUD_9600);
+
+//    HAL_Delay(1000);
+//    ModbusSetBaudrate(9600);
+//    HAL_UART_Transmit(&hlpuart1, &data, 1, 100);
+//    HAL_Delay(1000);
+//    ModbusSetBaudrate(115200);
+//    HAL_UART_Transmit(&hlpuart1, &data, 1, 100);
+
 //    switch (state)
 //    {
 //      case POLL_SENSOR:
@@ -270,7 +283,7 @@ static void MX_LPUART1_UART_Init(void)
 
   /* USER CODE END LPUART1_Init 1 */
   hlpuart1.Instance = LPUART1;
-  hlpuart1.Init.BaudRate = 9600;
+  hlpuart1.Init.BaudRate = 115200;
   hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
   hlpuart1.Init.StopBits = UART_STOPBITS_1;
   hlpuart1.Init.Parity = UART_PARITY_NONE;
