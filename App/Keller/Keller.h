@@ -46,6 +46,7 @@ typedef enum
 #define UART_CONFIGURATION        0x0200
 
 /* Keller Functions */
+void KellerInit(uint8_t slaveAddress, uint8_t *response);
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

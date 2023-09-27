@@ -30,7 +30,7 @@ void ModbusDisableTX(void)
   HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET);
 }
 
-void ModbusTransmit(uint8_t *data, uint16_t size)
+void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   // Copy data into the message
   uint8_t message[size + CRC_SIZE];
@@ -40,8 +40,17 @@ void ModbusTransmit(uint8_t *data, uint16_t size)
   // Add the CRC to the message
   static uint16_t crc;
   crc = calculateCRC_CCITT(data, size);
-  message[size] = (crc & 0xFF00) >> 8;
-  message[size + 1] = (crc & 0x00FF);
+  if(endian == CRC_BigEndian)
+  {
+    message[size] = (crc & 0x00FF);
+    message[size + 1] = (crc & 0xFF00) >> 8;
+  }
+  else if (endian == CRC_LittleEndian)
+  {
+    message[size] = (crc & 0xFF00) >> 8;
+    message[size + 1] = (crc & 0x00FF);
+  }
+
 
   // Transmit the message
   ModbusEnableTX();
@@ -66,7 +75,7 @@ void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, u
   request[4] = (data & 0xFF00) >> 8;
   request[5] = (data & 0x00FF);
 
-  ModbusTransmit(request, 6);
+  ModbusTransmit(request, 6, CRC_LittleEndian);
 }
 
 void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
@@ -91,7 +100,7 @@ void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, ui
     request[8+i*2] = (*(data+i) & 0x00FF);
   }
 
-  ModbusTransmit(request, 7 + lenght*2);
+  ModbusTransmit(request, 7 + lenght*2, CRC_LittleEndian);
 }
 
 void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
@@ -109,7 +118,7 @@ void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint1
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
-  ModbusTransmit(request, 6);
+  ModbusTransmit(request, 6, CRC_LittleEndian);
   ModbusReceive(data, 3+lenght*2);
 }
 
@@ -129,7 +138,7 @@ void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
-  ModbusTransmit(request, 6);
+  ModbusTransmit(request, 6, CRC_LittleEndian);
   ModbusReceive(data, 3+lenght*2);
 }
 

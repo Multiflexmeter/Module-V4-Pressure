@@ -51,11 +51,17 @@ typedef enum
   ExceptionGatewayTargetNoResponse = 0x0B,
 }ModBus_Errors_t;
 
+typedef enum
+{
+  CRC_BigEndian,
+  CRC_LittleEndian
+}CRC_Endianness;
+
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
 void ModbusEnableTX(void);
 void ModbusDisableTX(void);
 
-void ModbusTransmit(uint8_t *data, uint16_t size);
+void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
 void ModbusReceive(uint8_t *data, uint16_t size);
 
 void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);

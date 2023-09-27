@@ -129,9 +129,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint16_t data = 0x4FAB;
   uint8_t rxBuffer[16];
+
   while (1)
   {
-    KellerEchoTest(0x01, data, rxBuffer);
+    KellerInit(0x01, rxBuffer);
     HAL_Delay(1000);
 //    switch (state)
 //    {

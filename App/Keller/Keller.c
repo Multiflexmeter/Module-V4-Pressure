@@ -3,9 +3,33 @@
 #include "modbus.h"
 #include "crc16.h"
 
+void KellerInit(uint8_t slaveAddress, uint8_t *response)
+{
+  uint8_t request[2];
+
+  request[0] = slaveAddress;
+  request[1] = FunctionInitialiseDevices;
+
+  ModbusTransmit(request, 2, CRC_BigEndian);
+
+  ModbusReceive(response, 10);
+}
+
+void KellerSerialnumber(uint8_t slaveAddress, uint8_t *response)
+{
+  uint8_t request[2];
+
+  request[0] = slaveAddress;
+  request[1] = FunctionReadSerialNumber;
+
+  ModbusTransmit(request, 2, CRC_BigEndian);
+
+  ModbusReceive(response, 8);
+}
+
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
 {
-  uint8_t request[8];
+  uint8_t request[6];
 
   request[0] = slaveAddress;
   request[1] = FunctionDiagnostics;
@@ -15,7 +39,7 @@ void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
   request[5] = (data & 0x00FF);
 
 
-  ModbusTransmit(request, 6);
+  ModbusTransmit(request, 6, CRC_LittleEndian);
 
   ModbusReceive(response, 8);
 }
