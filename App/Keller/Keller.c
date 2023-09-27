@@ -15,9 +15,10 @@ void KellerInit(uint8_t slaveAddress, uint8_t *response)
   ModbusReceive(response, 10);
 }
 
-void KellerSerialnumber(uint8_t slaveAddress, uint8_t *response)
+uint32_t KellerSerialnumber(uint8_t slaveAddress)
 {
   uint8_t request[2];
+  uint8_t response[8];
 
   request[0] = slaveAddress;
   request[1] = FunctionReadSerialNumber;
@@ -25,6 +26,8 @@ void KellerSerialnumber(uint8_t slaveAddress, uint8_t *response)
   ModbusTransmit(request, 2, CRC_BigEndian);
 
   ModbusReceive(response, 8);
+
+  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
 
 void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)

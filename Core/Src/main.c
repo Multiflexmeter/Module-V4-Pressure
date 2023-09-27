@@ -129,10 +129,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint16_t data = 0x4FAB;
   uint8_t rxBuffer[16];
+  uint32_t serialNumber;
 
   while (1)
   {
-    KellerInit(0x01, rxBuffer);
+    serialNumber = KellerSerialnumber(0x01);
     HAL_Delay(1000);
 //    switch (state)
 //    {
