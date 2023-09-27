@@ -32,8 +32,20 @@ void ModbusDisableTX(void)
 
 void ModbusTransmit(uint8_t *data, uint16_t size)
 {
+  // Copy data into the message
+  uint8_t message[size + CRC_SIZE];
+  for (uint8_t i = 0; i < size; i++)
+    message[i] = data[i];
+
+  // Add the CRC to the message
+  static uint16_t crc;
+  crc = calculateCRC_CCITT(data, size);
+  message[size] = (crc & 0xFF00) >> 8;
+  message[size + 1] = (crc & 0x00FF);
+
+  // Transmit the message
   ModbusEnableTX();
-  HAL_UART_Transmit(ModbusHandle, data, size, MODBUS_TIMEOUT);
+  HAL_UART_Transmit(ModbusHandle, message, size + CRC_SIZE, MODBUS_TIMEOUT);
   ModbusDisableTX();
 }
 
@@ -45,7 +57,7 @@ void ModbusReceive(uint8_t *data, uint16_t size)
 
 void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
 {
-  uint8_t request[8];
+  uint8_t request[6];
 
   request[0] = slaveAddress;
   request[1] = FunctionWriteSingleRegister;
@@ -54,12 +66,7 @@ void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, u
   request[4] = (data & 0xFF00) >> 8;
   request[5] = (data & 0x00FF);
 
-  static uint16_t crc;
-  crc = calculateCRC_CCITT(request, 6);
-  request[6] = (crc & 0xFF00) >> 8;
-  request[7] = (crc & 0x00FF);
-
-  ModbusTransmit(request, 8);
+  ModbusTransmit(request, 6);
 }
 
 void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
@@ -84,17 +91,12 @@ void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, ui
     request[8+i*2] = (*(data+i) & 0x00FF);
   }
 
-  static uint16_t crc;
-  crc = calculateCRC_CCITT(request, 7 + lenght*2);
-  request[7 + lenght*2] = (crc & 0xFF00) >> 8;
-  request[8 + lenght*2] = (crc & 0x00FF);
-
-  ModbusTransmit(request, 7 + lenght*2 + CRC_SIZE);
+  ModbusTransmit(request, 7 + lenght*2);
 }
 
 void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
 {
-  uint8_t request[8];
+  uint8_t request[6];
 
   request[0] = slaveAddress;
   request[1] = FunctionReadInputRegisters;
@@ -107,19 +109,14 @@ void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint1
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
-  static uint16_t crc;
-  crc = calculateCRC_CCITT(request, 6);
-  request[6] = (crc & 0xFF00) >> 8;
-  request[7] = (crc & 0x00FF);
-
-  ModbusTransmit(request, 8);
+  ModbusTransmit(request, 6);
   ModbusReceive(data, 3+lenght*2);
 }
 
 
 void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
 {
-  uint8_t request[8];
+  uint8_t request[6];
 
   request[0] = slaveAddress;
   request[1] = FunctionReadHoldingRegisters;
@@ -132,12 +129,7 @@ void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
-  static uint16_t crc;
-  crc = calculateCRC_CCITT(request, 6);
-  request[6] = (crc & 0xFF00) >> 8;
-  request[7] = (crc & 0x00FF);
-
-  ModbusTransmit(request, 8);
+  ModbusTransmit(request, 6);
   ModbusReceive(data, 3+lenght*2);
 }
 
