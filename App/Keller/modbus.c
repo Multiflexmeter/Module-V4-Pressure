@@ -14,6 +14,9 @@
 
 static UART_HandleTypeDef *ModbusHandle;
 
+/**
+ * @brief Initialize the Modbus UART handle
+ */
 void ModbusInit(UART_HandleTypeDef *modbusHandle)
 {
   ModbusHandle = modbusHandle;

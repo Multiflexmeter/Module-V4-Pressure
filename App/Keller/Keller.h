@@ -31,8 +31,8 @@ typedef enum
   CHANNEL_T =                     3,
   CHANNEL_TOB1 =                  4,
   CHANNEL_TOB2 =                  5,
-  CHANNEL_ConTc =                 10,
-  CHANNEL_ConRaw =                11,
+  CHANNEL_CONTC =                 10,
+  CHANNEL_CONRAW =                11,
 }Keller_Channel_t;
 
 /* Keller Channels */
@@ -70,6 +70,6 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress);
 void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel);
-uint32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel);
+int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

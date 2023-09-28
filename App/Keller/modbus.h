@@ -54,6 +54,7 @@ typedef enum
   CRC_LITTLE_ENDIAN
 }CRC_Endianness;
 
+
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
 void ModbusEnableTX(void);
 void ModbusDisableTX(void);
@@ -64,9 +65,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
 MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
 MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
-
 MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
-
 MODBUS_StatusTypeDef ModbusEcho(uint8_t slaveAddress, uint16_t data);
 
 #endif /* KELLER_MODBUS_H_ */
