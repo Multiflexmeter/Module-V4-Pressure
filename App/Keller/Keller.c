@@ -13,6 +13,7 @@ void KellerInit(uint8_t slaveAddress)
   request[0] = slaveAddress;
   request[1] = FunctionInitialiseDevices;
 
+  // Transmit command and receive response
   ModbusTransmit(request, 2, CRC_BigEndian);
 
   ModbusReceive(response, 10, CRC_BigEndian);
@@ -73,8 +74,12 @@ void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
 {
   uint8_t uartConfig;
 
+  ModbusSetBaudrate(9600);
   uartConfig = KellerReadConfig(slaveAddress, 10);
+  KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
 
+  ModbusSetBaudrate(115200);
+  uartConfig = KellerReadConfig(slaveAddress, 10);
   KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
 
   if(baudrate == BAUD_115200)
