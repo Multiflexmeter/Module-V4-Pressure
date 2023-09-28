@@ -23,6 +23,31 @@ typedef enum
   FunctionZeroing =               95,
 }Keller_Function_t;
 
+/* Keller Configurations */
+typedef enum
+{
+  CONFIG_CFG_P =                  0,
+  CONFIG_CFG_T =                  1,
+  CONFIG_CFG_CH0 =                2,
+  CONFIG_CNT_T =                  3,
+  CONFIG_CNT_TCOMP =              4,
+  CONFIG_FILTER =                 7,
+  CONFIG_DAC =                    9,
+  CONFIG_UART =                   10,
+  CONFIG_FILTER_BCK =             11,
+  CONFIG_STAT =                   12,
+  CONFIG_DEV_ADDR =               13,
+  CONFIG_P_MODE =                 14,
+  CONFIG_SPS =                    15,
+  CONFIG_SDI_12 =                 20,
+  CONFIG_FRAME_TIME_9K6 =         25,
+  CONFIG_FRAME_TIME_115K2 =       26,
+  CONFIG_CON_ON =                 28,
+  CONFIG_CON_RANGE =              31,
+  CONFIG_CON_COMP_MODE =          32,
+  CONFIG_SDI_12_AVAILABLE =       33,
+}Keller_Configurations_t;
+
 /* Keller Channels */
 typedef enum
 {
@@ -71,5 +96,7 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress);
 void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 
+int32_t KellerReadPressure(uint8_t slaveAddress);
+int32_t KellerReadTemperature(uint8_t slaveAddress);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

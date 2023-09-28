@@ -129,24 +129,18 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint8_t data = 0xAB;
-  uint8_t rxBuffer[16];
-  uint32_t temp;
+  uint8_t rxBuffer[20];
+  int32_t temp;
   float test;
 
+  KellerSetBaudrate(0x01, BAUD_115200);
   KellerInit(0x01);
   while (1)
   {
     HAL_Delay(1000);
-    KellerSetBaudrate(0x01, BAUD_115200);
-    HAL_Delay(1000);
-    KellerSetBaudrate(0x01, BAUD_9600);
+    temp = KellerReadPressure(0x01);
+    temp = KellerReadTemperature(0x01);
 
-//    HAL_Delay(1000);
-//    ModbusSetBaudrate(9600);
-//    HAL_UART_Transmit(&hlpuart1, &data, 1, 100);
-//    HAL_Delay(1000);
-//    ModbusSetBaudrate(115200);
-//    HAL_UART_Transmit(&hlpuart1, &data, 1, 100);
 
 //    switch (state)
 //    {

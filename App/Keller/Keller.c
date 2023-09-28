@@ -205,3 +205,27 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   return response[2];
 }
 
+
+/**
+ * @brief Read the pressure from the Keller sensor
+ *
+ * @param slaveAddress The slave address of the sensor
+ *
+ * @return Pressure in Pascal
+ */
+int32_t KellerReadPressure(uint8_t slaveAddress)
+{
+  return KellerReadChannelInt(slaveAddress, CHANNEL_P1);
+}
+
+/**
+ * @brief Read the temperature from the Keller sensor
+ *
+ * @param slaveAddress The slave address of the sensor
+ *
+ * @return Temperature with resolution of 0.01°C
+ */
+int32_t KellerReadTemperature(uint8_t slaveAddress)
+{
+  return KellerReadChannelInt(slaveAddress, CHANNEL_TOB1);
+}
