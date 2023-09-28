@@ -123,41 +123,28 @@ int main(void)
   MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_I2C_EnableListen_IT(&hi2c1);
-  ModbusInit(&hlpuart1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t data = 0xAB;
-  uint8_t rxBuffer[20];
-  int32_t temp;
-  float test;
-
-  KellerSetBaudrate(0x01, BAUD_115200);
-  KellerInit(0x01);
   while (1)
   {
-    HAL_Delay(1000);
-    temp = KellerReadPressure(0x01);
-    temp = KellerReadTemperature(0x01);
-
-
-//    switch (state)
-//    {
-//      case POLL_SENSOR:
-//        //readSensor();
-//        break;
-//      case WRITE_REGISTER:
-//        writeRegister(regWriteData, regSize+3);
-//        writeFlag = false;
-//        state = SLEEP;
-//        break;
-//      case SLEEP:
-//        if(writeFlag)
-//          state = WRITE_REGISTER;
-//        //sleep();
-//        break;
-//    }
+    switch (state)
+    {
+      case POLL_SENSOR:
+        //readSensor();
+        break;
+      case WRITE_REGISTER:
+        writeRegister(regWriteData, regSize+3);
+        writeFlag = false;
+        state = SLEEP;
+        break;
+      case SLEEP:
+        if(writeFlag)
+          state = WRITE_REGISTER;
+        //sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
