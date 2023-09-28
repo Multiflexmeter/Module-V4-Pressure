@@ -33,9 +33,8 @@ void ModbusDisableTX(void)
 
 void ModbusSetBaudrate(uint32_t baudrate)
 {
-  ModbusHandle->Instance->CR1 &= ~(USART_CR1_UE);
-  ModbusHandle->Instance->BRR = baudrate;
-  ModbusHandle->Instance->CR1 |= USART_CR1_UE;
+  ModbusHandle->Init.BaudRate = baudrate;
+  UART_SetConfig(ModbusHandle);
 }
 
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
@@ -91,9 +90,10 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
   }
 }
 
-void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
+MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data)
 {
   uint8_t request[6];
+  uint8_t respone[8];
 
   request[0] = slaveAddress;
   request[1] = FunctionWriteSingleRegister;
@@ -103,11 +103,21 @@ void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, u
   request[5] = (data & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
+
+  ModbusReceive(respone, 8, CRC_LittleEndian);
+
+  // Check for exceptions
+  if(respone[1] & 0x80)
+    return respone[2];
+
+  else
+    return MODBUS_OK;
 }
 
-void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
+MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)
 {
   uint8_t request[7 + lenght*2];
+  uint8_t respone[8];
 
   request[0] = slaveAddress;
   request[1] = FunctionWriteMultipleRegister;
@@ -115,7 +125,7 @@ void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, ui
   request[3] = (startAddress & 0x00FF);
 
   if(lenght > 123)
-    return;
+    return MODBUS_ILLEGAL_DATA_VALUE;
 
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
@@ -128,9 +138,18 @@ void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, ui
   }
 
   ModbusTransmit(request, 7 + lenght*2, CRC_LittleEndian);
+
+  ModbusReceive(respone, 8, CRC_LittleEndian);
+
+  // Check for exceptions
+  if(respone[1] & 0x80)
+    return respone[2];
+
+  else
+    return MODBUS_OK;
 }
 
-void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
+MODBUS_StatusTypeDef ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
 {
   uint8_t request[6];
 
@@ -140,17 +159,24 @@ void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint1
   request[3] = (startAddress & 0x00FF);
 
   if(lenght > 125)
-    return;
+    return MODBUS_ILLEGAL_DATA_VALUE;
 
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
   ModbusReceive(data, 3+lenght*2, CRC_LittleEndian);
+
+  // Check for exceptions
+  if(data[1] & 0x80)
+    return data[2];
+
+  else
+    return MODBUS_OK;
 }
 
 
-void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
+MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
 {
   uint8_t request[6];
 
@@ -160,13 +186,20 @@ void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint
   request[3] = (startAddress & 0x00FF);
 
   if(lenght > 125)
-    return;
+    return MODBUS_ILLEGAL_DATA_VALUE;
 
   request[4] = (lenght & 0xFF00) >> 8;
   request[5] = (lenght & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LittleEndian);
   ModbusReceive(data, 3+lenght*2, CRC_LittleEndian);
+
+  // Check for exceptions
+  if(data[1] & 0x80)
+    return data[2];
+
+  else
+    return MODBUS_OK;
 }
 
 #endif /* KELLER_MODBUS_C_ */

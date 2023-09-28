@@ -35,21 +35,17 @@ typedef enum
   FunctionDiagnostics =           0x08,
   FunctionWriteMultipleCoils =    0x0F,
   FunctionWriteMultipleRegister = 0x10,
-}ModBus_Function_t;
+}MODBUS_FunctionTypeDef;
 
 /* Modbus Exception codes */
 typedef enum
 {
-  ExceptionIllegalFunction =         0x01,
-  ExceptionIllegalDataAddress =      0x02,
-  ExceptionIllegalDataValue =        0x03,
-  ExceptionSlaveDeviceFailure =      0x04,
-  ExceptionAcknowledge =             0x05,
-  ExceptionSlaveDeviceBusy =         0x06,
-  ExceptionMemoryParityError =       0x08,
-  ExceptionGatewayPathUnavailable =  0x0A,
-  ExceptionGatewayTargetNoResponse = 0x0B,
-}ModBus_Errors_t;
+  MODBUS_OK =                     0,
+  MODBUS_ILLEGAL_FUNCTION =       1,
+  MODBUS_ILLEGAL_DATA_ADDRESS =   2,
+  MODBUS_ILLEGAL_DATA_VALUE =     3,
+  MODBUS_SLAVE_DEVICE_FAILURE =   4,
+}MODBUS_StatusTypeDef;
 
 typedef enum
 {
@@ -67,10 +63,10 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
 void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
-void ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
-void ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
+MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
+MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
 
-void ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
-void ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
+MODBUS_StatusTypeDef ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
+MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
 
 #endif /* KELLER_MODBUS_H_ */
