@@ -5,47 +5,7 @@
 #include "crc16.h"
 
 
-/**
- * @brief Initialize the Keller sensor
- *
- * @param slaveAddress The slave address of the sensor
- */
-void KellerInit(uint8_t slaveAddress)
-{
-  uint8_t request[2];
-  uint8_t response[10];
-
-  request[0] = slaveAddress;
-  request[1] = FunctionInitialiseDevices;
-
-  // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 10, CRC_BIG_ENDIAN);
-}
-
-/**
- * @brief Reads out the Keller sensor serial number
- *
- * @param slaveAddress The slave address of the sensor
- *
- * @return The sensor serial number
- */
-uint32_t KellerSerialnumber(uint8_t slaveAddress)
-{
-  uint8_t request[2];
-  uint8_t response[8];
-
-  // Fill the Modbus request command
-  request[0] = slaveAddress;
-  request[1] = FunctionReadSerialNumber;
-
-  // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 8, CRC_BIG_ENDIAN);
-
-  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
-}
-
+/* Keller Private Functions */
 /**
  * @brief Read the configuration register
  *
@@ -94,58 +54,6 @@ void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
   return;
-}
-
-/**
- * @brief Change the baudrate of the Keller sensor
- *
- * @param slaveAddress The slave address of the sensor
- * @param baudrate The baudrate to set the Keller sensor to
- */
-void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
-{
-  uint8_t uartConfig;
-
-  ModbusSetBaudrate(9600);
-  uartConfig = KellerReadConfig(slaveAddress, 10);
-  KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
-
-  ModbusSetBaudrate(115200);
-  uartConfig = KellerReadConfig(slaveAddress, 10);
-  KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
-
-  if(baudrate == BAUD_115200)
-    ModbusSetBaudrate(115200);
-  else if(baudrate == BAUD_9600)
-    ModbusSetBaudrate(9600);
-
-  KellerInit(slaveAddress);
-  return;
-}
-
-/**
- * @brief Change the slave address off the Keller sensor
- *
- * @param currentSlaveAddress The current slave address of the Keller sensor
- * @param newSlaveAddress The new slave address for the Keller sensor
- *
- * @return The new slave address
- */
-uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
-{
-  uint8_t request[3];
-  uint8_t response[5];
-
-  // Fill the Modbus request command
-  request[0] = currentSlaveAddress;
-  request[1] = FunctionWriteDeviceAddress;
-  request[2] = newSlaveAddress;
-
-  // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
-
-  return response[2];
 }
 
 /**
@@ -201,3 +109,99 @@ int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
 
   return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
+
+
+/* Keller Functions */
+/**
+ * @brief Initialize the Keller sensor
+ *
+ * @param slaveAddress The slave address of the sensor
+ */
+void KellerInit(uint8_t slaveAddress)
+{
+  uint8_t request[2];
+  uint8_t response[10];
+
+  request[0] = slaveAddress;
+  request[1] = FunctionInitialiseDevices;
+
+  // Transmit command and receive response
+  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
+  ModbusReceive(response, 10, CRC_BIG_ENDIAN);
+}
+
+/**
+ * @brief Reads out the Keller sensor serial number
+ *
+ * @param slaveAddress The slave address of the sensor
+ *
+ * @return The sensor serial number
+ */
+uint32_t KellerSerialnumber(uint8_t slaveAddress)
+{
+  uint8_t request[2];
+  uint8_t response[8];
+
+  // Fill the Modbus request command
+  request[0] = slaveAddress;
+  request[1] = FunctionReadSerialNumber;
+
+  // Transmit command and receive response
+  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
+  ModbusReceive(response, 8, CRC_BIG_ENDIAN);
+
+  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+}
+
+/**
+ * @brief Change the baudrate of the Keller sensor
+ *
+ * @param slaveAddress The slave address of the sensor
+ * @param baudrate The baudrate to set the Keller sensor to
+ */
+void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
+{
+  uint8_t uartConfig;
+
+  ModbusSetBaudrate(9600);
+  uartConfig = KellerReadConfig(slaveAddress, 10);
+  KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
+
+  ModbusSetBaudrate(115200);
+  uartConfig = KellerReadConfig(slaveAddress, 10);
+  KellerWriteConfig(slaveAddress, 10, (uartConfig & 0xF0) | baudrate);
+
+  if(baudrate == BAUD_115200)
+    ModbusSetBaudrate(115200);
+  else if(baudrate == BAUD_9600)
+    ModbusSetBaudrate(9600);
+
+  KellerInit(slaveAddress);
+  return;
+}
+
+/**
+ * @brief Change the slave address off the Keller sensor
+ *
+ * @param currentSlaveAddress The current slave address of the Keller sensor
+ * @param newSlaveAddress The new slave address for the Keller sensor
+ *
+ * @return The new slave address
+ */
+uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
+{
+  uint8_t request[3];
+  uint8_t response[5];
+
+  // Fill the Modbus request command
+  request[0] = currentSlaveAddress;
+  request[1] = FunctionWriteDeviceAddress;
+  request[2] = newSlaveAddress;
+
+  // Transmit command and receive response
+  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
+  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+
+  return response[2];
+}
+

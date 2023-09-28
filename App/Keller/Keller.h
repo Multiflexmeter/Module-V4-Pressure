@@ -64,12 +64,12 @@ typedef enum
 #define TEMPERATURE_SENSOR2       0x000A
 #define UART_CONFIGURATION        0x0200
 
+
 /* Keller Functions */
 void KellerInit(uint8_t slaveAddress);
 uint32_t KellerSerialnumber(uint8_t slaveAddress);
 void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
-float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel);
-int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel);
+
 
 #endif /* KELLER_KELLERMODBUS_H_ */
