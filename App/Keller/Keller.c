@@ -14,9 +14,9 @@ void KellerInit(uint8_t slaveAddress)
   request[1] = FunctionInitialiseDevices;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BigEndian);
+  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 10, CRC_BigEndian);
+  ModbusReceive(response, 10, CRC_BIG_ENDIAN);
 }
 
 uint32_t KellerSerialnumber(uint8_t slaveAddress)
@@ -28,9 +28,9 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
   request[1] = FunctionReadSerialNumber;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BigEndian);
+  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 8, CRC_BigEndian);
+  ModbusReceive(response, 8, CRC_BIG_ENDIAN);
 
   return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
@@ -45,9 +45,9 @@ uint8_t KellerReadConfig(uint8_t slaveAddress, uint8_t configNumber)
   request[2] = configNumber;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BigEndian);
+  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 5, CRC_BigEndian);
+  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
   return response[2];
 }
@@ -63,9 +63,9 @@ void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   request[3] = data;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 4, CRC_BigEndian);
+  ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 5, CRC_BigEndian);
+  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
   return;
 }
@@ -100,9 +100,9 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   request[1] = FunctionWriteDeviceAddress;
   request[2] = newSlaveAddress;
 
-  ModbusTransmit(request, 3, CRC_BigEndian);
+  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 5, CRC_BigEndian);
+  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
   return response[2];
 }
@@ -116,9 +116,9 @@ float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel)
   request[1] = FunctionReadChannelFloat;
   request[2] = channel;
 
-  ModbusTransmit(request, 3, CRC_BigEndian);
+  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 9, CRC_BigEndian);
+  ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
   uint32_t vBuffer = ((uint32_t) response[2] << 24) | ((uint32_t) response[3] << 16) | ((uint32_t) response[4] << 8) | ((uint32_t) response[5]);
   float result;
@@ -136,27 +136,10 @@ uint32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
   request[1] = FunctionReadShannelInt;
   request[2] = channel;
 
-  ModbusTransmit(request, 3, CRC_BigEndian);
+  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
-  ModbusReceive(response, 9, CRC_BigEndian);
+  ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
   return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
 }
 
-void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response)
-{
-  uint8_t request[6];
-
-  request[0] = slaveAddress;
-  request[1] = FunctionDiagnostics;
-  request[2] = 0x00;
-  request[3] = 0x00;
-  request[4] = (data & 0xFF00) >> 8;
-  request[5] = (data & 0x00FF);
-
-
-  ModbusTransmit(request, 6, CRC_LittleEndian);
-
-  ModbusReceive(response, 8, CRC_LittleEndian);
-}
-//void Keller_WriteConfiguration(uint8_t deviceAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data)

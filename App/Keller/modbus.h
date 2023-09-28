@@ -40,6 +40,7 @@ typedef enum
 /* Modbus Exception codes */
 typedef enum
 {
+  MODBUS_ERROR =                  -1,
   MODBUS_OK =                     0,
   MODBUS_ILLEGAL_FUNCTION =       1,
   MODBUS_ILLEGAL_DATA_ADDRESS =   2,
@@ -49,8 +50,8 @@ typedef enum
 
 typedef enum
 {
-  CRC_BigEndian,
-  CRC_LittleEndian
+  CRC_BIG_ENDIAN,
+  CRC_LITTLE_ENDIAN
 }CRC_Endianness;
 
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
@@ -61,12 +62,11 @@ void ModbusSetBaudrate(uint32_t baudrate);
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
 void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
-void ModbusEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
-
 MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
 MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);
 
-MODBUS_StatusTypeDef ModbusReadInputRegisters(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
 MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data);
+
+MODBUS_StatusTypeDef ModbusEcho(uint8_t slaveAddress, uint16_t data);
 
 #endif /* KELLER_MODBUS_H_ */

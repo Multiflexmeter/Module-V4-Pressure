@@ -71,6 +71,5 @@ void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel);
 uint32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel);
-void KellerEchoTest(uint8_t slaveAddress, uint16_t data, uint8_t *response);
 
 #endif /* KELLER_KELLERMODBUS_H_ */
