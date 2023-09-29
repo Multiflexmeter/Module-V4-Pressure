@@ -46,7 +46,6 @@
 #include <stdlib.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
-#include "Huba.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,11 +78,18 @@ TIM_HandleTypeDef htim21;
 
 /* USER CODE BEGIN PV */
 state_machine_t state = SLEEP;
-extern bool dataReady;
-extern uint16_t digits;
 
 uint16_t sensor1Samples[SAMPLE_BUFFER_SIZE];
 uint8_t sampleIndex = 0;
+
+enum state{ START1, BYTE1, START2, BYTE2, START3, BYTE3};
+enum state HubaSensor2 = START1;
+uint16_t huba2Count = 0;
+uint16_t huba2Strobetime = 0;
+uint8_t bit_cnt = 0;
+uint8_t byte1 = 0;
+uint8_t byte2 = 0;
+uint8_t byte3 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -161,53 +167,53 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    switch (state)
-    {
-      case STORE_MEASUREMENT:
-        uint16_t samples = readMeasSamples();
-
-        // Add samples to the array
-        if(sampleIndex < samples)
-        {
-          sensor1Samples[sampleIndex] = digits;
-          sampleIndex++;
-        }
-
-        // Store the median in the regesiter
-        else if(sampleIndex >= samples)
-        {
-          digits = findMedian(sensor1Samples, samples);
-          storeMeasurement(digits, 0);
-          sampleIndex = 0;
-        }
-        dataReady = false;
-        state = SLEEP;
-        break;
-
-      case WRITE_REGISTER:
-        writeRegister(regWriteData, regSize+3);
-        writeFlag = false;
-        state = SLEEP;
-        break;
-
-      case SLEEP:
-        // Disable/enable the huba sensor interrupt
-        if(readMeasStart())
-          HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-        else
-          HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
-
-        // Write the received data to the correct register
-        if(writeFlag)
-          state = WRITE_REGISTER;
-
-        // if sensor data is ready then store result in register
-        if(dataReady)
-          state = STORE_MEASUREMENT;
-
-        //sleep();
-        break;
-    }
+//    switch (state)
+//    {
+//      case STORE_MEASUREMENT:
+//        uint16_t samples = readMeasSamples();
+//
+//        // Add samples to the array
+//        if(sampleIndex < samples)
+//        {
+//          sensor1Samples[sampleIndex] = digits;
+//          sampleIndex++;
+//        }
+//
+//        // Store the median in the regesiter
+//        else if(sampleIndex >= samples)
+//        {
+//          digits = findMedian(sensor1Samples, samples);
+//          storeMeasurement(digits, 0);
+//          sampleIndex = 0;
+//        }
+//        dataReady = false;
+//        state = SLEEP;
+//        break;
+//
+//      case WRITE_REGISTER:
+//        writeRegister(regWriteData, regSize+3);
+//        writeFlag = false;
+//        state = SLEEP;
+//        break;
+//
+//      case SLEEP:
+//        // Disable/enable the huba sensor interrupt
+//        if(readMeasStart())
+//          HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+//        else
+//          HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+//
+//        // Write the received data to the correct register
+//        if(writeFlag)
+//          state = WRITE_REGISTER;
+//
+//        // if sensor data is ready then store result in register
+//        if(dataReady)
+//          state = STORE_MEASUREMENT;
+//
+//        //sleep();
+//        break;
+//    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -362,6 +368,7 @@ static void MX_TIM2_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
@@ -381,9 +388,21 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -412,7 +431,7 @@ static void MX_TIM21_Init(void)
 
   /* USER CODE END TIM21_Init 1 */
   htim21.Instance = TIM21;
-  htim21.Init.Prescaler = 32-1;
+  htim21.Init.Prescaler = 0;
   htim21.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim21.Init.Period = 0xFFFF-1;
   htim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -501,14 +520,83 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+  GPIOB->BSRR = (1 << 5);
+  GPIOB->BRR = (1 << 5);
   /* Prevent unused argument(s) compilation warning */
   if(GPIO_Pin == One_wire2_Pin)
-    HubaReceive();
+  {
+    switch (HubaSensor2) {
+      case START1:
+      case START2:
+      case START3:
+        huba2Count = __HAL_TIM_GET_COUNTER(&htim21);
+        HAL_TIM_Base_Start(&htim21);
+        while(GPIOB->IDR & (1<<5) == 0);
+        HAL_TIM_Base_Stop(&htim21);
+        huba2Strobetime = __HAL_TIM_GET_COUNTER(&htim21) - huba2Count;
+        htim21.Instance->ARR = huba2Strobetime;
+        HubaSensor2++;
+        break;
+
+      case BYTE1:
+      case BYTE2:
+      case BYTE3:
+        __HAL_TIM_SET_COUNTER(&htim21, 0);
+        HAL_TIM_Base_Start_IT(&htim21);
+        break;
+    }
+    GPIOB->BSRR = (1 << 5);
+    GPIOB->BRR = (1 << 5);
+  }
   /* NOTE: This function should not be modified, when the callback is needed,
           the HAL_GPIO_EXTI_Callback could be implemented in the user file
  */
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  // Check which version of the timer triggered this callback and toggle LED
+  if (htim == &htim21 )
+  {
+    HAL_TIM_Base_Stop_IT(&htim21);
+    switch (HubaSensor2) {
+      case BYTE1:
+        byte1 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
+        bit_cnt++;
+        GPIOB->BSRR = (1 << 5);
+        GPIOB->BRR = (1 << 5);
+        break;
+
+      case BYTE2:
+        byte2 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
+        bit_cnt++;
+        GPIOB->BSRR = (1 << 5);
+        GPIOB->BRR = (1 << 5);
+        break;
+
+      case BYTE3:
+        byte3 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
+        bit_cnt++;
+        GPIOB->BSRR = (1 << 5);
+        GPIOB->BRR = (1 << 5);
+        break;
+
+      case START1:
+      case START2:
+      case START3:
+        break;
+    }
+
+    if(bit_cnt > 7)
+    {
+      bit_cnt = 0;
+      if(HubaSensor2 == BYTE3)
+        HubaSensor2 = START1;
+      else
+        HubaSensor2++;
+    }
+  }
+}
 /* USER CODE END 4 */
 
 /**
