@@ -57,20 +57,34 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define MCO_Pin GPIO_PIN_0
-#define MCO_GPIO_Port GPIOH
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
-#define LD2_Pin GPIO_PIN_5
-#define LD2_GPIO_Port GPIOA
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
+#define DEBUG_SW2_Pin GPIO_PIN_0
+#define DEBUG_SW2_GPIO_Port GPIOC
+#define DEBUG_SW1_Pin GPIO_PIN_13
+#define DEBUG_SW1_GPIO_Port GPIOC
+#define SLOTID1_Pin GPIO_PIN_0
+#define SLOTID1_GPIO_Port GPIOA
+#define USART_TX_EN_Pin GPIO_PIN_1
+#define USART_TX_EN_GPIO_Port GPIOA
+#define SLOTID2_Pin GPIO_PIN_4
+#define SLOTID2_GPIO_Port GPIOA
+#define SLOTID3_Pin GPIO_PIN_5
+#define SLOTID3_GPIO_Port GPIOA
+#define SLOT_GPIO0_Pin GPIO_PIN_0
+#define SLOT_GPIO0_GPIO_Port GPIOB
+#define SLOT_GPIO2_Pin GPIO_PIN_1
+#define SLOT_GPIO2_GPIO_Port GPIOB
+#define SLOT_GPIO2B2_Pin GPIO_PIN_2
+#define SLOT_GPIO2B2_GPIO_Port GPIOB
+#define DEBUG_LED2_Pin GPIO_PIN_14
+#define DEBUG_LED2_GPIO_Port GPIOB
+#define DEBUG_LED1_Pin GPIO_PIN_15
+#define DEBUG_LED1_GPIO_Port GPIOB
+#define INT_Pin GPIO_PIN_8
+#define INT_GPIO_Port GPIOA
+#define USART_RX_EN_Pin GPIO_PIN_12
+#define USART_RX_EN_GPIO_Port GPIOA
+#define BUCK_EN_Pin GPIO_PIN_3
+#define BUCK_EN_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
