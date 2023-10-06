@@ -61,6 +61,8 @@ typedef enum
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SAMPLE_BUFFER_SIZE  10
+#define TIMCLOCK   32000000
+#define PRESCALAR  1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -74,7 +76,7 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef hlpuart1;
 
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim21;
+TIM_HandleTypeDef htim22;
 
 /* USER CODE BEGIN PV */
 state_machine_t state = SLEEP;
@@ -84,12 +86,14 @@ uint8_t sampleIndex = 0;
 
 enum state{ START1, BYTE1, START2, BYTE2, START3, BYTE3};
 enum state HubaSensor2 = START1;
-uint16_t huba2Count = 0;
-uint16_t huba2Strobetime = 0;
-uint8_t bit_cnt = 0;
-uint8_t byte1 = 0;
-uint8_t byte2 = 0;
-uint8_t byte3 = 0;
+
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+int Is_First_Captured = 0;
+/* Measure Width */
+uint32_t usWidth = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,7 +102,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM21_Init(void);
+static void MX_TIM22_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -157,7 +161,7 @@ int main(void)
   MX_I2C1_Init();
   MX_LPUART1_UART_Init();
   MX_TIM2_Init();
-  MX_TIM21_Init();
+  MX_TIM22_Init();
   /* USER CODE BEGIN 2 */
   HAL_I2C_EnableListen_IT(&hi2c1);
   HAL_TIM_Base_Start(&htim2);
@@ -413,47 +417,60 @@ static void MX_TIM2_Init(void)
 }
 
 /**
-  * @brief TIM21 Initialization Function
+  * @brief TIM22 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM21_Init(void)
+static void MX_TIM22_Init(void)
 {
 
-  /* USER CODE BEGIN TIM21_Init 0 */
+  /* USER CODE BEGIN TIM22_Init 0 */
 
-  /* USER CODE END TIM21_Init 0 */
+  /* USER CODE END TIM22_Init 0 */
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
 
-  /* USER CODE BEGIN TIM21_Init 1 */
+  /* USER CODE BEGIN TIM22_Init 1 */
 
-  /* USER CODE END TIM21_Init 1 */
-  htim21.Instance = TIM21;
-  htim21.Init.Prescaler = 0;
-  htim21.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim21.Init.Period = 0xFFFF-1;
-  htim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim21.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim21) != HAL_OK)
+  /* USER CODE END TIM22_Init 1 */
+  htim22.Instance = TIM22;
+  htim22.Init.Prescaler = 0;
+  htim22.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim22.Init.Period = 65535;
+  htim22.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim22.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim22) != HAL_OK)
   {
     Error_Handler();
   }
   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim21, &sClockSourceConfig) != HAL_OK)
+  if (HAL_TIM_ConfigClockSource(&htim22, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim22) != HAL_OK)
   {
     Error_Handler();
   }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim21, &sMasterConfig) != HAL_OK)
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim22, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM21_Init 2 */
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim22, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM22_Init 2 */
 
-  /* USER CODE END TIM21_Init 2 */
+  /* USER CODE END TIM22_Init 2 */
 
 }
 
@@ -496,12 +513,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : One_wire2_Pin */
-  GPIO_InitStruct.Pin = One_wire2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(One_wire2_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : debug_Pin */
   GPIO_InitStruct.Pin = debug_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -518,82 +529,37 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-  GPIOB->BSRR = (1 << 5);
-  GPIOB->BRR = (1 << 5);
-  /* Prevent unused argument(s) compilation warning */
-  if(GPIO_Pin == One_wire2_Pin)
+  if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (htim == &htim22))  // if the interrupt source is channel1
   {
-    switch (HubaSensor2) {
-      case START1:
-      case START2:
-      case START3:
-        huba2Count = __HAL_TIM_GET_COUNTER(&htim21);
-        HAL_TIM_Base_Start(&htim21);
-        while(GPIOB->IDR & (1<<5) == 0);
-        HAL_TIM_Base_Stop(&htim21);
-        huba2Strobetime = __HAL_TIM_GET_COUNTER(&htim21) - huba2Count;
-        htim21.Instance->ARR = huba2Strobetime;
-        HubaSensor2++;
-        break;
-
-      case BYTE1:
-      case BYTE2:
-      case BYTE3:
-        __HAL_TIM_SET_COUNTER(&htim21, 0);
-        HAL_TIM_Base_Start_IT(&htim21);
-        break;
-    }
-    GPIOB->BSRR = (1 << 5);
-    GPIOB->BRR = (1 << 5);
-  }
-  /* NOTE: This function should not be modified, when the callback is needed,
-          the HAL_GPIO_EXTI_Callback could be implemented in the user file
- */
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  // Check which version of the timer triggered this callback and toggle LED
-  if (htim == &htim21 )
-  {
-    HAL_TIM_Base_Stop_IT(&htim21);
-    switch (HubaSensor2) {
-      case BYTE1:
-        byte1 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
-        bit_cnt++;
-        GPIOB->BSRR = (1 << 5);
-        GPIOB->BRR = (1 << 5);
-        break;
-
-      case BYTE2:
-        byte2 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
-        bit_cnt++;
-        GPIOB->BSRR = (1 << 5);
-        GPIOB->BRR = (1 << 5);
-        break;
-
-      case BYTE3:
-        byte3 |= HAL_GPIO_ReadPin(One_wire2_GPIO_Port, One_wire2_Pin) << (7-bit_cnt);
-        bit_cnt++;
-        GPIOB->BSRR = (1 << 5);
-        GPIOB->BRR = (1 << 5);
-        break;
-
-      case START1:
-      case START2:
-      case START3:
-        break;
-    }
-
-    if(bit_cnt > 7)
+    if (Is_First_Captured==0) // if the first value is not captured
     {
-      bit_cnt = 0;
-      if(HubaSensor2 == BYTE3)
-        HubaSensor2 = START1;
-      else
-        HubaSensor2++;
+      IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
+      Is_First_Captured = 1;  // set the first captured as true
+    }
+
+    else   // if the first is already captured
+    {
+      IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
+
+      if (IC_Val2 > IC_Val1)
+      {
+        Difference = IC_Val2-IC_Val1;
+      }
+
+      else if (IC_Val1 > IC_Val2)
+      {
+        Difference = (0xffffffff - IC_Val1) + IC_Val2;
+      }
+
+      float refClock = TIMCLOCK/(PRESCALAR);
+      float mFactor = 1000000/refClock;
+
+      usWidth = Difference*mFactor;
+
+      __HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+      Is_First_Captured = 0; // set it back to false
     }
   }
 }

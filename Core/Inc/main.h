@@ -72,9 +72,10 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define One_wire2_Pin GPIO_PIN_4
-#define One_wire2_GPIO_Port GPIOB
-#define One_wire2_EXTI_IRQn EXTI4_15_IRQn
+#define Onewire1_Pin GPIO_PIN_15
+#define Onewire1_GPIO_Port GPIOA
+#define Onewire2_Pin GPIO_PIN_4
+#define Onewire2_GPIO_Port GPIOB
 #define debug_Pin GPIO_PIN_5
 #define debug_GPIO_Port GPIOB
 
