@@ -1,6 +1,10 @@
 [dD]ebug/
 [rR]elease/
 [dD]ocumentation/
+html/
+latex/
+.mxproject
 .settings/language.settings.xml
 .settings/stm32cubeide.project.prefs
 .settings/com.st.stm32cube.ide.mcu.sfrview.prefs
+*.launch

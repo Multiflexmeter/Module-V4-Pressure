@@ -44,6 +44,7 @@ const SensorReg registers[] =
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
 };
 
+
 /**
  * @brief Find the index of the register in the constant register array.
  * @param regAddress The register address for which the index must be determined
@@ -63,9 +64,9 @@ int8_t findRegIndex(uint8_t regAddress)
 }
 
 /**
- * @brief
- * @param data
- * @param lenght
+ * @brief Writes data to a register
+ * @param data The data to write to the register
+ * @param lenght The size of the data to write to the register
  */
 void writeRegister(uint8_t *data, size_t lenght)
 {
