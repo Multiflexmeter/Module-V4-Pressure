@@ -46,6 +46,7 @@
 #include "I2C_Slave.h"
 #include "keller.h"
 #include "modbus.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,10 +73,8 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-volatile uint32_t ADC_Buffer[2];
-volatile uint16_t supplyVSENSORSLOT;
-volatile uint16_t supply3V3;
-float convFactor = (float) ((10000.0 + 10000.0) * 3300) / (4096 * 10000.0);
+extern uint16_t supplyVSENSORSLOT;
+extern uint16_t supply3V3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -134,9 +133,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    ADC_Start(&hadc);
     HAL_GPIO_TogglePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin);
     HAL_Delay(1000);
-    HAL_ADC_Start_DMA(&hadc, ADC_Buffer, 2);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -419,11 +419,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-  supply3V3 = ADC_Buffer[0] * convFactor;
-  supplyVSENSORSLOT = ADC_Buffer[1] * convFactor;
-}
+
 /* USER CODE END 4 */
 
 /**

@@ -15,11 +15,11 @@
 #define REQUEST_SIZE              6
 
 /* User defined enable pins */
-#define RX_ENABLE_PORT            USART_RX_Enable_GPIO_Port
-#define RX_ENABLE_PIN             USART_RX_Enable_Pin
+#define RX_ENABLE_PORT            USART_RX_EN_GPIO_Port
+#define RX_ENABLE_PIN             USART_RX_EN_Pin
 
-#define TX_ENABLE_PORT            USART_TX_Enable_GPIO_Port
-#define TX_ENABLE_PIN             USART_TX_Enable_Pin
+#define TX_ENABLE_PORT            USART_TX_EN_GPIO_Port
+#define TX_ENABLE_PIN             USART_TX_EN_Pin
 
 #define MODBUS_TIMEOUT            100
 
