@@ -74,4 +74,9 @@ int8_t findRegIndex(uint8_t regAddress);
 void writeRegister(uint8_t *data, size_t lenght);
 void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 
+/* Internal register access functions */
+uint8_t readMeasStart(void);
+uint16_t readMeasSamples(void);
+void storeMeasurement(uint16_t data, uint8_t sensor);
+
 #endif /* SENSORREGISTER_H_ */
