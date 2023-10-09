@@ -51,7 +51,12 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum
+{
+  POLL_SENSOR,
+  WRITE_REGISTER,
+  SLEEP,
+} state_machine_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -126,17 +131,31 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ADC_Start(&hadc);
-    HAL_GPIO_TogglePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin);
-    HAL_Delay(1000);
-
+    switch (state)
+    {
+      case POLL_SENSOR:
+        //readSensor();
+        break;
+      case WRITE_REGISTER:
+        writeRegister(regWriteData, regSize+3);
+        writeFlag = false;
+        state = SLEEP;
+        break;
+      case SLEEP:
+        if(writeFlag)
+          state = WRITE_REGISTER;
+        //sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
