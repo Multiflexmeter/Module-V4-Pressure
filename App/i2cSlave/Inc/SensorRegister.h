@@ -79,7 +79,7 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 /* Internal register access functions */
 uint8_t readMeasStart(void);
 uint16_t readMeasSamples(void);
-void storeMeasurement(uint16_t data, uint8_t sensor);
+void storeMeasurement(int32_t data, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 
 #endif /* SENSORREGISTER_H_ */

@@ -107,20 +107,20 @@ static void MX_USART2_UART_Init(void);
 // Function to compare two uint16_t for qsort
 int cmpfunc(const void* a, const void* b)
 {
-    return (*(uint16_t*)a - *(uint16_t*)b);
+  return (*(int32_t*)a - *(int32_t*)b);
 }
 
 // Function for calculating median
-uint16_t findMedian(uint16_t a[], uint8_t n)
+int32_t findMedian(int32_t a[], uint8_t n)
 {
-    // First we sort the array
-    qsort(a, n, sizeof(uint16_t), cmpfunc);
+  // First we sort the array
+  qsort(a, n, sizeof(int32_t), cmpfunc);
 
-    // check for even case
-    if (n % 2 != 0)
-        return (uint16_t)a[n / 2];
+  // check for even case
+  if (n % 2 != 0)
+      return (int32_t)a[n / 2];
 
-    return (uint16_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+  return (int32_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 /* USER CODE END 0 */
 
@@ -176,16 +176,16 @@ int main(void)
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
-          sensor1Samples[sample] = KellerReadTemperature(0x01);
+          sensor1Samples[sample] = KellerReadTemperature(0x02);
           HAL_Delay(1);
-          sensor2Samples[sample] = KellerReadPressure(0x01);
+          sensor2Samples[sample] = KellerReadPressure(0x02);
           HAL_Delay(1);
         }
 
         /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
-        //storeMeasurement(findMedian(sensor1Samples, samples), 1);
-        //storeMeasurement(findMedian(sensor2Samples, samples), 1);
+        storeMeasurement(findMedian(sensor1Samples, samples), 0);
+        storeMeasurement(findMedian(sensor2Samples, samples), 1);
         setMeasurementStatus(MEASUREMENT_DONE);
         currentState = SLEEP;
         break;

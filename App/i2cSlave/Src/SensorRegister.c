@@ -134,7 +134,7 @@ uint16_t readMeasSamples(void)
  * @param data is the raw sensor data
  * @param sensor is the sensor the data is taken from
  */
-void storeMeasurement(uint16_t data, uint8_t sensor)
+void storeMeasurement(int32_t data, uint8_t sensor)
 {
   registerMeasurementData[sensor] = data;
 }
