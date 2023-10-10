@@ -9,15 +9,12 @@
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12
-#define REG_MEAS_SIZE             0x20
-#define REG_MEAS_DATA             0x21
+#define REG_MEAS_DATA             0x20
 #define REG_SENSOR_AMOUNT         0x30
 #define REG_SENSOR_SELECTED       0x31
 #define REG_MEAS_TYPE             0x32
 #define REG_MEAS_SAMPLES          0x33
-#define REG_SENSOR_UNIT           0x37
-#define REG_SENSOR_SIZE           0x38
-#define REG_SENSOR_DATA           0x39
+#define REG_SENSOR_DATA           0x38
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
@@ -28,14 +25,11 @@
 #define DEF_MEAS_START        0x00
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064
-#define DEF_MEAS_SIZE         0x04
 #define DEF_MEAS_DATA         0xFFFFFFFF
 #define DEF_SENSOR_AMOUNT     0x02
 #define DEF_SENSOR_SELECTED   0x00
 #define DEF_MEAS_TYPE         0x00
 #define DEF_MEAS_SAMPLES      0x000A
-#define DEF_SENSOR_UNIT       0x02
-#define DEF_SENSOR_SIZE       0x02
 #define DEF_SENSOR_DATA       0xFFFF
 #define DEF_ERROR_COUNT       0x0000
 #define DEF_ERROR_STATUS      0

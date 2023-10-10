@@ -11,14 +11,11 @@ static uint16_t registerSensorType = DEF_SENSOR_TYPE;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static uint8_t registerMeasurementSize = DEF_MEAS_SIZE;
 static int32_t registerMeasurementData[2] = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint16_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static uint8_t registerSensorUnit = DEF_SENSOR_UNIT;
-static uint8_t registerSensorSize = DEF_SENSOR_SIZE;
 static uint16_t registerSensorData = DEF_SENSOR_DATA;
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
@@ -31,14 +28,11 @@ const SensorReg registers[] =
     {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE},
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
-    {REG_MEAS_SIZE,         &registerMeasurementSize,     UINT8_T,  1,  READ},
     {REG_MEAS_DATA,         &registerMeasurementData,     INT32_T,  2,  READ},
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT16_T, 1,  READWRITE},
-    {REG_SENSOR_UNIT,       &registerSensorUnit,          UINT8_T,  1,  READ},
-    {REG_SENSOR_SIZE,       &registerSensorSize,          UINT8_T,  1,  READ},
     {REG_SENSOR_DATA,       &registerSensorData,          UINT16_T, 1,  READ},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
