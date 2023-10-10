@@ -119,3 +119,7 @@ void storeMeasurement(uint16_t data, uint8_t sensor)
   registerMeasurementData[sensor] = data;
 }
 
+void setMeasurementStatus(uint8_t status)
+{
+  registerMeasurementStatus = status;
+}

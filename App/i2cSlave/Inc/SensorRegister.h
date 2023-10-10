@@ -58,6 +58,12 @@ typedef enum{
   READWRITE
 }tENUM_READWRITE;
 
+typedef enum{
+  NO_MEASUREMENT = 0x00,
+  MEASUREMENT_ACTIVE = 0x01,
+  MEASUREMENT_DONE = 0x0A
+}MeasurementStatus;
+
 typedef struct
 {
   uint8_t adres;
@@ -78,5 +84,6 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 uint8_t readMeasStart(void);
 uint16_t readMeasSamples(void);
 void storeMeasurement(uint16_t data, uint8_t sensor);
+void setMeasurementStatus(MeasurementStatus status);
 
 #endif /* SENSORREGISTER_H_ */

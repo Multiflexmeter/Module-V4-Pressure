@@ -169,7 +169,11 @@ int main(void)
     switch (currentState)
     {
       case POLL_SENSOR:
+        /* Initialize both Keller sensors */
         KellerInit(0x01);
+        KellerInit(0x02);
+
+        /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
           sensor1Samples[sample] = KellerReadTemperature(0x01);
@@ -177,8 +181,12 @@ int main(void)
           sensor2Samples[sample] = KellerReadPressure(0x01);
           HAL_Delay(1);
         }
+
+        /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
-        //storeMeasurement(findMedian(sensor1Samples,samples), 1);
+        //storeMeasurement(findMedian(sensor1Samples, samples), 1);
+        //storeMeasurement(findMedian(sensor2Samples, samples), 1);
+        setMeasurementStatus(MEASUREMENT_DONE);
         currentState = SLEEP;
         break;
 
@@ -194,7 +202,9 @@ int main(void)
 
         if(1)
         {
+          HAL_Delay(3000);
           currentState = POLL_SENSOR;
+          setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
           HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
           HAL_Delay(250);
