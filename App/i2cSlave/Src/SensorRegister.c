@@ -41,6 +41,7 @@ const SensorReg registers[] =
 
 /**
  * @brief Find the index of the register in the constant register array.
+ *
  * @param regAddress The register address for which the index must be determined
  * @return The index of the provided register
  */
@@ -59,6 +60,7 @@ int8_t findRegIndex(uint8_t regAddress)
 
 /**
  * @brief Writes data to a register
+ *
  * @param data The data to write to the register
  * @param lenght The size of the data to write to the register
  */
@@ -66,10 +68,10 @@ void writeRegister(uint8_t *data, size_t lenght)
 {
   int8_t regIndex = findRegIndex(data[0]);
 
-  // Check if writing to register is allowed
+  /* Check if writing to register is allowed */
   if(registers[regIndex].RW == READWRITE)
   {
-    // Check the CRC of the message
+    /* Check the CRC of the message */
     if(calculateCRC_CCITT(data, lenght) == 0)
     {
       if(registers[regIndex].datatype == UINT8_T)
@@ -79,40 +81,69 @@ void writeRegister(uint8_t *data, size_t lenght)
       }
       else if(registers[regIndex].datatype == UINT16_T)
       {
-        // convert the 2 uint8_t byte array to a uint16_t
+        /* convert the 2 uint8_t byte array to a uint16_t */
         uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
         memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
       }
     }
-    // Message CRC is not correct. CRC error occurred
+    /* Message CRC is not correct. CRC error occurred */
     else
       registerErrorStatus = CRC_ERROR;
   }
-  // Register is read only. Write error occurred
+  /* Register is read only. Write error occurred */
   else
     registerErrorStatus = WRITE_ERROR;
 }
 
+/**
+ * @brief Reads the register and copies the data to a buffer
+ *
+ * @param regIndex is the register index to copy from
+ * @param data is the data buffer to copy the data to
+ * @param size is the size of the data
+ */
 void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
 {
   memcpy(data, registers[regIndex].regPtr, size);
 }
 
+/**
+ * @brief Reads the measurement start register
+ *
+ * @return Returns 1 if the measurement is started
+ *         Returns 0 if the measurements is stopped
+ */
 uint8_t readMeasStart(void)
 {
   return registerMeasurementStart;
 }
 
+/**
+ * @brief Reads the amount of samples the measurement must have
+ *
+ * @return returns the amount of samples
+ */
 uint16_t readMeasSamples(void)
 {
   return registerMeasurementSamples;
 }
 
+/**
+ * @brief Stores the measurement in the designated register
+ *
+ * @param data is the raw sensor data
+ * @param sensor is the sensor the data is taken from
+ */
 void storeMeasurement(uint16_t data, uint8_t sensor)
 {
   registerMeasurementData[sensor] = data;
 }
 
+/**
+ * @brief Set the measurement status
+ *
+ * @param status is the status to set
+ */
 void setMeasurementStatus(MeasurementStatus status)
 {
   registerMeasurementStatus = status;
