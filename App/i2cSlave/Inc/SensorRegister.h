@@ -29,7 +29,7 @@
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064
 #define DEF_MEAS_SIZE         0x04
-#define DEF_MEAS_DATA         0xFFFF
+#define DEF_MEAS_DATA         0xFFFFFFFF
 #define DEF_SENSOR_AMOUNT     0x02
 #define DEF_SENSOR_SELECTED   0x00
 #define DEF_MEAS_TYPE         0x00
@@ -43,7 +43,8 @@
 /* Typedefs */
 typedef enum{
   UINT8_T = 1,
-  UINT16_T = 2
+  UINT16_T = 2,
+  INT32_T = 4
 }tENUM_Datatype;
 
 typedef enum{
@@ -61,7 +62,8 @@ typedef enum{
 typedef enum{
   NO_MEASUREMENT = 0x00,
   MEASUREMENT_ACTIVE = 0x01,
-  MEASUREMENT_DONE = 0x0A
+  MEASUREMENT_DONE = 0x0A,
+  MEASUREMENT_ERROR = 0xF0
 }MeasurementStatus;
 
 typedef struct

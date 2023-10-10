@@ -12,7 +12,7 @@ static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
 static uint8_t registerMeasurementSize = DEF_MEAS_SIZE;
-static uint16_t registerMeasurementData[2] = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static int32_t registerMeasurementData[2] = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
@@ -32,7 +32,7 @@ const SensorReg registers[] =
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
     {REG_MEAS_SIZE,         &registerMeasurementSize,     UINT8_T,  1,  READ},
-    {REG_MEAS_DATA,         &registerMeasurementData,     UINT16_T, 2,  READ},
+    {REG_MEAS_DATA,         &registerMeasurementData,     INT32_T,  2,  READ},
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
@@ -119,7 +119,7 @@ void storeMeasurement(uint16_t data, uint8_t sensor)
   registerMeasurementData[sensor] = data;
 }
 
-void setMeasurementStatus(uint8_t status)
+void setMeasurementStatus(MeasurementStatus status)
 {
   registerMeasurementStatus = status;
 }
