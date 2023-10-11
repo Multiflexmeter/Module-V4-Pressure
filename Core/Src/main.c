@@ -82,6 +82,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
+extern bool writeFlag;
 
 int32_t sensor1Samples[SAMPLE_BUFFER_SIZE];
 int32_t sensor2Samples[SAMPLE_BUFFER_SIZE];
@@ -159,6 +160,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
+  HAL_I2C_EnableListen_IT(&hi2c1);
 
   /* USER CODE END 2 */
 
@@ -176,6 +178,7 @@ int main(void)
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
+          //todo sample pressure and temp of both sensors
           sensor1Samples[sample] = KellerReadTemperature(0x02);
           HAL_Delay(1);
           sensor2Samples[sample] = KellerReadPressure(0x02);
@@ -187,6 +190,7 @@ int main(void)
         storeMeasurement(findMedian(sensor1Samples, samples), 0);
         storeMeasurement(findMedian(sensor2Samples, samples), 1);
         setMeasurementStatus(MEASUREMENT_DONE);
+        stopMeas();
         currentState = SLEEP;
         break;
 
@@ -200,7 +204,7 @@ int main(void)
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
-        if(1)
+        if(readMeasStart())
         {
           HAL_Delay(3000);
           currentState = POLL_SENSOR;
@@ -352,7 +356,7 @@ static void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x00707CBB;
-  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.OwnAddress1 = 34;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;

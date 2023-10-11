@@ -15,7 +15,7 @@ static int32_t registerMeasurementData[2] = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
-static uint16_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
+static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
 static uint16_t registerSensorData = DEF_SENSOR_DATA;
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
@@ -32,7 +32,7 @@ const SensorReg registers[] =
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
-    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT16_T, 1,  READWRITE},
+    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE},
     {REG_SENSOR_DATA,       &registerSensorData,          UINT16_T, 1,  READ},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
@@ -118,12 +118,17 @@ uint8_t readMeasStart(void)
   return registerMeasurementStart;
 }
 
+void stopMeas(void)
+{
+  registerMeasurementStart = 0;
+}
+
 /**
  * @brief Reads the amount of samples the measurement must have
  *
  * @return returns the amount of samples
  */
-uint16_t readMeasSamples(void)
+uint8_t readMeasSamples(void)
 {
   return registerMeasurementSamples;
 }

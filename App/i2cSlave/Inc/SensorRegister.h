@@ -29,7 +29,7 @@
 #define DEF_SENSOR_AMOUNT     0x02
 #define DEF_SENSOR_SELECTED   0x00
 #define DEF_MEAS_TYPE         0x00
-#define DEF_MEAS_SAMPLES      0x000A
+#define DEF_MEAS_SAMPLES      0x0A
 #define DEF_SENSOR_DATA       0xFFFF
 #define DEF_ERROR_COUNT       0x0000
 #define DEF_ERROR_STATUS      0
@@ -78,7 +78,8 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 
 /* Internal register access functions */
 uint8_t readMeasStart(void);
-uint16_t readMeasSamples(void);
+void stopMeas(void);
+uint8_t readMeasSamples(void);
 void storeMeasurement(int32_t data, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 
