@@ -30,8 +30,8 @@ void sensorSlaveTransmit(uint8_t *data, uint8_t size)
 {
   // Calculate the crc of the message
   uint16_t crc = calculateCRC_CCITT(data, size);
-  data[size] = crc & 0xFF;
-  data[size+1] = crc >> 8 & 0xFF;
+  data[size+1] = crc & 0xFF;
+  data[size] = crc >> 8 & 0xFF;
 
   // Transmit the data + crc over the i2c bus
   HAL_I2C_Slave_Seq_Transmit_IT(&hi2c1, data, size+CRC_SIZE, I2C_FIRST_AND_LAST_FRAME);
