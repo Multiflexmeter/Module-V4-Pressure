@@ -5,7 +5,7 @@
 #include "crc16.h"
 
 /* Register Declaration */
-static uint8_t registerFirmwareVersion[10];
+static uint8_t registerFirmwareVersion[10] = DEF_FIRMWARE_VERSION;
 static uint8_t registerProtocolVersion = DEF_PROTOCOL_VERSION;
 static uint16_t registerSensorType = DEF_SENSOR_TYPE;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
