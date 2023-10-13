@@ -187,8 +187,7 @@ int main(void)
 
         /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
-        storeMeasurement(findMedian(sensor1Samples, samples), 0);
-        storeMeasurement(findMedian(sensor2Samples, samples), 1);
+        storeMeasurement(findMedian(sensor2Samples, samples), findMedian(sensor1Samples, samples), 0);
         setMeasurementStatus(MEASUREMENT_DONE);
         stopMeas();
         currentState = SLEEP;
@@ -206,7 +205,6 @@ int main(void)
 
         if(readMeasStart())
         {
-          HAL_Delay(3000);
           currentState = POLL_SENSOR;
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();

@@ -38,7 +38,7 @@
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
-  INT32_T = 4
+  SENSORDATA = 8
 }tENUM_Datatype;
 
 typedef enum{
@@ -60,6 +60,18 @@ typedef enum{
   MEASUREMENT_ERROR = 0xF0
 }MeasurementStatus;
 
+typedef enum{
+  SINGLE_SAMPLE  = 0x00,
+  AVERAGE_SAMPLE = 0x10,
+  MEDIAN_SAMPLE  = 0x20
+}MeasurementType;
+
+typedef struct __attribute__((__packed__))
+{
+  int32_t pressure;
+  int32_t temperature;
+}SensorDataKeller;
+
 typedef struct
 {
   uint8_t adres;
@@ -80,7 +92,7 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
-void storeMeasurement(int32_t data, uint8_t sensor);
+void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 
 #endif /* SENSORREGISTER_H_ */

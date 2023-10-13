@@ -11,7 +11,7 @@ static uint16_t registerSensorType = DEF_SENSOR_TYPE;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static int32_t registerMeasurementData[2] = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorDataKeller registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}, {DEF_MEAS_DATA, DEF_MEAS_DATA}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
@@ -28,7 +28,7 @@ const SensorReg registers[] =
     {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE},
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
-    {REG_MEAS_DATA,         &registerMeasurementData,     INT32_T,  2,  READ},
+    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ},
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
@@ -139,9 +139,10 @@ uint8_t readMeasSamples(void)
  * @param data is the raw sensor data
  * @param sensor is the sensor the data is taken from
  */
-void storeMeasurement(int32_t data, uint8_t sensor)
+void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor)
 {
-  registerMeasurementData[sensor] = data;
+  registerMeasurementData[sensor].pressure = pressure;
+  registerMeasurementData[sensor].temperature = temperature;
 }
 
 /**

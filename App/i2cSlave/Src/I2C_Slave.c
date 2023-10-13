@@ -12,7 +12,7 @@ extern I2C_HandleTypeDef hi2c1;
 
 uint8_t RxData[RxSIZE];
 uint8_t regWriteData[RxSIZE];
-uint8_t txBuffer[12];
+uint8_t txBuffer[32];
 
 int8_t regIndex;
 uint8_t regSize;
