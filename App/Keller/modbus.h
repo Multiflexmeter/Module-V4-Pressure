@@ -58,6 +58,7 @@ typedef enum
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
 void ModbusEnableTX(void);
 void ModbusDisableTX(void);
+void ModbusShutdown(void);
 void ModbusSetBaudrate(uint32_t baudrate);
 
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);

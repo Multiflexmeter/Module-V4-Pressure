@@ -41,6 +41,15 @@ void ModbusDisableTX(void)
 }
 
 /**
+ * @brief Put the RS485 Driver in shutdown
+ */
+void ModbusShutdown(void)
+{
+  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET);
+}
+
+/**
  * @brief Change the baudrate of the Modbus communication
  *
  * @param baudrate is the new baudrate for the Modbus communication
