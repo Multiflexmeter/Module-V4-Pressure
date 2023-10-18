@@ -58,8 +58,17 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   else
   {
     // Transmit the data in the selected register
-    readRegister(regIndex, txBuffer, regSize);
-    sensorSlaveTransmit(txBuffer, regSize);
+    if(registers[regIndex].adres == REG_MEAS_DATA)
+    {
+      txBuffer[0] = regSize;
+      readRegister(regIndex, txBuffer+1, regSize);
+      sensorSlaveTransmit(txBuffer, regSize+1);
+    }
+    else
+    {
+      readRegister(regIndex, txBuffer, regSize);
+      sensorSlaveTransmit(txBuffer, regSize);
+    }
   }
 }
 

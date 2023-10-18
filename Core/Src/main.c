@@ -140,7 +140,6 @@ uint8_t getSlotID(void)
 
 void enter_Sleep( void )
 {
-  PWR->CR |= PWR_CR_LPSDSR; // voltage regulator in low-power mode during sleep
   /* Configure low-power mode */
   SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
 
