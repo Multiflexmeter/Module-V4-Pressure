@@ -94,5 +94,6 @@ void stopMeas(void);
 uint8_t readMeasSamples(void);
 void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
+void storeSelectedSensor(uint8_t sensor);
 
 #endif /* SENSORREGISTER_H_ */

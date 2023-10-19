@@ -220,7 +220,14 @@ int main(void)
         break;
 
       case WRITE_REGISTER:
-        writeRegister(regWriteData, regSize+3);
+        if(regWriteData[0] == REG_SENSOR_SELECTED)
+        {
+          writeRegister(regWriteData, regSize+3);
+          storeSelectedSensor(regWriteData[1]);
+        }
+        else
+          writeRegister(regWriteData, regSize+3);
+
         writeFlag = false;
         currentState = SLEEP;
         break;

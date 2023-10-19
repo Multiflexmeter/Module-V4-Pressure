@@ -16,7 +16,7 @@ static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static uint16_t registerSensorData = DEF_SENSOR_DATA;
+static SensorDataKeller registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
@@ -33,7 +33,7 @@ const SensorReg registers[] =
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE},
-    {REG_SENSOR_DATA,       &registerSensorData,          UINT16_T, 1,  READ},
+    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
 };
@@ -153,4 +153,14 @@ void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor)
 void setMeasurementStatus(MeasurementStatus status)
 {
   registerMeasurementStatus = status;
+}
+
+void storeSelectedSensor(uint8_t sensor)
+{
+  /* Ignore invalid sensor numbers */
+  if(sensor > (registerSensorAmount-1))
+    return;
+
+  /* Store selected sensor data */
+  registerSensorData = registerMeasurementData[sensor];
 }
