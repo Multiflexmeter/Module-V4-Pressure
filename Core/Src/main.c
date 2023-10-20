@@ -138,6 +138,19 @@ uint8_t getSlotID(void)
   return slotID;
 }
 
+void setSlaveAddress(uint8_t slotID)
+{
+  if(slotID <= 0)
+    slotID = 1;
+
+  uint8_t slaveAddress = (0x11<<1) + (slotID-1);
+
+  __HAL_I2C_DISABLE(&hi2c1);
+  hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
+  hi2c1.Instance->OAR1 = (I2C_OAR1_OA1EN | slaveAddress);
+  __HAL_I2C_ENABLE(&hi2c1);
+}
+
 void enter_Sleep( void )
 {
   /* Configure low-power mode */
@@ -185,7 +198,7 @@ int main(void)
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
-  getSlotID();
+  setSlaveAddress(getSlotID());
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -384,7 +397,7 @@ static void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 34;
+  hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
