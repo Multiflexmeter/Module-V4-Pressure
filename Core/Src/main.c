@@ -42,6 +42,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
@@ -61,7 +63,7 @@ typedef enum
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SAMPLE_BUFFER_SIZE  10
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -80,6 +82,13 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
+extern bool writeFlag;
+
+int32_t sensor1Samples[SAMPLE_BUFFER_SIZE];
+int32_t sensor2Samples[SAMPLE_BUFFER_SIZE];
+
+state_machine_t currentState = SLEEP;
+uint16_t samples;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +105,61 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// Function to compare two uint16_t for qsort
+int cmpfunc(const void* a, const void* b)
+{
+  return (*(int32_t*)a - *(int32_t*)b);
+}
+
+// Function for calculating median
+int32_t findMedian(int32_t a[], uint8_t n)
+{
+  // First we sort the array
+  qsort(a, n, sizeof(int32_t), cmpfunc);
+
+  // check for even case
+  if (n % 2 != 0)
+      return (int32_t)a[n / 2];
+
+  return (int32_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+uint8_t getSlotID(void)
+{
+  uint8_t slotID;
+  if(HAL_GPIO_ReadPin(SLOTID2_GPIO_Port, SLOTID2_Pin) == 0)
+  {
+    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin);
+  }
+  else
+  {
+    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin) + 3;
+  }
+  return slotID;
+}
+
+void setSlaveAddress(uint8_t slotID)
+{
+  if(slotID <= 0)
+    slotID = 1;
+
+  uint8_t slaveAddress = (0x11<<1) + (slotID-1);
+
+  __HAL_I2C_DISABLE(&hi2c1);
+  hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
+  hi2c1.Instance->OAR1 = (I2C_OAR1_OA1EN | slaveAddress);
+  __HAL_I2C_ENABLE(&hi2c1);
+}
+
+void enter_Sleep( void )
+{
+  /* Configure low-power mode */
+  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
+
+  /* Ensure Flash memory stays on */
+  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
+  __WFI();  // enter low-power mode
+}
 /* USER CODE END 0 */
 
 /**
@@ -133,27 +197,69 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  HAL_I2C_EnableListen_IT(&hi2c1);
+  setSlaveAddress(getSlotID());
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    switch (state)
+    ADC_Start(&hadc);
+    switch (currentState)
     {
       case POLL_SENSOR:
-        //readSensor();
+        /* Initialize both Keller sensors */
+        KellerInit(0x01);
+        KellerInit(0x02);
+
+        /* Collect the samples specified in the MeasurementSamples register */
+        for (uint8_t sample = 0; sample < samples; ++sample)
+        {
+          //todo sample pressure and temp of both sensors
+          sensor1Samples[sample] = KellerReadTemperature(0x02);
+          HAL_Delay(1);
+          sensor2Samples[sample] = KellerReadPressure(0x02);
+          HAL_Delay(1);
+        }
+
+        /* Disable the buck/boost and store the median in the registers */
+        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        ModbusShutdown();
+        storeMeasurement(findMedian(sensor2Samples, samples), findMedian(sensor1Samples, samples), 0);
+        setMeasurementStatus(MEASUREMENT_DONE);
+        stopMeas();
+        currentState = SLEEP;
         break;
+
       case WRITE_REGISTER:
-        writeRegister(regWriteData, regSize+3);
+        if(regWriteData[0] == REG_SENSOR_SELECTED)
+        {
+          writeRegister(regWriteData, regSize+3);
+          storeSelectedSensor(regWriteData[1]);
+        }
+        else
+          writeRegister(regWriteData, regSize+3);
+
         writeFlag = false;
-        state = SLEEP;
+        currentState = SLEEP;
         break;
+
       case SLEEP:
         if(writeFlag)
-          state = WRITE_REGISTER;
-        //sleep();
+          currentState = WRITE_REGISTER;
+
+        if(readMeasStart())
+        {
+          currentState = POLL_SENSOR;
+          setMeasurementStatus(MEASUREMENT_ACTIVE);
+          samples = readMeasSamples();
+          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+          ModbusShutdown();
+          HAL_Delay(250);
+        }
+        else
+          enter_Sleep();
         break;
     }
     /* USER CODE END WHILE */
@@ -180,9 +286,8 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -193,7 +298,7 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
@@ -291,7 +396,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00303D5B;
+  hi2c1.Init.Timing = 0x2000090E;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -369,7 +474,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
@@ -387,6 +492,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -394,7 +500,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO2_Pin|SLOT_GPIO2B2_Pin|DEBUG_LED2_Pin
+  HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
                           |DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
@@ -403,8 +509,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOTID1_Pin SLOTID2_Pin SLOTID3_Pin */
-  GPIO_InitStruct.Pin = SLOTID1_Pin|SLOTID2_Pin|SLOTID3_Pin;
+  /*Configure GPIO pins : SLOTID0_Pin SLOTID1_Pin SLOTID2_Pin */
+  GPIO_InitStruct.Pin = SLOTID0_Pin|SLOTID1_Pin|SLOTID2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -416,9 +522,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO2_Pin SLOT_GPIO2B2_Pin DEBUG_LED2_Pin
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin DEBUG_LED2_Pin
                            DEBUG_LED1_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO2_Pin|SLOT_GPIO2B2_Pin|DEBUG_LED2_Pin
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
                           |DEBUG_LED1_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

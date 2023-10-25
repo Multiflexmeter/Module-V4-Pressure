@@ -1,4 +1,4 @@
-
+#include <stdbool.h>
 #include "modbus.h"
 
 #ifndef KELLER_KELLERMODBUS_H_
@@ -91,7 +91,7 @@ typedef enum
 
 
 /* Keller Functions */
-void KellerInit(uint8_t slaveAddress);
+bool KellerInit(uint8_t slaveAddress);
 uint32_t KellerSerialnumber(uint8_t slaveAddress);
 void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
