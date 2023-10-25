@@ -46,13 +46,16 @@
 #include <stdlib.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
+#include "keller.h"
+#include "modbus.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef enum
 {
-  STORE_MEASUREMENT,
+  POLL_SENSOR,
   WRITE_REGISTER,
   SLEEP,
 } state_machine_t;
@@ -61,8 +64,6 @@ typedef enum
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SAMPLE_BUFFER_SIZE  10
-#define TIMCLOCK   32000000
-#define PRESCALAR  1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,38 +72,32 @@ typedef enum
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc;
+DMA_HandleTypeDef hdma_adc;
+
 I2C_HandleTypeDef hi2c1;
 
-UART_HandleTypeDef hlpuart1;
-
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim22;
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-state_machine_t state = SLEEP;
+extern uint16_t supplyVSENSORSLOT;
+extern uint16_t supply3V3;
+extern bool writeFlag;
 
-uint16_t sensor1Samples[SAMPLE_BUFFER_SIZE];
-uint8_t sampleIndex = 0;
+int32_t sensor1Samples[SAMPLE_BUFFER_SIZE];
+int32_t sensor2Samples[SAMPLE_BUFFER_SIZE];
 
-enum state{ START1, BYTE1, START2, BYTE2, START3, BYTE3};
-enum state HubaSensor2 = START1;
-
-uint32_t IC_Val1 = 0;
-uint32_t IC_Val2 = 0;
-uint32_t Difference = 0;
-int Is_First_Captured = 0;
-/* Measure Width */
-uint32_t usWidth = 0;
-
+state_machine_t currentState = SLEEP;
+uint16_t samples;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_ADC_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_LPUART1_UART_Init(void);
-static void MX_TIM2_Init(void);
-static void MX_TIM22_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -113,20 +108,57 @@ static void MX_TIM22_Init(void);
 // Function to compare two uint16_t for qsort
 int cmpfunc(const void* a, const void* b)
 {
-    return (*(uint16_t*)a - *(uint16_t*)b);
+  return (*(int32_t*)a - *(int32_t*)b);
 }
 
 // Function for calculating median
-uint16_t findMedian(uint16_t a[], uint8_t n)
+int32_t findMedian(int32_t a[], uint8_t n)
 {
-    // First we sort the array
-    qsort(a, n, sizeof(uint16_t), cmpfunc);
+  // First we sort the array
+  qsort(a, n, sizeof(int32_t), cmpfunc);
 
-    // check for even case
-    if (n % 2 != 0)
-        return (uint16_t)a[n / 2];
+  // check for even case
+  if (n % 2 != 0)
+      return (int32_t)a[n / 2];
 
-    return (uint16_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+  return (int32_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+uint8_t getSlotID(void)
+{
+  uint8_t slotID;
+  if(HAL_GPIO_ReadPin(SLOTID2_GPIO_Port, SLOTID2_Pin) == 0)
+  {
+    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin);
+  }
+  else
+  {
+    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin) + 3;
+  }
+  return slotID;
+}
+
+void setSlaveAddress(uint8_t slotID)
+{
+  if(slotID <= 0)
+    slotID = 1;
+
+  uint8_t slaveAddress = (0x11<<1) + (slotID-1);
+
+  __HAL_I2C_DISABLE(&hi2c1);
+  hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
+  hi2c1.Instance->OAR1 = (I2C_OAR1_OA1EN | slaveAddress);
+  __HAL_I2C_ENABLE(&hi2c1);
+}
+
+void enter_Sleep( void )
+{
+  /* Configure low-power mode */
+  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
+
+  /* Ensure Flash memory stays on */
+  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
+  __WFI();  // enter low-power mode
 }
 /* USER CODE END 0 */
 
@@ -158,66 +190,78 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_ADC_Init();
   MX_I2C1_Init();
-  MX_LPUART1_UART_Init();
-  MX_TIM2_Init();
-  MX_TIM22_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  ModbusInit(&huart2);
+  HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
-  HAL_TIM_Base_Start(&htim2);
+  setSlaveAddress(getSlotID());
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//    switch (state)
-//    {
-//      case STORE_MEASUREMENT:
-//        uint16_t samples = readMeasSamples();
-//
-//        // Add samples to the array
-//        if(sampleIndex < samples)
-//        {
-//          sensor1Samples[sampleIndex] = digits;
-//          sampleIndex++;
-//        }
-//
-//        // Store the median in the regesiter
-//        else if(sampleIndex >= samples)
-//        {
-//          digits = findMedian(sensor1Samples, samples);
-//          storeMeasurement(digits, 0);
-//          sampleIndex = 0;
-//        }
-//        dataReady = false;
-//        state = SLEEP;
-//        break;
-//
-//      case WRITE_REGISTER:
-//        writeRegister(regWriteData, regSize+3);
-//        writeFlag = false;
-//        state = SLEEP;
-//        break;
-//
-//      case SLEEP:
-//        // Disable/enable the huba sensor interrupt
-//        if(readMeasStart())
-//          HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-//        else
-//          HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
-//
-//        // Write the received data to the correct register
-//        if(writeFlag)
-//          state = WRITE_REGISTER;
-//
-//        // if sensor data is ready then store result in register
-//        if(dataReady)
-//          state = STORE_MEASUREMENT;
-//
-//        //sleep();
-//        break;
-//    }
+    ADC_Start(&hadc);
+    switch (currentState)
+    {
+      case POLL_SENSOR:
+        /* Initialize both Keller sensors */
+        KellerInit(0x01);
+        KellerInit(0x02);
+
+        /* Collect the samples specified in the MeasurementSamples register */
+        for (uint8_t sample = 0; sample < samples; ++sample)
+        {
+          //todo sample pressure and temp of both sensors
+          sensor1Samples[sample] = KellerReadTemperature(0x02);
+          HAL_Delay(1);
+          sensor2Samples[sample] = KellerReadPressure(0x02);
+          HAL_Delay(1);
+        }
+
+        /* Disable the buck/boost and store the median in the registers */
+        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        ModbusShutdown();
+        storeMeasurement(findMedian(sensor2Samples, samples), findMedian(sensor1Samples, samples), 0);
+        setMeasurementStatus(MEASUREMENT_DONE);
+        stopMeas();
+        currentState = SLEEP;
+        break;
+
+      case WRITE_REGISTER:
+        if(regWriteData[0] == REG_SENSOR_SELECTED)
+        {
+          writeRegister(regWriteData, regSize+3);
+          storeSelectedSensor(regWriteData[1]);
+        }
+        else
+          writeRegister(regWriteData, regSize+3);
+
+        writeFlag = false;
+        currentState = SLEEP;
+        break;
+
+      case SLEEP:
+        if(writeFlag)
+          currentState = WRITE_REGISTER;
+
+        if(readMeasStart())
+        {
+          currentState = POLL_SENSOR;
+          setMeasurementStatus(MEASUREMENT_ACTIVE);
+          samples = readMeasSamples();
+          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+          ModbusShutdown();
+          HAL_Delay(250);
+        }
+        else
+          enter_Sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -242,13 +286,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_4;
-  RCC_OscInitStruct.PLL.PLLDIV = RCC_PLLDIV_2;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -258,22 +298,86 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_I2C1;
-  PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_I2C1;
+  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC_Init(void)
+{
+
+  /* USER CODE BEGIN ADC_Init 0 */
+
+  /* USER CODE END ADC_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC_Init 1 */
+
+  /* USER CODE END ADC_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc.Instance = ADC1;
+  hadc.Init.OversamplingMode = DISABLE;
+  hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV1;
+  hadc.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc.Init.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
+  hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
+  hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc.Init.ContinuousConvMode = DISABLE;
+  hadc.Init.DiscontinuousConvMode = DISABLE;
+  hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc.Init.DMAContinuousRequests = DISABLE;
+  hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  hadc.Init.LowPowerAutoWait = DISABLE;
+  hadc.Init.LowPowerFrequencyMode = DISABLE;
+  hadc.Init.LowPowerAutoPowerOff = DISABLE;
+  if (HAL_ADC_Init(&hadc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC_Init 2 */
+
+  /* USER CODE END ADC_Init 2 */
+
 }
 
 /**
@@ -292,8 +396,8 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00707CBB;
-  hi2c1.Init.OwnAddress1 = 34;
+  hi2c1.Init.Timing = 0x2000090E;
+  hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -325,152 +429,53 @@ static void MX_I2C1_Init(void)
 }
 
 /**
-  * @brief LPUART1 Initialization Function
+  * @brief USART2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_LPUART1_UART_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
-  /* USER CODE BEGIN LPUART1_Init 0 */
+  /* USER CODE BEGIN USART2_Init 0 */
 
-  /* USER CODE END LPUART1_Init 0 */
+  /* USER CODE END USART2_Init 0 */
 
-  /* USER CODE BEGIN LPUART1_Init 1 */
+  /* USER CODE BEGIN USART2_Init 1 */
 
-  /* USER CODE END LPUART1_Init 1 */
-  hlpuart1.Instance = LPUART1;
-  hlpuart1.Init.BaudRate = 9600;
-  hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
-  hlpuart1.Init.StopBits = UART_STOPBITS_1;
-  hlpuart1.Init.Parity = UART_PARITY_NONE;
-  hlpuart1.Init.Mode = UART_MODE_TX_RX;
-  hlpuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  hlpuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&hlpuart1) != HAL_OK)
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN LPUART1_Init 2 */
+  /* USER CODE BEGIN USART2_Init 2 */
 
-  /* USER CODE END LPUART1_Init 2 */
+  /* USER CODE END USART2_Init 2 */
 
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
+  * Enable DMA controller clock
   */
-static void MX_TIM2_Init(void)
+static void MX_DMA_Init(void)
 {
 
-  /* USER CODE BEGIN TIM2_Init 0 */
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 32-1;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0xFFFF-1;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
-  * @brief TIM22 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM22_Init(void)
-{
-
-  /* USER CODE BEGIN TIM22_Init 0 */
-
-  /* USER CODE END TIM22_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
-
-  /* USER CODE BEGIN TIM22_Init 1 */
-
-  /* USER CODE END TIM22_Init 1 */
-  htim22.Instance = TIM22;
-  htim22.Init.Prescaler = 0;
-  htim22.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim22.Init.Period = 65535;
-  htim22.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim22.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim22) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim22, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_IC_Init(&htim22) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim22, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim22, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM22_Init 2 */
-
-  /* USER CODE END TIM22_Init 2 */
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -492,77 +497,54 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, USART_TX_Enable_Pin|LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USART_RX_Enable_GPIO_Port, USART_RX_Enable_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
+                          |DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(debug_GPIO_Port, debug_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
+  GPIO_InitStruct.Pin = DEBUG_SW2_Pin|DEBUG_SW1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : USART_TX_Enable_Pin LD2_Pin USART_RX_Enable_Pin */
-  GPIO_InitStruct.Pin = USART_TX_Enable_Pin|LD2_Pin|USART_RX_Enable_Pin;
+  /*Configure GPIO pins : SLOTID0_Pin SLOTID1_Pin SLOTID2_Pin */
+  GPIO_InitStruct.Pin = SLOTID0_Pin|SLOTID1_Pin|SLOTID2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : USART_TX_EN_Pin INT_Pin USART_RX_EN_Pin */
+  GPIO_InitStruct.Pin = USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : debug_Pin */
-  GPIO_InitStruct.Pin = debug_Pin;
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin DEBUG_LED2_Pin
+                           DEBUG_LED1_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
+                          |DEBUG_LED1_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(debug_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+  /*Configure GPIO pin : PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF5_TIM2;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-  if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (htim == &htim22))  // if the interrupt source is channel1
-  {
-    if (Is_First_Captured==0) // if the first value is not captured
-    {
-      IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
-      Is_First_Captured = 1;  // set the first captured as true
-    }
 
-    else   // if the first is already captured
-    {
-      IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
-
-      if (IC_Val2 > IC_Val1)
-      {
-        Difference = IC_Val2-IC_Val1;
-      }
-
-      else if (IC_Val1 > IC_Val2)
-      {
-        Difference = (0xffffffff - IC_Val1) + IC_Val2;
-      }
-
-      float refClock = TIMCLOCK/(PRESCALAR);
-      float mFactor = 1000000/refClock;
-
-      usWidth = Difference*mFactor;
-
-      __HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
-      Is_First_Captured = 0; // set it back to false
-    }
-  }
-}
 /* USER CODE END 4 */
 
 /**

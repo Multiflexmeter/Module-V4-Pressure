@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    stm32l010xb.h
+  * @file    stm32l010x6.h
   * @author  MCD Application Team
   * @brief   CMSIS Cortex-M0+ Device Peripheral Access Layer Header File. 
   *          This file contains all the peripheral register's definitions, bits 
-  *          definitions and memory mapping for stm32l010xb devices.  
+  *          definitions and memory mapping for stm32l010x6 devices.  
   *          
   *          This file contains:
   *           - Data structures and the address mapping for all peripherals
@@ -28,12 +28,12 @@
   * @{
   */
 
-/** @addtogroup stm32l010xb
+/** @addtogroup stm32l010x6
   * @{
   */
     
-#ifndef __STM32L010xB_H
-#define __STM32L010xB_H
+#ifndef __STM32L010x6_H
+#define __STM32L010x6_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -61,7 +61,7 @@
   */
    
 /**
- * @brief stm32l010xb Interrupt Number Definition, according to the selected device 
+ * @brief stm32l010x6 Interrupt Number Definition, according to the selected device 
  *        in @ref Library_configuration_section 
  */
 
@@ -90,7 +90,6 @@ typedef enum
   LPTIM1_IRQn                 = 13,     /*!< LPTIM1 Interrupt                                        */
   TIM2_IRQn                   = 15,     /*!< TIM2 Interrupt                                          */
   TIM21_IRQn                  = 20,     /*!< TIM21 Interrupt                                         */
-  TIM22_IRQn                  = 22,     /*!< TIM22 Interrupt                                         */
   I2C1_IRQn                   = 23,     /*!< I2C1 Interrupt                                          */
   SPI1_IRQn                   = 25,     /*!< SPI1 Interrupt                                          */
   USART2_IRQn                 = 28,     /*!< USART2 Interrupt                                        */
@@ -463,9 +462,9 @@ typedef struct
 #define FLASH_BASE             (0x08000000UL) /*!< FLASH base address in the alias region */
 
 #define DATA_EEPROM_BASE       (0x08080000UL) /*!< DATA_EEPROM base address in the alias region */
-#define DATA_EEPROM_END        (0x080801FFUL) /*!< DATA EEPROM end address in the alias region */
+#define DATA_EEPROM_END        (0x080800FFUL) /*!< DATA EEPROM end address in the alias region */
 #define SRAM_BASE              (0x20000000UL) /*!< SRAM base address in the alias region */
-#define SRAM_SIZE_MAX          (0x00005000UL) /*!< maximum SRAM size (up to 20KBytes) */
+#define SRAM_SIZE_MAX          (0x00002000UL) /*!< maximum SRAM size (up to 8KBytes) */
 
 #define PERIPH_BASE            (0x40000000UL) /*!< Peripheral base address in the alias region */
 
@@ -487,7 +486,6 @@ typedef struct
 #define SYSCFG_BASE           (APBPERIPH_BASE + 0x00010000UL)
 #define EXTI_BASE             (APBPERIPH_BASE + 0x00010400UL)
 #define TIM21_BASE            (APBPERIPH_BASE + 0x00010800UL)
-#define TIM22_BASE            (APBPERIPH_BASE + 0x00011400UL)
 #define ADC1_BASE             (APBPERIPH_BASE + 0x00012400UL)
 #define ADC_BASE              (APBPERIPH_BASE + 0x00012708UL)
 #define SPI1_BASE             (APBPERIPH_BASE + 0x00013000UL)
@@ -514,8 +512,6 @@ typedef struct
 #define GPIOA_BASE            (IOPPERIPH_BASE + 0x00000000UL)
 #define GPIOB_BASE            (IOPPERIPH_BASE + 0x00000400UL)
 #define GPIOC_BASE            (IOPPERIPH_BASE + 0x00000800UL)
-#define GPIOD_BASE            (IOPPERIPH_BASE + 0x00000C00UL)
-#define GPIOE_BASE            (IOPPERIPH_BASE + 0x00001000UL)
 #define GPIOH_BASE            (IOPPERIPH_BASE + 0x00001C00UL)
 
 /**
@@ -539,7 +535,6 @@ typedef struct
 #define SYSCFG              ((SYSCFG_TypeDef *) SYSCFG_BASE)
 #define EXTI                ((EXTI_TypeDef *) EXTI_BASE)
 #define TIM21               ((TIM_TypeDef *) TIM21_BASE)
-#define TIM22               ((TIM_TypeDef *) TIM22_BASE)
 #define ADC1                ((ADC_TypeDef *) ADC1_BASE)
 #define ADC1_COMMON         ((ADC_Common_TypeDef *) ADC_BASE)
 /* Legacy defines */
@@ -566,8 +561,6 @@ typedef struct
 #define GPIOA               ((GPIO_TypeDef *) GPIOA_BASE)
 #define GPIOB               ((GPIO_TypeDef *) GPIOB_BASE)
 #define GPIOC               ((GPIO_TypeDef *) GPIOC_BASE)
-#define GPIOD               ((GPIO_TypeDef *) GPIOD_BASE)
-#define GPIOE               ((GPIO_TypeDef *) GPIOE_BASE)
 #define GPIOH               ((GPIO_TypeDef *) GPIOH_BASE)
 
 /**
@@ -972,9 +965,6 @@ typedef struct
 #define DBGMCU_APB1_FZ_DBG_LPTIMER_STOP_Msk    (0x1UL << DBGMCU_APB1_FZ_DBG_LPTIMER_STOP_Pos) /*!< 0x80000000 */
 #define DBGMCU_APB1_FZ_DBG_LPTIMER_STOP        DBGMCU_APB1_FZ_DBG_LPTIMER_STOP_Msk /*!< LPTIM1 counter stopped when core is halted */
 /******************  Bit definition for DBGMCU_APB2_FZ register  **************/
-#define DBGMCU_APB2_FZ_DBG_TIM22_STOP_Pos      (5U)                            
-#define DBGMCU_APB2_FZ_DBG_TIM22_STOP_Msk      (0x1UL << DBGMCU_APB2_FZ_DBG_TIM22_STOP_Pos) /*!< 0x00000020 */
-#define DBGMCU_APB2_FZ_DBG_TIM22_STOP          DBGMCU_APB2_FZ_DBG_TIM22_STOP_Msk /*!< TIM22 counter stopped when core is halted */
 #define DBGMCU_APB2_FZ_DBG_TIM21_STOP_Pos      (2U)                            
 #define DBGMCU_APB2_FZ_DBG_TIM21_STOP_Msk      (0x1UL << DBGMCU_APB2_FZ_DBG_TIM21_STOP_Pos) /*!< 0x00000004 */
 #define DBGMCU_APB2_FZ_DBG_TIM21_STOP          DBGMCU_APB2_FZ_DBG_TIM21_STOP_Msk /*!< TIM21 counter stopped when core is halted */
@@ -2990,6 +2980,9 @@ typedef struct
 #define PWR_CSR_EWUP2_Pos          (9U)       
 #define PWR_CSR_EWUP2_Msk          (0x1UL << PWR_CSR_EWUP2_Pos)                 /*!< 0x00000200 */
 #define PWR_CSR_EWUP2              PWR_CSR_EWUP2_Msk                           /*!< Enable WKUP pin 2 */
+#define PWR_CSR_EWUP3_Pos          (10U)      
+#define PWR_CSR_EWUP3_Msk          (0x1UL << PWR_CSR_EWUP3_Pos)                 /*!< 0x00000400 */
+#define PWR_CSR_EWUP3              PWR_CSR_EWUP3_Msk                           /*!< Enable WKUP pin 3 */
 
 /******************************************************************************/
 /*                                                                            */
@@ -3360,12 +3353,6 @@ typedef struct
 #define RCC_IOPRSTR_IOPCRST_Pos          (2U) 
 #define RCC_IOPRSTR_IOPCRST_Msk          (0x1UL << RCC_IOPRSTR_IOPCRST_Pos)     /*!< 0x00000004 */
 #define RCC_IOPRSTR_IOPCRST              RCC_IOPRSTR_IOPCRST_Msk               /*!< GPIO port C reset */
-#define RCC_IOPRSTR_IOPDRST_Pos          (3U) 
-#define RCC_IOPRSTR_IOPDRST_Msk          (0x1UL << RCC_IOPRSTR_IOPDRST_Pos)     /*!< 0x00000008 */
-#define RCC_IOPRSTR_IOPDRST              RCC_IOPRSTR_IOPDRST_Msk               /*!< GPIO port D reset */
-#define RCC_IOPRSTR_IOPERST_Pos          (4U) 
-#define RCC_IOPRSTR_IOPERST_Msk          (0x1UL << RCC_IOPRSTR_IOPERST_Pos)     /*!< 0x00000010 */
-#define RCC_IOPRSTR_IOPERST              RCC_IOPRSTR_IOPERST_Msk               /*!< GPIO port E reset */
 #define RCC_IOPRSTR_IOPHRST_Pos          (7U) 
 #define RCC_IOPRSTR_IOPHRST_Msk          (0x1UL << RCC_IOPRSTR_IOPHRST_Pos)     /*!< 0x00000080 */
 #define RCC_IOPRSTR_IOPHRST              RCC_IOPRSTR_IOPHRST_Msk               /*!< GPIO port H reset */
@@ -3374,8 +3361,6 @@ typedef struct
 #define RCC_IOPRSTR_GPIOARST                RCC_IOPRSTR_IOPARST        /*!< GPIO port A reset */
 #define RCC_IOPRSTR_GPIOBRST                RCC_IOPRSTR_IOPBRST        /*!< GPIO port B reset */
 #define RCC_IOPRSTR_GPIOCRST                RCC_IOPRSTR_IOPCRST        /*!< GPIO port C reset */
-#define RCC_IOPRSTR_GPIODRST                RCC_IOPRSTR_IOPDRST        /*!< GPIO port D reset */
-#define RCC_IOPRSTR_GPIOERST                RCC_IOPRSTR_IOPERST        /*!< GPIO port E reset */
 #define RCC_IOPRSTR_GPIOHRST                RCC_IOPRSTR_IOPHRST        /*!< GPIO port H reset */
 
 
@@ -3400,9 +3385,6 @@ typedef struct
 #define RCC_APB2RSTR_TIM21RST_Pos        (2U) 
 #define RCC_APB2RSTR_TIM21RST_Msk        (0x1UL << RCC_APB2RSTR_TIM21RST_Pos)   /*!< 0x00000004 */
 #define RCC_APB2RSTR_TIM21RST            RCC_APB2RSTR_TIM21RST_Msk             /*!< TIM21 reset */
-#define RCC_APB2RSTR_TIM22RST_Pos        (5U) 
-#define RCC_APB2RSTR_TIM22RST_Msk        (0x1UL << RCC_APB2RSTR_TIM22RST_Pos)   /*!< 0x00000020 */
-#define RCC_APB2RSTR_TIM22RST            RCC_APB2RSTR_TIM22RST_Msk             /*!< TIM22 reset */
 #define RCC_APB2RSTR_ADCRST_Pos          (9U) 
 #define RCC_APB2RSTR_ADCRST_Msk          (0x1UL << RCC_APB2RSTR_ADCRST_Pos)     /*!< 0x00000200 */
 #define RCC_APB2RSTR_ADCRST              RCC_APB2RSTR_ADCRST_Msk               /*!< ADC1 reset */
@@ -3450,12 +3432,6 @@ typedef struct
 #define RCC_IOPENR_IOPCEN_Pos            (2U) 
 #define RCC_IOPENR_IOPCEN_Msk            (0x1UL << RCC_IOPENR_IOPCEN_Pos)       /*!< 0x00000004 */
 #define RCC_IOPENR_IOPCEN                RCC_IOPENR_IOPCEN_Msk                 /*!< GPIO port C clock enable */
-#define RCC_IOPENR_IOPDEN_Pos            (3U) 
-#define RCC_IOPENR_IOPDEN_Msk            (0x1UL << RCC_IOPENR_IOPDEN_Pos)       /*!< 0x00000008 */
-#define RCC_IOPENR_IOPDEN                RCC_IOPENR_IOPDEN_Msk                 /*!< GPIO port D clock enable */
-#define RCC_IOPENR_IOPEEN_Pos            (4U) 
-#define RCC_IOPENR_IOPEEN_Msk            (0x1UL << RCC_IOPENR_IOPEEN_Pos)       /*!< 0x00000010 */
-#define RCC_IOPENR_IOPEEN                RCC_IOPENR_IOPEEN_Msk                 /*!< GPIO port E clock enable */
 #define RCC_IOPENR_IOPHEN_Pos            (7U) 
 #define RCC_IOPENR_IOPHEN_Msk            (0x1UL << RCC_IOPENR_IOPHEN_Pos)       /*!< 0x00000080 */
 #define RCC_IOPENR_IOPHEN                RCC_IOPENR_IOPHEN_Msk                 /*!< GPIO port H clock enable */
@@ -3464,8 +3440,6 @@ typedef struct
 #define RCC_IOPENR_GPIOAEN                  RCC_IOPENR_IOPAEN        /*!< GPIO port A clock enable */
 #define RCC_IOPENR_GPIOBEN                  RCC_IOPENR_IOPBEN        /*!< GPIO port B clock enable */
 #define RCC_IOPENR_GPIOCEN                  RCC_IOPENR_IOPCEN        /*!< GPIO port C clock enable */
-#define RCC_IOPENR_GPIODEN                  RCC_IOPENR_IOPDEN        /*!< GPIO port D clock enable */
-#define RCC_IOPENR_GPIOEEN                  RCC_IOPENR_IOPEEN        /*!< GPIO port E clock enable */
 #define RCC_IOPENR_GPIOHEN                  RCC_IOPENR_IOPHEN        /*!< GPIO port H clock enable */
 
 /*****************  Bit definition for RCC_AHBENR register  ******************/
@@ -3489,9 +3463,6 @@ typedef struct
 #define RCC_APB2ENR_TIM21EN_Pos          (2U) 
 #define RCC_APB2ENR_TIM21EN_Msk          (0x1UL << RCC_APB2ENR_TIM21EN_Pos)     /*!< 0x00000004 */
 #define RCC_APB2ENR_TIM21EN              RCC_APB2ENR_TIM21EN_Msk               /*!< TIM21 clock enable */
-#define RCC_APB2ENR_TIM22EN_Pos          (5U) 
-#define RCC_APB2ENR_TIM22EN_Msk          (0x1UL << RCC_APB2ENR_TIM22EN_Pos)     /*!< 0x00000020 */
-#define RCC_APB2ENR_TIM22EN              RCC_APB2ENR_TIM22EN_Msk               /*!< TIM22 clock enable */
 #define RCC_APB2ENR_FWEN_Pos             (7U) 
 #define RCC_APB2ENR_FWEN_Msk             (0x1UL << RCC_APB2ENR_FWEN_Pos)        /*!< 0x00000080 */
 #define RCC_APB2ENR_FWEN                 RCC_APB2ENR_FWEN_Msk                  /*!< MiFare Firewall clock enable */
@@ -3544,12 +3515,6 @@ typedef struct
 #define RCC_IOPSMENR_IOPCSMEN_Pos        (2U) 
 #define RCC_IOPSMENR_IOPCSMEN_Msk        (0x1UL << RCC_IOPSMENR_IOPCSMEN_Pos)   /*!< 0x00000004 */
 #define RCC_IOPSMENR_IOPCSMEN            RCC_IOPSMENR_IOPCSMEN_Msk             /*!< GPIO port C clock enabled in sleep mode */
-#define RCC_IOPSMENR_IOPDSMEN_Pos        (3U) 
-#define RCC_IOPSMENR_IOPDSMEN_Msk        (0x1UL << RCC_IOPSMENR_IOPDSMEN_Pos)   /*!< 0x00000008 */
-#define RCC_IOPSMENR_IOPDSMEN            RCC_IOPSMENR_IOPDSMEN_Msk             /*!< GPIO port D clock enabled in sleep mode */
-#define RCC_IOPSMENR_IOPESMEN_Pos        (4U) 
-#define RCC_IOPSMENR_IOPESMEN_Msk        (0x1UL << RCC_IOPSMENR_IOPESMEN_Pos)   /*!< 0x00000010 */
-#define RCC_IOPSMENR_IOPESMEN            RCC_IOPSMENR_IOPESMEN_Msk             /*!< GPIO port E clock enabled in sleep mode */
 #define RCC_IOPSMENR_IOPHSMEN_Pos        (7U) 
 #define RCC_IOPSMENR_IOPHSMEN_Msk        (0x1UL << RCC_IOPSMENR_IOPHSMEN_Pos)   /*!< 0x00000080 */
 #define RCC_IOPSMENR_IOPHSMEN            RCC_IOPSMENR_IOPHSMEN_Msk             /*!< GPIO port H clock enabled in sleep mode */
@@ -3558,8 +3523,6 @@ typedef struct
 #define RCC_IOPSMENR_GPIOASMEN              RCC_IOPSMENR_IOPASMEN        /*!< GPIO port A clock enabled in sleep mode */
 #define RCC_IOPSMENR_GPIOBSMEN              RCC_IOPSMENR_IOPBSMEN        /*!< GPIO port B clock enabled in sleep mode */
 #define RCC_IOPSMENR_GPIOCSMEN              RCC_IOPSMENR_IOPCSMEN        /*!< GPIO port C clock enabled in sleep mode */
-#define RCC_IOPSMENR_GPIODSMEN              RCC_IOPSMENR_IOPDSMEN        /*!< GPIO port D clock enabled in sleep mode */
-#define RCC_IOPSMENR_GPIOESMEN              RCC_IOPSMENR_IOPESMEN        /*!< GPIO port E clock enabled in sleep mode */
 #define RCC_IOPSMENR_GPIOHSMEN              RCC_IOPSMENR_IOPHSMEN        /*!< GPIO port H clock enabled in sleep mode */
 
 /*****************  Bit definition for RCC_AHBSMENR register  ******************/
@@ -3586,9 +3549,6 @@ typedef struct
 #define RCC_APB2SMENR_TIM21SMEN_Pos      (2U) 
 #define RCC_APB2SMENR_TIM21SMEN_Msk      (0x1UL << RCC_APB2SMENR_TIM21SMEN_Pos) /*!< 0x00000004 */
 #define RCC_APB2SMENR_TIM21SMEN          RCC_APB2SMENR_TIM21SMEN_Msk           /*!< TIM21 clock enabled in sleep mode */
-#define RCC_APB2SMENR_TIM22SMEN_Pos      (5U) 
-#define RCC_APB2SMENR_TIM22SMEN_Msk      (0x1UL << RCC_APB2SMENR_TIM22SMEN_Pos) /*!< 0x00000020 */
-#define RCC_APB2SMENR_TIM22SMEN          RCC_APB2SMENR_TIM22SMEN_Msk           /*!< TIM22 clock enabled in sleep mode */
 #define RCC_APB2SMENR_ADCSMEN_Pos        (9U) 
 #define RCC_APB2SMENR_ADCSMEN_Msk        (0x1UL << RCC_APB2SMENR_ADCSMEN_Pos)   /*!< 0x00000200 */
 #define RCC_APB2SMENR_ADCSMEN            RCC_APB2SMENR_ADCSMEN_Msk             /*!< ADC1 clock enabled in sleep mode */
@@ -4569,7 +4529,6 @@ typedef struct
 #define SYSCFG_EXTICR1_EXTI2_PA                  (0x00000000U)                 /*!< PA[2] pin */
 #define SYSCFG_EXTICR1_EXTI2_PB                  (0x00000100U)                 /*!< PB[2] pin */
 #define SYSCFG_EXTICR1_EXTI2_PC                  (0x00000200U)                 /*!< PC[2] pin */
-#define SYSCFG_EXTICR1_EXTI2_PD                  (0x00000300U)                 /*!< PD[2] pin */
 
 /** 
   * @brief  EXTI3 configuration  
@@ -5212,17 +5171,6 @@ typedef struct
 #define TIM21_OR_TI2_RMP_Msk      (0x1UL << TIM21_OR_TI2_RMP_Pos)               /*!< 0x00000020 */
 #define TIM21_OR_TI2_RMP          TIM21_OR_TI2_RMP_Msk                         /*!<TI2_RMP bit (TIM21 Input 2 remap) */
 
-#define TIM22_OR_ETR_RMP_Pos      (0U)        
-#define TIM22_OR_ETR_RMP_Msk      (0x3UL << TIM22_OR_ETR_RMP_Pos)               /*!< 0x00000003 */
-#define TIM22_OR_ETR_RMP          TIM22_OR_ETR_RMP_Msk                         /*!<ETR_RMP[1:0] bits (TIM22 ETR remap) */
-#define TIM22_OR_ETR_RMP_0        (0x1UL << TIM22_OR_ETR_RMP_Pos)               /*!< 0x00000001 */
-#define TIM22_OR_ETR_RMP_1        (0x2UL << TIM22_OR_ETR_RMP_Pos)               /*!< 0x00000002 */
-#define TIM22_OR_TI1_RMP_Pos      (2U)        
-#define TIM22_OR_TI1_RMP_Msk      (0x3UL << TIM22_OR_TI1_RMP_Pos)               /*!< 0x0000000C */
-#define TIM22_OR_TI1_RMP          TIM22_OR_TI1_RMP_Msk                         /*!<TI1_RMP[2:0] bits (TIM22 Input 1 remap) */
-#define TIM22_OR_TI1_RMP_0        (0x1UL << TIM22_OR_TI1_RMP_Pos)               /*!< 0x00000004 */
-#define TIM22_OR_TI1_RMP_1        (0x2UL << TIM22_OR_TI1_RMP_Pos)               /*!< 0x00000008 */
-
 
 /******************************************************************************/
 /*                                                                            */
@@ -5703,14 +5651,11 @@ typedef struct
 #define IS_GPIO_ALL_INSTANCE(INSTANCE) (((INSTANCE) == GPIOA) || \
                                         ((INSTANCE) == GPIOB) || \
                                         ((INSTANCE) == GPIOC) || \
-                                        ((INSTANCE) == GPIOD) || \
-                                        ((INSTANCE) == GPIOE) || \
                                         ((INSTANCE) == GPIOH))
 
 #define IS_GPIO_AF_INSTANCE(INSTANCE)  (((INSTANCE) == GPIOA) || \
                                         ((INSTANCE) == GPIOB) || \
-                                        ((INSTANCE) == GPIOC) || \
-                                        ((INSTANCE) == GPIOD))
+                                        ((INSTANCE) == GPIOC))
 
 /******************************** I2C Instances *******************************/
 #define IS_I2C_ALL_INSTANCE(INSTANCE) ((INSTANCE) == I2C1)
@@ -5738,18 +5683,15 @@ typedef struct
 
 /****************** TIM Instances : All supported instances *******************/
 #define IS_TIM_INSTANCE(INSTANCE)       (((INSTANCE) == TIM2)   || \
-                                         ((INSTANCE) == TIM21)  || \
-                                         ((INSTANCE) == TIM22))
+                                         ((INSTANCE) == TIM21))
 
 /************* TIM Instances : at least 1 capture/compare channel *************/
 #define IS_TIM_CC1_INSTANCE(INSTANCE)   (((INSTANCE) == TIM2)  || \
-                                         ((INSTANCE) == TIM21) || \
-                                         ((INSTANCE) == TIM22))
+                                         ((INSTANCE) == TIM21))
 
 /************ TIM Instances : at least 2 capture/compare channels *************/
 #define IS_TIM_CC2_INSTANCE(INSTANCE)  (((INSTANCE) == TIM2)  || \
-                                        ((INSTANCE) == TIM21) || \
-                                        ((INSTANCE) == TIM22))
+                                        ((INSTANCE) == TIM21))
 
 /************ TIM Instances : at least 3 capture/compare channels *************/
 #define IS_TIM_CC3_INSTANCE(INSTANCE)   ((INSTANCE) == TIM2)
@@ -5776,16 +5718,11 @@ typedef struct
      ||                                        \
      (((INSTANCE) == TIM21) &&                 \
       (((CHANNEL) == TIM_CHANNEL_1) ||         \
-       ((CHANNEL) == TIM_CHANNEL_2)))          \
-     ||                                        \
-     (((INSTANCE) == TIM22) &&                 \
-      (((CHANNEL) == TIM_CHANNEL_1) ||         \
        ((CHANNEL) == TIM_CHANNEL_2))))
 
 /****************** TIM Instances : supporting clock division *****************/
 #define IS_TIM_CLOCK_DIVISION_INSTANCE(INSTANCE)       (((INSTANCE) == TIM2)   || \
-                                                        ((INSTANCE) == TIM21)  || \
-                                                        ((INSTANCE) == TIM22))
+                                                        ((INSTANCE) == TIM21))
 
 /****** TIM Instances : supporting external clock mode 1 for ETRF input *******/
 #define IS_TIM_CLOCKSOURCE_ETRMODE1_INSTANCE(INSTANCE)   (((INSTANCE) == TIM2)   || \
@@ -5793,8 +5730,7 @@ typedef struct
 
 /****** TIM Instances : supporting external clock mode 2 for ETRF input *******/
 #define IS_TIM_CLOCKSOURCE_ETRMODE2_INSTANCE(INSTANCE)   (((INSTANCE) == TIM2)   || \
-                                                          ((INSTANCE) == TIM21)  || \
-                                                          ((INSTANCE) == TIM22))
+                                                          ((INSTANCE) == TIM21))
 
 /****************** TIM Instances : supporting external clock mode 1 for TIX inputs*/
 #define IS_TIM_CLOCKSOURCE_TIX_INSTANCE(INSTANCE)        (((INSTANCE) == TIM2)   || \
@@ -5802,38 +5738,31 @@ typedef struct
 
 /****************** TIM Instances : supporting internal trigger inputs(ITRX) *******/
 #define IS_TIM_CLOCKSOURCE_ITRX_INSTANCE(INSTANCE)       (((INSTANCE) == TIM2)   || \
-                                                          ((INSTANCE) == TIM21)  || \
-                                                          ((INSTANCE) == TIM22))
+                                                          ((INSTANCE) == TIM21))
 
 /****************** TIM Instances : supporting counting mode selection ********/ 
 #define IS_TIM_COUNTER_MODE_SELECT_INSTANCE(INSTANCE)       (((INSTANCE) == TIM2)   || \
-                                                             ((INSTANCE) == TIM21)  || \
-                                                             ((INSTANCE) == TIM22))
+                                                             ((INSTANCE) == TIM21))
 
 /****************** TIM Instances : supporting encoder interface **************/
 #define IS_TIM_ENCODER_INTERFACE_INSTANCE(INSTANCE) (((INSTANCE) == TIM2)   || \
-                                                     ((INSTANCE) == TIM21)  || \
-                                                     ((INSTANCE) == TIM22))
+                                                     ((INSTANCE) == TIM21))
 
 /***************** TIM Instances : external trigger input available ************/
 #define IS_TIM_ETR_INSTANCE(INSTANCE)      (((INSTANCE) == TIM2)  || \
-                                            ((INSTANCE) == TIM21) || \
-                                            ((INSTANCE) == TIM22))
+                                            ((INSTANCE) == TIM21))
 
 /****** TIM Instances : master mode available (TIMx_CR2.MMS available )********/
 #define IS_TIM_MASTER_INSTANCE(INSTANCE)   (((INSTANCE) == TIM2)   || \
-                                            ((INSTANCE) == TIM21)  || \
-                                            ((INSTANCE) == TIM22))
+                                            ((INSTANCE) == TIM21))
 
 /*********** TIM Instances : Slave mode available (TIMx_SMCR available )*******/
 #define IS_TIM_SLAVE_INSTANCE(INSTANCE)    (((INSTANCE) == TIM2)  || \
-                                            ((INSTANCE) == TIM21) || \
-                                            ((INSTANCE) == TIM22))
+                                            ((INSTANCE) == TIM21))
 
 /****************** TIM Instances : remapping capability **********************/
 #define IS_TIM_REMAP_INSTANCE(INSTANCE) (((INSTANCE) == TIM2)   || \
-                                         ((INSTANCE) == TIM21)  || \
-                                         ((INSTANCE) == TIM22))
+                                         ((INSTANCE) == TIM21))
 
 /******************* TIM Instances : output(s) OCXEC register *****************/
 #define IS_TIM_OCXREF_CLEAR_INSTANCE(INSTANCE)  ((INSTANCE) == TIM2)
@@ -5845,11 +5774,11 @@ typedef struct
 #define IS_UART_INSTANCE(INSTANCE)  ((INSTANCE) == USART2)
 
 /******************** USART Instances : Synchronous mode **********************/
-#define IS_USART_INSTANCE(INSTANCE) ((INSTANCE) == USART2)
+#define IS_USART_INSTANCE(INSTANCE) (1 == 0)
 
 /****************** USART Instances : Auto Baud Rate detection ****************/
 
-#define IS_USART_AUTOBAUDRATE_DETECTION_INSTANCE(INSTANCE) ((INSTANCE) == USART2)
+#define IS_USART_AUTOBAUDRATE_DETECTION_INSTANCE(INSTANCE) (1 == 0)
 
 /****************** UART Instances : Driver Enable *****************/
 #define IS_UART_DRIVER_ENABLE_INSTANCE(INSTANCE)   (((INSTANCE) == USART2) || \
@@ -5860,21 +5789,20 @@ typedef struct
                                                  ((INSTANCE) == LPUART1))
 
 /******************** UART Instances : LIN mode **********************/
-#define IS_UART_LIN_INSTANCE(INSTANCE)    ((INSTANCE) == USART2)
+#define IS_UART_LIN_INSTANCE(INSTANCE)    (1==0)
 
 /******************** UART Instances : Wake-up from Stop mode **********************/
-#define IS_UART_WAKEUP_FROMSTOP_INSTANCE(INSTANCE)   (((INSTANCE) == USART2) || \
-                                                      ((INSTANCE) == LPUART1))
+#define IS_UART_WAKEUP_FROMSTOP_INSTANCE(INSTANCE)   ((INSTANCE) == LPUART1)
 
 /****************** UART Instances : Hardware Flow control ********************/
 #define IS_UART_HWFLOW_INSTANCE(INSTANCE) (((INSTANCE) == USART2) || \
                                            ((INSTANCE) == LPUART1))
 
 /********************* UART Instances : Smard card mode ***********************/
-#define IS_SMARTCARD_INSTANCE(INSTANCE) ((INSTANCE) == USART2)
+#define IS_SMARTCARD_INSTANCE(INSTANCE)    (1==0)
 
 /*********************** UART Instances : IRDA mode ***************************/
-#define IS_IRDA_INSTANCE(INSTANCE) ((INSTANCE) == USART2)
+#define IS_IRDA_INSTANCE(INSTANCE)    (1==0)
 
 /******************** LPUART Instance *****************************************/
 #define IS_LPUART_INSTANCE(INSTANCE)    ((INSTANCE) == LPUART1)
@@ -5927,7 +5855,7 @@ typedef struct
 }
 #endif /* __cplusplus */
 
-#endif /* __STM32L010xB_H */
+#endif /* __STM32L010x6_H */
 
 
 

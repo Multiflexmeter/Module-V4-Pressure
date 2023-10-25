@@ -9,15 +9,12 @@
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12
-#define REG_MEAS_SIZE             0x20
-#define REG_MEAS_DATA             0x21
+#define REG_MEAS_DATA             0x20
 #define REG_SENSOR_AMOUNT         0x30
 #define REG_SENSOR_SELECTED       0x31
 #define REG_MEAS_TYPE             0x32
 #define REG_MEAS_SAMPLES          0x33
-#define REG_SENSOR_UNIT           0x37
-#define REG_SENSOR_SIZE           0x38
-#define REG_SENSOR_DATA           0x39
+#define REG_SENSOR_DATA           0x38
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
@@ -28,14 +25,11 @@
 #define DEF_MEAS_START        0x00
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064
-#define DEF_MEAS_SIZE         0x04
-#define DEF_MEAS_DATA         0xFFFF
+#define DEF_MEAS_DATA         0xFFFFFFFF
 #define DEF_SENSOR_AMOUNT     0x02
 #define DEF_SENSOR_SELECTED   0x00
 #define DEF_MEAS_TYPE         0x00
-#define DEF_MEAS_SAMPLES      0x000A
-#define DEF_SENSOR_UNIT       0x02
-#define DEF_SENSOR_SIZE       0x02
+#define DEF_MEAS_SAMPLES      0x0A
 #define DEF_SENSOR_DATA       0xFFFF
 #define DEF_ERROR_COUNT       0x0000
 #define DEF_ERROR_STATUS      0
@@ -43,7 +37,8 @@
 /* Typedefs */
 typedef enum{
   UINT8_T = 1,
-  UINT16_T = 2
+  UINT16_T = 2,
+  SENSORDATA = 8
 }tENUM_Datatype;
 
 typedef enum{
@@ -57,6 +52,25 @@ typedef enum{
   READ,
   READWRITE
 }tENUM_READWRITE;
+
+typedef enum{
+  NO_MEASUREMENT = 0x00,
+  MEASUREMENT_ACTIVE = 0x01,
+  MEASUREMENT_DONE = 0x0A,
+  MEASUREMENT_ERROR = 0xF0
+}MeasurementStatus;
+
+typedef enum{
+  SINGLE_SAMPLE  = 0x00,
+  AVERAGE_SAMPLE = 0x10,
+  MEDIAN_SAMPLE  = 0x20
+}MeasurementType;
+
+typedef struct __attribute__((__packed__))
+{
+  int32_t pressure;
+  int32_t temperature;
+}SensorDataKeller;
 
 typedef struct
 {
@@ -76,7 +90,10 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 
 /* Internal register access functions */
 uint8_t readMeasStart(void);
-uint16_t readMeasSamples(void);
-void storeMeasurement(uint16_t data, uint8_t sensor);
+void stopMeas(void);
+uint8_t readMeasSamples(void);
+void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor);
+void setMeasurementStatus(MeasurementStatus status);
+void storeSelectedSensor(uint8_t sensor);
 
 #endif /* SENSORREGISTER_H_ */

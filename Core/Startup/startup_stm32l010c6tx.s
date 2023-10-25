@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file      startup_stm32l010xb.s
+  * @file      startup_stm32l010x6.s
   * @author    MCD Application Team
-  * @brief     STM32L010xB Devices vector table for GCC toolchain.
+  * @brief     STM32L010x6 Devices vector table for GCC toolchain.
   *            This module performs:
   *                - Set the initial SP
   *                - Set the initial PC == Reset_Handler,
@@ -180,7 +180,7 @@ g_pfnVectors:
   .word     0                                 /* Reserved                     */
   .word     TIM21_IRQHandler                  /* TIM21                        */
   .word     0                                 /* Reserved                     */
-  .word     TIM22_IRQHandler                  /* TIM22                        */
+  .word     0                                 /* Reserved                     */
   .word     I2C1_IRQHandler                   /* I2C1                         */
   .word     0                                 /* Reserved                     */
   .word     SPI1_IRQHandler                   /* SPI1                         */
@@ -255,9 +255,6 @@ g_pfnVectors:
 
    .weak      TIM21_IRQHandler
    .thumb_set TIM21_IRQHandler,Default_Handler
-
-   .weak      TIM22_IRQHandler
-   .thumb_set TIM22_IRQHandler,Default_Handler
 
    .weak      I2C1_IRQHandler
    .thumb_set I2C1_IRQHandler,Default_Handler
