@@ -61,6 +61,14 @@ void ModbusSetBaudrate(uint32_t baudrate)
 }
 
 /**
+ * @brief Flush the receive buffer
+ */
+void ModbusFlushRxBuffer(void)
+{
+  __HAL_UART_SEND_REQ(ModbusHandle, UART_RXDATA_FLUSH_REQUEST);
+}
+
+/**
  * @brief Transmit the Modbus message over the bus
  *
  * @param data is a pointer to the data buffer
@@ -69,12 +77,15 @@ void ModbusSetBaudrate(uint32_t baudrate)
  */
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
-  // Copy data into the message
+  /* Flush the RX buffer */
+  ModbusFlushRxBuffer();
+
+  /* Copy data into the message */
   uint8_t message[size + CRC_SIZE];
   for (uint8_t i = 0; i < size; i++)
     message[i] = data[i];
 
-  // Add the CRC to the message
+  /* Add the CRC to the message */
   static uint16_t crc;
   crc = calculateCRC_CCITT(data, size);
   if(endian == CRC_BIG_ENDIAN)
@@ -88,8 +99,7 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
     message[size + 1] = (crc & 0x00FF);
   }
 
-
-  // Transmit the message
+  /* Transmit the message */
   ModbusEnableTX();
   HAL_UART_Transmit(ModbusHandle, message, size + CRC_SIZE, MODBUS_TIMEOUT);
   ModbusDisableTX();
@@ -104,11 +114,11 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
  */
 void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
-  // Receive the modbus response
+  /* Receive the modbus response */
   ModbusDisableTX();
   HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
 
-  // Check the CRC
+  /* Check the CRC */
   static uint16_t crc;
   crc = calculateCRC_CCITT(data, size-CRC_SIZE);
   if(endian == CRC_BIG_ENDIAN)
@@ -152,7 +162,7 @@ MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t re
 
   ModbusReceive(respone, 8, CRC_LITTLE_ENDIAN);
 
-  // Check for exceptions
+  /* Check for exceptions */
   if(respone[1] & 0x80)
     return respone[2];
 
@@ -197,7 +207,7 @@ MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t 
 
   ModbusReceive(respone, 8, CRC_LITTLE_ENDIAN);
 
-  // Check for exceptions
+  /* Check for exceptions */
   if(respone[1] & 0x80)
     return respone[2];
 
@@ -233,7 +243,7 @@ MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t st
   ModbusTransmit(request, 6, CRC_LITTLE_ENDIAN);
   ModbusReceive(data, 3+lenght*2, CRC_LITTLE_ENDIAN);
 
-  // Check for exceptions
+  /* Check for exceptions */
   if(data[1] & 0x80)
     return data[2];
 
@@ -266,7 +276,7 @@ MODBUS_StatusTypeDef ModbusEcho(uint8_t slaveAddress, uint16_t data)
 
   ModbusReceive(response, 8, CRC_LITTLE_ENDIAN);
 
-  // Check for exceptions
+  /* Check for exceptions */
   if(response[1] & 0x80)
     return response[2];
 
