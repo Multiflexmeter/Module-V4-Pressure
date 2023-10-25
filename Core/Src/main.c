@@ -151,15 +151,25 @@ void setSlaveAddress(uint8_t slotID)
   __HAL_I2C_ENABLE(&hi2c1);
 }
 
-void enter_Sleep( void )
+void enableSensor1(void)
 {
-  /* Configure low-power mode */
-  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
-
-  /* Ensure Flash memory stays on */
-  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
-  __WFI();  // enter low-power mode
+  HAL_GPIO_WritePin(SENSOR1_ENABLE_GPIO_Port, SENSOR1_ENABLE_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR0_ENABLE_GPIO_Port, SENSOR0_ENABLE_Pin, GPIO_PIN_RESET);
 }
+
+void disableSensors(void)
+{
+  HAL_GPIO_WritePin(SENSOR0_ENABLE_GPIO_Port, SENSOR0_ENABLE_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_ENABLE_GPIO_Port, SENSOR1_ENABLE_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+}
+
+void enableSensor2(void)
+{
+  HAL_GPIO_WritePin(SENSOR0_ENABLE_GPIO_Port, SENSOR0_ENABLE_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_ENABLE_GPIO_Port, SENSOR1_ENABLE_Pin, GPIO_PIN_RESET);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -199,6 +209,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress(getSlotID());
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -259,7 +270,14 @@ int main(void)
           HAL_Delay(250);
         }
         else
-          enter_Sleep();
+        {
+          HAL_PWR_DisableSleepOnExit();
+          HAL_SuspendTick();
+          HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+          HAL_ResumeTick();
+          HAL_Delay(30);
+        }
+
         break;
     }
     /* USER CODE END WHILE */
@@ -497,15 +515,37 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SENSOR0_ENABLE_GPIO_Port, SENSOR0_ENABLE_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
                           |DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
-  GPIO_InitStruct.Pin = DEBUG_SW2_Pin|DEBUG_SW1_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SENSOR1_ENABLE_GPIO_Port, SENSOR1_ENABLE_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(USART_RX_EN_GPIO_Port, USART_RX_EN_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : DEBUG_SW2_Pin */
+  GPIO_InitStruct.Pin = DEBUG_SW2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(DEBUG_SW2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SENSOR0_ENABLE_Pin */
+  GPIO_InitStruct.Pin = SENSOR0_ENABLE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SENSOR0_ENABLE_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PC14 PC15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -522,14 +562,30 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin DEBUG_LED2_Pin
-                           DEBUG_LED1_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
-                          |DEBUG_LED1_Pin|BUCK_EN_Pin;
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin SENSOR1_ENABLE_Pin
+                           DEBUG_LED2_Pin DEBUG_LED1_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|SENSOR1_ENABLE_Pin
+                          |DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB10 PB11 PB13 PB4
+                           PB5 PB6 PB7 PB8
+                           PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_13|GPIO_PIN_4
+                          |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8
+                          |GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA15 */
   GPIO_InitStruct.Pin = GPIO_PIN_15;

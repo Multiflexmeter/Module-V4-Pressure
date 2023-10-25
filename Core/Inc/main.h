@@ -59,8 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define DEBUG_SW2_Pin GPIO_PIN_0
 #define DEBUG_SW2_GPIO_Port GPIOC
-#define DEBUG_SW1_Pin GPIO_PIN_13
-#define DEBUG_SW1_GPIO_Port GPIOC
+#define SENSOR0_ENABLE_Pin GPIO_PIN_13
+#define SENSOR0_ENABLE_GPIO_Port GPIOC
 #define SLOTID0_Pin GPIO_PIN_0
 #define SLOTID0_GPIO_Port GPIOA
 #define USART_TX_EN_Pin GPIO_PIN_1
@@ -75,6 +75,8 @@ void Error_Handler(void);
 #define SLOT_GPIO1_GPIO_Port GPIOB
 #define SLOT_GPIO2_Pin GPIO_PIN_2
 #define SLOT_GPIO2_GPIO_Port GPIOB
+#define SENSOR1_ENABLE_Pin GPIO_PIN_12
+#define SENSOR1_ENABLE_GPIO_Port GPIOB
 #define DEBUG_LED2_Pin GPIO_PIN_14
 #define DEBUG_LED2_GPIO_Port GPIOB
 #define DEBUG_LED1_Pin GPIO_PIN_15
