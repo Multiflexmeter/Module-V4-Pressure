@@ -117,7 +117,7 @@ int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
  *
  * @param slaveAddress The slave address of the sensor
  */
-void KellerInit(uint8_t slaveAddress)
+bool KellerInit(uint8_t slaveAddress)
 {
   uint8_t request[2];
   uint8_t response[10];
@@ -128,6 +128,11 @@ void KellerInit(uint8_t slaveAddress)
   // Transmit command and receive response
   ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
   ModbusReceive(response, 10, CRC_BIG_ENDIAN);
+
+  if(response[1] == FunctionInitialiseDevices)
+    return true;
+  else
+    return false;
 }
 
 /**
