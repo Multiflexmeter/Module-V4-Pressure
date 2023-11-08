@@ -68,8 +68,8 @@ typedef enum{
 
 typedef struct __attribute__((__packed__))
 {
-  int32_t pressure;
-  int32_t temperature;
+  float pressure;
+  float temperature;
 }SensorDataKeller;
 
 typedef struct
@@ -92,7 +92,7 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
-void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor);
+void storeMeasurement(float pressure, float temperature, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
 

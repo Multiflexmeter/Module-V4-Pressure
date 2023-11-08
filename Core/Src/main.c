@@ -84,8 +84,11 @@ extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
 
-int32_t sensor1Samples[SAMPLE_BUFFER_SIZE];
-int32_t sensor2Samples[SAMPLE_BUFFER_SIZE];
+float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
+float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
+float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
+float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
+SensorDataKeller sensorSample;
 
 state_machine_t currentState = SLEEP;
 uint16_t samples;
@@ -112,16 +115,16 @@ int cmpfunc(const void* a, const void* b)
 }
 
 // Function for calculating median
-int32_t findMedian(int32_t a[], uint8_t n)
+float findMedian(float a[], uint8_t n)
 {
   // First we sort the array
-  qsort(a, n, sizeof(int32_t), cmpfunc);
+  qsort(a, n, sizeof(float), cmpfunc);
 
   // check for even case
   if (n % 2 != 0)
-      return (int32_t)a[n / 2];
+      return (float)a[n / 2];
 
-  return (int32_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+  return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 
 uint8_t getSlotID(void)
@@ -200,13 +203,14 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress(getSlotID());
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ADC_Start(&hadc);
+    //ADC_Start(&hadc);
     switch (currentState)
     {
       case POLL_SENSOR:
@@ -217,19 +221,29 @@ int main(void)
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
-          //todo sample pressure and temp of both sensors
-          sensor1Samples[sample] = KellerReadTemperature(0x02);
+          // Sample the first sensor
+          memset(&sensorSample, 0, sizeof(SensorDataKeller));
+          sensorSample = KellerReadTempAndPressure(0x01);
+          sensor1PressureSamples[sample] = sensorSample.pressure;
+          sensor1TempSamples[sample] = sensorSample.temperature;
           HAL_Delay(1);
-          sensor2Samples[sample] = KellerReadPressure(0x02);
+
+          // Sample the second sensor
+          memset(&sensorSample, 0, sizeof(SensorDataKeller));
+          sensorSample = KellerReadTempAndPressure(0x02);
+          sensor2PressureSamples[sample] = sensorSample.pressure;
+          sensor2TempSamples[sample] = sensorSample.temperature;
           HAL_Delay(1);
         }
 
         /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         ModbusShutdown();
-        storeMeasurement(findMedian(sensor2Samples, samples), findMedian(sensor1Samples, samples), 0);
+        storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+        storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
         setMeasurementStatus(MEASUREMENT_DONE);
         stopMeas();
+        HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
         currentState = SLEEP;
         break;
 
@@ -250,8 +264,9 @@ int main(void)
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
-        if(readMeasStart())
+        if(!readMeasStart())
         {
+          HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
           currentState = POLL_SENSOR;
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
