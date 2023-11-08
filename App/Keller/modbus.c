@@ -116,7 +116,12 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Receive the modbus response */
   ModbusDisableTX();
-  HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
+  HAL_StatusTypeDef status = HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
+  if(status != HAL_OK)
+  {
+    memset(data, 0, size);
+    return;
+  }
 
   /* Check the CRC */
   static uint16_t crc;
@@ -126,6 +131,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-1] << 8) + data[size-2])
     {
       memset(data, 0, size);
+      return;
     }
   }
   else if (endian == CRC_LITTLE_ENDIAN)
@@ -133,6 +139,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-2] << 8) + data[size-1])
     {
       memset(data, 0, size);
+      return;
     }
   }
 }
