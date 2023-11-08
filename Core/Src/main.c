@@ -44,6 +44,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
@@ -215,25 +216,31 @@ int main(void)
     {
       case POLL_SENSOR:
         /* Initialize both Keller sensors */
-        KellerInit(0x01);
-        KellerInit(0x02);
+        bool sensor1Present = KellerInit(0x01);
+        bool sensor2Present = KellerInit(0x02);
 
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
-          // Sample the first sensor
-          memset(&sensorSample, 0, sizeof(SensorDataKeller));
-          sensorSample = KellerReadTempAndPressure(0x01);
-          sensor1PressureSamples[sample] = sensorSample.pressure;
-          sensor1TempSamples[sample] = sensorSample.temperature;
-          HAL_Delay(1);
+          if(sensor1Present)
+          {
+            // Sample the first sensor
+            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            sensorSample = KellerReadTempAndPressure(0x01);
+            sensor1PressureSamples[sample] = sensorSample.pressure;
+            sensor1TempSamples[sample] = sensorSample.temperature;
+            HAL_Delay(1);
+          }
 
-          // Sample the second sensor
-          memset(&sensorSample, 0, sizeof(SensorDataKeller));
-          sensorSample = KellerReadTempAndPressure(0x02);
-          sensor2PressureSamples[sample] = sensorSample.pressure;
-          sensor2TempSamples[sample] = sensorSample.temperature;
-          HAL_Delay(1);
+          if(sensor2Present)
+          {
+            // Sample the second sensor
+            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            sensorSample = KellerReadTempAndPressure(0x02);
+            sensor2PressureSamples[sample] = sensorSample.pressure;
+            sensor2TempSamples[sample] = sensorSample.temperature;
+            HAL_Delay(1);
+          }
         }
 
         /* Disable the buck/boost and store the median in the registers */
@@ -264,7 +271,7 @@ int main(void)
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
-        if(!readMeasStart())
+        if(readMeasStart())
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
           currentState = POLL_SENSOR;
