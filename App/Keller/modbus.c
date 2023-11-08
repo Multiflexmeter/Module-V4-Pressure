@@ -228,6 +228,7 @@ MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t 
 MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint8_t *data)
 {
   uint8_t request[6];
+  uint8_t response[3+lenght*2+2];
 
   request[0] = slaveAddress;
   request[1] = FunctionReadHoldingRegisters;
@@ -241,14 +242,17 @@ MODBUS_StatusTypeDef ModbusReadHoldingRegister(uint8_t slaveAddress, uint16_t st
   request[5] = (lenght & 0x00FF);
 
   ModbusTransmit(request, 6, CRC_LITTLE_ENDIAN);
-  ModbusReceive(data, 3+lenght*2, CRC_LITTLE_ENDIAN);
+  ModbusReceive(response, 3+lenght*2+2, CRC_LITTLE_ENDIAN);
 
   /* Check for exceptions */
-  if(data[1] & 0x80)
-    return data[2];
+  if(response[1] & 0x80)
+    return response[2];
 
   else
-    return MODBUS_OK;
+  {
+    memcpy(data, response+3, 8);
+  }
+  return MODBUS_OK;
 }
 
 /**
