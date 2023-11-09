@@ -147,7 +147,7 @@ void setSlaveAddress(uint8_t slotID)
   if(slotID <= 0)
     slotID = 1;
 
-  uint8_t slaveAddress = (0x11<<1) + (slotID-1);
+  uint8_t slaveAddress = ((0x11 + (slotID-1)) <<1) ;
 
   __HAL_I2C_DISABLE(&hi2c1);
   hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
