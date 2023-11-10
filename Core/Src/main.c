@@ -43,13 +43,13 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
 #include "modbus.h"
 #include "adc.h"
+#include "utils.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,61 +109,6 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// Function to compare two uint16_t for qsort
-int cmpfunc(const void* a, const void* b)
-{
-  return (*(int32_t*)a - *(int32_t*)b);
-}
-
-// Function for calculating median
-float findMedian(float a[], uint8_t n)
-{
-  // First we sort the array
-  qsort(a, n, sizeof(float), cmpfunc);
-
-  // check for even case
-  if (n % 2 != 0)
-      return (float)a[n / 2];
-
-  return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
-}
-
-uint8_t getSlotID(void)
-{
-  uint8_t slotID;
-  if(HAL_GPIO_ReadPin(SLOTID2_GPIO_Port, SLOTID2_Pin) == 0)
-  {
-    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin);
-  }
-  else
-  {
-    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin) + 3;
-  }
-  return slotID;
-}
-
-void setSlaveAddress(uint8_t slotID)
-{
-  if(slotID <= 0)
-    slotID = 1;
-
-  uint8_t slaveAddress = ((0x11 + (slotID-1)) <<1) ;
-
-  __HAL_I2C_DISABLE(&hi2c1);
-  hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
-  hi2c1.Instance->OAR1 = (I2C_OAR1_OA1EN | slaveAddress);
-  __HAL_I2C_ENABLE(&hi2c1);
-}
-
-void enter_Sleep( void )
-{
-  /* Configure low-power mode */
-  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
-
-  /* Ensure Flash memory stays on */
-  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
-  __WFI();  // enter low-power mode
-}
 /* USER CODE END 0 */
 
 /**
@@ -203,7 +148,7 @@ int main(void)
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
-  setSlaveAddress(getSlotID());
+  setSlaveAddress();
 
   /* USER CODE END 2 */
 
@@ -271,6 +216,7 @@ int main(void)
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
+        // If the measurement start register has been set to 1
         if(readMeasStart())
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
