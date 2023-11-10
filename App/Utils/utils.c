@@ -10,6 +10,10 @@ int cmpfunc(const void* a, const void* b)
   return (*(int32_t*)a - *(int32_t*)b);
 }
 
+/**
+ * @brief Determine the slot id based on the id inputs
+ * @return The slot id
+ */
 uint8_t getSlotID(void)
 {
   uint8_t slotID;
@@ -43,7 +47,13 @@ void setSlaveAddress(void)
   __HAL_I2C_ENABLE(&hi2c1);
 }
 
-// Function for calculating median
+/**
+ * @brief Find the median of the given float array
+ *
+ * @param a The array of floats
+ * @param n The lenght of the array
+ * @return The median of the given array
+ */
 float findMedian(float a[], uint8_t n)
 {
   // First we sort the array
@@ -56,6 +66,9 @@ float findMedian(float a[], uint8_t n)
   return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 
+/**
+ * @brief Enter sleep mode
+ */
 void enter_Sleep(void)
 {
   /* Configure low-power mode */
