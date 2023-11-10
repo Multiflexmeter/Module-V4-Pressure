@@ -78,3 +78,17 @@ void enter_Sleep(void)
   FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
   __WFI();  // enter low-power mode
 }
+
+void determineSensorType(void)
+{
+  SensorType type;
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+  HAL_Delay(1);
+  type = HAL_GPIO_ReadPin(ONE_WIRE2_GPIO_Port, ONE_WIRE2_Pin);
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+
+  if(type == 1)
+    setSensorType(MFM_DRUKMODULE_ONEWIRE);
+  else
+    setSensorType(MFM_DRUKMODULE_RS485);
+}

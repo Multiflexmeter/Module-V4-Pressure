@@ -9,9 +9,11 @@
 #define UTILS_UTILS_H_
 
 #include "main.h"
+#include "SensorRegister.h"
 
 void setSlaveAddress(void);
 float findMedian(float a[], uint8_t n);
 void enter_Sleep(void);
+void determineSensorType(void);
 
 #endif /* UTILS_UTILS_H_ */

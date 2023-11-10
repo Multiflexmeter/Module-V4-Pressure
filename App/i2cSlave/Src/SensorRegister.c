@@ -107,6 +107,15 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
   memcpy(data, registers[regIndex].regPtr, size);
 }
 
+SensorType readSensorType(void)
+{
+  return registerSensorType;
+}
+void setSensorType(SensorType type)
+{
+  registerSensorType = type;
+}
+
 /**
  * @brief Reads the measurement start register
  *
