@@ -149,6 +149,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
+  determineSensorType();
 
   /* USER CODE END 2 */
 
@@ -503,13 +504,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  /*Configure GPIO pin : ONE_WIRE1_Pin */
+  GPIO_InitStruct.Pin = ONE_WIRE1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF5_TIM2;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(ONE_WIRE1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ONE_WIRE2_Pin */
+  GPIO_InitStruct.Pin = ONE_WIRE2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ONE_WIRE2_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
