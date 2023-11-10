@@ -56,7 +56,8 @@
 /* USER CODE BEGIN PTD */
 typedef enum
 {
-  POLL_SENSOR,
+  POLL_RS485_SENSOR,
+  POLL_ONEWIRE_SENSOR,
   WRITE_REGISTER,
   SLEEP,
 } state_machine_t;
@@ -160,7 +161,10 @@ int main(void)
     //ADC_Start(&hadc);
     switch (currentState)
     {
-      case POLL_SENSOR:
+      case POLL_RS485_SENSOR:
+        /* Wait the sensor startup time */
+        HAL_Delay(250);
+
         /* Initialize both Keller sensors */
         bool sensor1Present = KellerInit(0x01);
         bool sensor2Present = KellerInit(0x02);
@@ -200,6 +204,14 @@ int main(void)
         currentState = SLEEP;
         break;
 
+      case POLL_ONEWIRE_SENSOR:
+        setMeasurementStatus(MEASUREMENT_DONE);
+        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        ModbusShutdown();
+        stopMeas();
+        currentState = SLEEP;
+        break;
+
       case WRITE_REGISTER:
         if(regWriteData[0] == REG_SENSOR_SELECTED)
         {
@@ -221,12 +233,15 @@ int main(void)
         if(readMeasStart())
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
-          currentState = POLL_SENSOR;
+          if(readSensorType() == MFM_DRUKMODULE_RS485)
+            currentState = POLL_RS485_SENSOR;
+          else if(readSensorType() == MFM_DRUKMODULE_ONEWIRE)
+            currentState = POLL_ONEWIRE_SENSOR;
+
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
           HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
           ModbusShutdown();
-          HAL_Delay(250);
         }
         else
           enter_Sleep();
