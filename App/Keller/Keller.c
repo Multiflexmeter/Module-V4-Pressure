@@ -6,6 +6,14 @@
 
 
 /* Keller Private Functions */
+
+float KellerArrayToFloat(uint8_t *array)
+{
+  float f;
+  uint32_t b = ((uint32_t) array[0] << 24) | ((uint32_t) array[1] << 16) | ((uint32_t) array[2] << 8) | ((uint32_t) array[3]);
+  memcpy(&f , &b, sizeof(float));
+  return f;
+}
 /**
  * @brief Read the configuration register
  *
@@ -233,4 +241,17 @@ int32_t KellerReadPressure(uint8_t slaveAddress)
 int32_t KellerReadTemperature(uint8_t slaveAddress)
 {
   return KellerReadChannelInt(slaveAddress, CHANNEL_TOB1);
+}
+
+SensorDataKeller KellerReadTempAndPressure(uint8_t slaveAddress)
+{
+  SensorDataKeller sensorData;
+  uint8_t rxBuffer[8];
+
+  ModbusReadHoldingRegister(slaveAddress, 0x100, 0x04, rxBuffer);
+
+  sensorData.pressure = KellerArrayToFloat(rxBuffer);
+  sensorData.temperature = KellerArrayToFloat(rxBuffer+4);
+
+  return sensorData;
 }

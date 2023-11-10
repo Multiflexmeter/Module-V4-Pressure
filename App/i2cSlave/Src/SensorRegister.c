@@ -139,7 +139,7 @@ uint8_t readMeasSamples(void)
  * @param data is the raw sensor data
  * @param sensor is the sensor the data is taken from
  */
-void storeMeasurement(int32_t pressure, int32_t temperature, uint8_t sensor)
+void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 {
   registerMeasurementData[sensor].pressure = pressure;
   registerMeasurementData[sensor].temperature = temperature;

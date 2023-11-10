@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include "modbus.h"
+#include "SensorRegister.h"
 
 #ifndef KELLER_KELLERMODBUS_H_
 #define KELLER_KELLERMODBUS_H_
@@ -67,6 +68,7 @@ typedef enum
   BAUD_115200 =                    1,
 }Keller_Baudrate_t;
 
+
 #define READ_COEFFICIENTS         0x1E  //F30: Read coefficients
 #define WRITE_COEFFICIENTS        0x1F  //F31: Write coefficients
 #define READ_CONFIGURATION        0x20  //F32: Read configuration
@@ -98,5 +100,6 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 
 int32_t KellerReadPressure(uint8_t slaveAddress);
 int32_t KellerReadTemperature(uint8_t slaveAddress);
+SensorDataKeller KellerReadTempAndPressure(uint8_t slaveAddress);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

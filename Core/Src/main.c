@@ -43,12 +43,13 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
 #include "modbus.h"
 #include "adc.h"
+#include "utils.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,8 +85,11 @@ extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
 
-int32_t sensor1Samples[SAMPLE_BUFFER_SIZE];
-int32_t sensor2Samples[SAMPLE_BUFFER_SIZE];
+float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
+float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
+float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
+float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
+SensorDataKeller sensorSample;
 
 state_machine_t currentState = SLEEP;
 uint16_t samples;
@@ -105,61 +109,6 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// Function to compare two uint16_t for qsort
-int cmpfunc(const void* a, const void* b)
-{
-  return (*(int32_t*)a - *(int32_t*)b);
-}
-
-// Function for calculating median
-int32_t findMedian(int32_t a[], uint8_t n)
-{
-  // First we sort the array
-  qsort(a, n, sizeof(int32_t), cmpfunc);
-
-  // check for even case
-  if (n % 2 != 0)
-      return (int32_t)a[n / 2];
-
-  return (int32_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
-}
-
-uint8_t getSlotID(void)
-{
-  uint8_t slotID;
-  if(HAL_GPIO_ReadPin(SLOTID2_GPIO_Port, SLOTID2_Pin) == 0)
-  {
-    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin);
-  }
-  else
-  {
-    slotID = (HAL_GPIO_ReadPin(SLOTID1_GPIO_Port, SLOTID1_Pin) << 1) + HAL_GPIO_ReadPin(SLOTID0_GPIO_Port, SLOTID0_Pin) + 3;
-  }
-  return slotID;
-}
-
-void setSlaveAddress(uint8_t slotID)
-{
-  if(slotID <= 0)
-    slotID = 1;
-
-  uint8_t slaveAddress = (0x11<<1) + (slotID-1);
-
-  __HAL_I2C_DISABLE(&hi2c1);
-  hi2c1.Instance->OAR1 &= ~I2C_OAR1_OA1EN;
-  hi2c1.Instance->OAR1 = (I2C_OAR1_OA1EN | slaveAddress);
-  __HAL_I2C_ENABLE(&hi2c1);
-}
-
-void enter_Sleep( void )
-{
-  /* Configure low-power mode */
-  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
-
-  /* Ensure Flash memory stays on */
-  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
-  __WFI();  // enter low-power mode
-}
 /* USER CODE END 0 */
 
 /**
@@ -195,40 +144,58 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
-  setSlaveAddress(getSlotID());
+  setSlaveAddress();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ADC_Start(&hadc);
+    //ADC_Start(&hadc);
     switch (currentState)
     {
       case POLL_SENSOR:
         /* Initialize both Keller sensors */
-        KellerInit(0x01);
-        KellerInit(0x02);
+        bool sensor1Present = KellerInit(0x01);
+        bool sensor2Present = KellerInit(0x02);
 
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
         {
-          //todo sample pressure and temp of both sensors
-          sensor1Samples[sample] = KellerReadTemperature(0x02);
-          HAL_Delay(1);
-          sensor2Samples[sample] = KellerReadPressure(0x02);
-          HAL_Delay(1);
+          if(sensor1Present)
+          {
+            // Sample the first sensor
+            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            sensorSample = KellerReadTempAndPressure(0x01);
+            sensor1PressureSamples[sample] = sensorSample.pressure;
+            sensor1TempSamples[sample] = sensorSample.temperature;
+            HAL_Delay(1);
+          }
+
+          if(sensor2Present)
+          {
+            // Sample the second sensor
+            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            sensorSample = KellerReadTempAndPressure(0x02);
+            sensor2PressureSamples[sample] = sensorSample.pressure;
+            sensor2TempSamples[sample] = sensorSample.temperature;
+            HAL_Delay(1);
+          }
         }
 
         /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         ModbusShutdown();
-        storeMeasurement(findMedian(sensor2Samples, samples), findMedian(sensor1Samples, samples), 0);
+        storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+        storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
         setMeasurementStatus(MEASUREMENT_DONE);
         stopMeas();
+        HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
         currentState = SLEEP;
         break;
 
@@ -249,8 +216,10 @@ int main(void)
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
+        // If the measurement start register has been set to 1
         if(readMeasStart())
         {
+          HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
           currentState = POLL_SENSOR;
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
@@ -500,8 +469,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
-                          |DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
   GPIO_InitStruct.Pin = DEBUG_SW2_Pin|DEBUG_SW1_Pin;
@@ -522,10 +490,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin DEBUG_LED2_Pin
-                           DEBUG_LED1_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
-                          |DEBUG_LED1_Pin|BUCK_EN_Pin;
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin */
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : DEBUG_LED2_Pin DEBUG_LED1_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
