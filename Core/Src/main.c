@@ -93,16 +93,18 @@ float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
 float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
 float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
 float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
-SensorDataKeller sensorSample;
+SensorData sensorSample;
 
 state_machine_t currentState = SLEEP;
 uint16_t samples;
 
-uint32_t timeBuffer[32];
+uint8_t timeBuffer[32];
+uint8_t hubaBuffer[32];
 uint32_t strobeTimeStart = 0;
 uint32_t strobeTimeEnd = 0;
 uint8_t bitIndex = 0;
 bool firstCapture = false;
+bool hubaDone = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,7 +122,34 @@ static void MX_TIM21_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+SensorData hubaBufferToData(uint8_t *buffer)
+{
+  SensorData sensorData;
+  uint8_t dataBuffer[3] = {0, 0, 0};
+  uint8_t byteIndex = 0;
+  uint8_t bitIndex = 7;
 
+  for(uint8_t i=1; i<30; i++)
+  {
+    if(buffer[i]>12 && buffer[i]<20)
+    {
+      byteIndex++;
+      bitIndex = 7;
+    }
+    else if(buffer[i]>4 && buffer[i]<12)
+    {
+      bitIndex--;
+    }
+    else if(buffer[i]>20 && buffer[i]<28)
+    {
+      dataBuffer[byteIndex] |= 1<<bitIndex;
+      bitIndex--;
+    }
+  }
+  sensorData.pressure = (float) ((((dataBuffer[0]<<8) + dataBuffer[1])-3000)/8000.0) * 0.6; // Pressure in bar
+  sensorData.temperature = (float) ((dataBuffer[2]*200.0)/255) - 50; // temp in celsius
+  return sensorData;
+}
 /* USER CODE END 0 */
 
 /**
@@ -159,17 +188,6 @@ int main(void)
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_RESET);
-
-  while(1)
-  {
-    HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
-    HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
-    HAL_Delay(10);
-    HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
-    HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(1000);
-  }
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
@@ -200,7 +218,7 @@ int main(void)
           if(sensor1Present)
           {
             // Sample the first sensor
-            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            memset(&sensorSample, 0, sizeof(SensorData));
             sensorSample = KellerReadTempAndPressure(0x01);
             sensor1PressureSamples[sample] = sensorSample.pressure;
             sensor1TempSamples[sample] = sensorSample.temperature;
@@ -210,7 +228,7 @@ int main(void)
           if(sensor2Present)
           {
             // Sample the second sensor
-            memset(&sensorSample, 0, sizeof(SensorDataKeller));
+            memset(&sensorSample, 0, sizeof(SensorData));
             sensorSample = KellerReadTempAndPressure(0x02);
             sensor2PressureSamples[sample] = sensorSample.pressure;
             sensor2TempSamples[sample] = sensorSample.temperature;
@@ -232,10 +250,24 @@ int main(void)
         break;
 
       case POLL_ONEWIRE_SENSOR:
-        setMeasurementStatus(MEASUREMENT_DONE);
+        uint8_t sample = 0;
+        HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+        while(sample < samples)
+        {
+          if(hubaDone)
+          {
+            sensorSample = hubaBufferToData(hubaBuffer);
+            sensor1PressureSamples[sample] = sensorSample.pressure;
+            sensor1TempSamples[sample] = sensorSample.temperature;
+            hubaDone = false;
+            sample++;
+          }
+        }
+        HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
-        ModbusShutdown();
+        storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+        setMeasurementStatus(MEASUREMENT_DONE);
         stopMeas();
         currentState = SLEEP;
         break;
@@ -679,13 +711,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
   {
     if(!firstCapture)
     {
-      DEBUG_LED1_GPIO_Port->BRR = DEBUG_LED1_Pin;
       strobeTimeStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
       firstCapture = true;
     }
     else
     {
-      DEBUG_LED1_GPIO_Port->BSRR = DEBUG_LED1_Pin;
       uint32_t difference = 0;
       strobeTimeEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
@@ -702,7 +732,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         timeBuffer[bitIndex] = difference/32;
 
         if(bitIndex >= 29)
+        {
           bitIndex = 0;
+          memcpy(hubaBuffer, timeBuffer, 30);
+          hubaDone = true;
+        }
         else
           bitIndex++;
       }
@@ -713,29 +747,6 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
   }
 }
 
-//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-//{
-//  if(GPIO_Pin == ONE_WIRE1_Pin)
-//  {
-//    /* Falling edge detected */
-//
-//    if(HAL_GPIO_ReadPin(ONE_WIRE1_GPIO_Port, ONE_WIRE1_Pin) == 0)
-//    {
-//      __HAL_TIM_ENABLE(&htim2);
-//    }
-//    /* Rising edge detected */
-//    else if(HAL_GPIO_ReadPin(ONE_WIRE1_GPIO_Port, ONE_WIRE1_Pin) == 1)
-//    {
-//      timeBuffer[bitIndex] = __HAL_TIM_GET_COUNTER(&htim2);
-//      __HAL_TIM_DISABLE(&htim2);
-//      __HAL_TIM_SET_COUNTER(&htim2, 0);
-//      if(bitIndex >= 30)
-//        bitIndex = 0;
-//      else
-//        bitIndex++;
-//    }
-//  }
-//}
 /* USER CODE END 4 */
 
 /**

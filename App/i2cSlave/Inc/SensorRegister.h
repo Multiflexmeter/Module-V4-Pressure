@@ -75,7 +75,7 @@ typedef struct __attribute__((__packed__))
 {
   float pressure;
   float temperature;
-}SensorDataKeller;
+}SensorData;
 
 typedef struct
 {

@@ -8,3 +8,4 @@ latex/
 .settings/stm32cubeide.project.prefs
 .settings/com.st.stm32cube.ide.mcu.sfrview.prefs
 *.launch
+.settings/org.eclipse.cdt.core.prefs

@@ -11,12 +11,12 @@ static uint16_t registerSensorType = DEF_SENSOR_TYPE;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static SensorDataKeller registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}, {DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorData registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}, {DEF_MEAS_DATA, DEF_MEAS_DATA}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static SensorDataKeller registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
