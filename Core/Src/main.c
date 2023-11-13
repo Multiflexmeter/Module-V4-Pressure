@@ -97,6 +97,12 @@ SensorDataKeller sensorSample;
 
 state_machine_t currentState = SLEEP;
 uint16_t samples;
+
+uint32_t timeBuffer[32];
+uint32_t strobeTimeStart = 0;
+uint32_t strobeTimeEnd = 0;
+uint8_t bitIndex = 0;
+bool firstCapture = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -153,11 +159,23 @@ int main(void)
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(DEBUG_LED1_GPIO_Port, DEBUG_LED1_Pin, GPIO_PIN_RESET);
+
+  while(1)
+  {
+    HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+    HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+    HAL_Delay(10);
+    HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
+    HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1000);
+  }
   ModbusInit(&huart2);
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
   determineSensorType();
+
 
   /* USER CODE END 2 */
 
@@ -203,6 +221,8 @@ int main(void)
         /* Disable the buck/boost and store the median in the registers */
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         ModbusShutdown();
+
+        /* Store the measurements in the registers */
         storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
         storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
         setMeasurementStatus(MEASUREMENT_DONE);
@@ -214,6 +234,7 @@ int main(void)
       case POLL_ONEWIRE_SENSOR:
         setMeasurementStatus(MEASUREMENT_DONE);
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
         ModbusShutdown();
         stopMeas();
         currentState = SLEEP;
@@ -240,6 +261,8 @@ int main(void)
         if(readMeasStart())
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
+
+          /* Check which sensor type to poll */
           if(readSensorType() == MFM_DRUKMODULE_RS485)
             currentState = POLL_RS485_SENSOR;
           else if(readSensorType() == MFM_DRUKMODULE_ONEWIRE)
@@ -650,7 +673,69 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+  if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+  {
+    if(!firstCapture)
+    {
+      DEBUG_LED1_GPIO_Port->BRR = DEBUG_LED1_Pin;
+      strobeTimeStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+      firstCapture = true;
+    }
+    else
+    {
+      DEBUG_LED1_GPIO_Port->BSRR = DEBUG_LED1_Pin;
+      uint32_t difference = 0;
+      strobeTimeEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
+      if(strobeTimeEnd > strobeTimeStart)
+        difference = strobeTimeEnd - strobeTimeStart;
+
+      else if(strobeTimeStart > strobeTimeEnd)
+        difference = (0xFFFFFFFF - strobeTimeStart) - strobeTimeEnd;
+
+      if(difference > 5000)
+        bitIndex = 0;
+      else
+      {
+        timeBuffer[bitIndex] = difference/32;
+
+        if(bitIndex >= 29)
+          bitIndex = 0;
+        else
+          bitIndex++;
+      }
+
+      __HAL_TIM_SET_COUNTER(htim, 0);
+      firstCapture = false;
+    }
+  }
+}
+
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//  if(GPIO_Pin == ONE_WIRE1_Pin)
+//  {
+//    /* Falling edge detected */
+//
+//    if(HAL_GPIO_ReadPin(ONE_WIRE1_GPIO_Port, ONE_WIRE1_Pin) == 0)
+//    {
+//      __HAL_TIM_ENABLE(&htim2);
+//    }
+//    /* Rising edge detected */
+//    else if(HAL_GPIO_ReadPin(ONE_WIRE1_GPIO_Port, ONE_WIRE1_Pin) == 1)
+//    {
+//      timeBuffer[bitIndex] = __HAL_TIM_GET_COUNTER(&htim2);
+//      __HAL_TIM_DISABLE(&htim2);
+//      __HAL_TIM_SET_COUNTER(&htim2, 0);
+//      if(bitIndex >= 30)
+//        bitIndex = 0;
+//      else
+//        bitIndex++;
+//    }
+//  }
+//}
 /* USER CODE END 4 */
 
 /**
