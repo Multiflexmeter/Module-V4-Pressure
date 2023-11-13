@@ -251,6 +251,9 @@ int main(void)
 
       case POLL_ONEWIRE_SENSOR:
         uint8_t sample = 0;
+        bitIndex = 0;
+        memset(timeBuffer, 0, 32);
+        HAL_Delay(2);
         HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
         while(sample < samples)
         {
