@@ -136,11 +136,11 @@ SensorData hubaBufferToData(uint8_t *buffer)
       byteIndex++;
       bitIndex = 7;
     }
-    else if(buffer[i]>4 && buffer[i]<12)
+    else if(buffer[i]>20 && buffer[i]<28)
     {
       bitIndex--;
     }
-    else if(buffer[i]>20 && buffer[i]<28)
+    else if(buffer[i]>4 && buffer[i]<12)
     {
       dataBuffer[byteIndex] |= 1<<bitIndex;
       bitIndex--;
