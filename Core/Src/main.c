@@ -99,13 +99,7 @@ SensorData sensorSample;
 state_machine_t currentState = SLEEP;
 uint16_t samples;
 
-uint8_t timeBuffer[32];
-uint8_t hubaBuffer[32];
-uint32_t strobeTimeStart = 0;
-uint32_t strobeTimeEnd = 0;
-uint8_t bitIndex = 0;
-bool firstCapture = false;
-bool hubaDone = false;
+extern bool hubaDone;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -168,7 +162,6 @@ int main(void)
   setSlaveAddress();
   determineSensorType();
 
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -225,18 +218,14 @@ int main(void)
 
       case POLL_ONEWIRE_SENSOR:
         uint8_t sample = 0;
-        bitIndex = 0;
-        memset(timeBuffer, 0, 32);
-        HAL_Delay(2);
-        HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
-
+        hubaInit(&htim2);
         /* Sample the Huba sensor */
         while(sample < samples)
         {
           /* Sample received? */
           if(hubaDone)
           {
-            sensorSample = hubaBufferToData(hubaBuffer);
+            sensorSample = hubaBufferToData();
             sensor1PressureSamples[sample] = sensorSample.pressure;
             sensor1TempSamples[sample] = sensorSample.temperature;
             hubaDone = false;
@@ -689,51 +678,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {
-    /* Capture the falling edge */
-    if(!firstCapture)
-    {
-      /* Store the start time */
-      strobeTimeStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-      firstCapture = true;
-    }
-
-    /* Capture the rising edge */
-    else
-    {
-      uint32_t difference = 0;
-
-      /* Store the end time */
-      strobeTimeEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-
-      /* Determine the difference */
-      if(strobeTimeEnd > strobeTimeStart)
-        difference = strobeTimeEnd - strobeTimeStart;
-
-      else if(strobeTimeStart > strobeTimeEnd)
-        difference = (0xFFFFFFFF - strobeTimeStart) + strobeTimeEnd;
-
-      /* Reset if the time if larger then 150us */
-      if(difference > 5000)
-      {
-        bitIndex = 0;
-      }
-      else
-      {
-        timeBuffer[bitIndex] = difference/32;
-
-        if(bitIndex >= TIMEBUFFER_SIZE - 1)
-        {
-          bitIndex = 0;
-          memcpy(hubaBuffer, timeBuffer, TIMEBUFFER_SIZE);
-          hubaDone = true;
-        }
-        else
-          bitIndex++;
-      }
-
-      __HAL_TIM_SET_COUNTER(htim, 0);
-      firstCapture = false;
-    }
+    hubaTimerCallback(htim);
   }
 }
 
