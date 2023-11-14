@@ -20,7 +20,7 @@ typedef struct
   bool hubaDone;
 }HubaSensor;
 
-void hubaInit(HubaSensor *sensor);
+void hubaStart(HubaSensor *sensor);
 SensorData hubaBufferToData(HubaSensor *sensor);
 void hubaTimerCallback(HubaSensor *sensor);
 

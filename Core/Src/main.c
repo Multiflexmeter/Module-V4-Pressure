@@ -232,8 +232,8 @@ int main(void)
 
       case POLL_ONEWIRE_SENSOR:
         uint8_t sample = 0;
-        hubaInit(&hubaSensor1);
-        hubaInit(&hubaSensor2);
+        hubaStart(&hubaSensor1);
+        hubaStart(&hubaSensor2);
         while(sample < samples)
         {
           /* Sample first Huba sensor */

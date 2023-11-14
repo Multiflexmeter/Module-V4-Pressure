@@ -11,7 +11,7 @@
 //bool firstCapture = false;
 //bool hubaDone = false;
 
-void hubaInit(HubaSensor *sensor)
+void hubaStart(HubaSensor *sensor)
 {
   sensor->bitIndex = 0;
   memset(sensor->tmpBuf, 0, 32);
