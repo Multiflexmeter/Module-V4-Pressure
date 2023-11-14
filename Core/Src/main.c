@@ -47,6 +47,7 @@
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "keller.h"
+#include "Huba.h"
 #include "modbus.h"
 #include "adc.h"
 #include "utils.h"
@@ -122,34 +123,7 @@ static void MX_TIM21_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-SensorData hubaBufferToData(uint8_t *buffer)
-{
-  SensorData sensorData;
-  uint8_t dataBuffer[3] = {0, 0, 0};
-  uint8_t byteIndex = 0;
-  uint8_t bitIndex = 7;
 
-  for(uint8_t i=1; i<30; i++)
-  {
-    if(buffer[i]>12 && buffer[i]<20)
-    {
-      byteIndex++;
-      bitIndex = 7;
-    }
-    else if(buffer[i]>20 && buffer[i]<28)
-    {
-      bitIndex--;
-    }
-    else if(buffer[i]>4 && buffer[i]<12)
-    {
-      dataBuffer[byteIndex] |= 1<<bitIndex;
-      bitIndex--;
-    }
-  }
-  sensorData.pressure = (float) ((((dataBuffer[0]<<8) + dataBuffer[1])-3000)/8000.0) * 0.6; // Pressure in bar
-  sensorData.temperature = (float) ((dataBuffer[2]*200.0)/255) - 50; // temp in celsius
-  return sensorData;
-}
 /* USER CODE END 0 */
 
 /**
@@ -747,10 +721,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       {
         timeBuffer[bitIndex] = difference/32;
 
-        if(bitIndex >= 29)
+        if(bitIndex >= TIMEBUFFER_SIZE - 1)
         {
           bitIndex = 0;
-          memcpy(hubaBuffer, timeBuffer, 30);
+          memcpy(hubaBuffer, timeBuffer, TIMEBUFFER_SIZE);
           hubaDone = true;
         }
         else

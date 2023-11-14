@@ -50,6 +50,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Keller}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/ADC}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Huba}&quot;"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.734691335" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
