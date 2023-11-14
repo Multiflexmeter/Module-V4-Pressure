@@ -58,6 +58,7 @@
 extern DMA_HandleTypeDef hdma_adc;
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim21;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -168,6 +169,20 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 1 */
 
   /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM21 global interrupt.
+  */
+void TIM21_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM21_IRQn 0 */
+
+  /* USER CODE END TIM21_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim21);
+  /* USER CODE BEGIN TIM21_IRQn 1 */
+
+  /* USER CODE END TIM21_IRQn 1 */
 }
 
 /**

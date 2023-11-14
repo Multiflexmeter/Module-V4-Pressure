@@ -87,7 +87,7 @@ void Error_Handler(void);
 #define ONE_WIRE1_GPIO_Port GPIOA
 #define BUCK_EN_Pin GPIO_PIN_3
 #define BUCK_EN_GPIO_Port GPIOB
-#define ONE_WIRE2_Pin GPIO_PIN_4
+#define ONE_WIRE2_Pin GPIO_PIN_6
 #define ONE_WIRE2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
