@@ -99,7 +99,19 @@ SensorData sensorSample;
 state_machine_t currentState = SLEEP;
 uint16_t samples;
 
-extern bool hubaDone;
+HubaSensor hubaSensor1 = {
+    .htim = &htim2,
+    .bitIndex = 0,
+    .hubaDone = false,
+    .firstCapture = false
+};
+
+HubaSensor hubaSensor2 = {
+    .htim = &htim21,
+    .bitIndex = 0,
+    .hubaDone = false,
+    .firstCapture = false
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -218,19 +230,29 @@ int main(void)
 
       case POLL_ONEWIRE_SENSOR:
         uint8_t sample = 0;
-        hubaInit(&htim2);
-        /* Sample the Huba sensor */
+        hubaInit(&hubaSensor1);
         while(sample < samples)
         {
-          /* Sample received? */
-          if(hubaDone)
+          /* Sample first Huba sensor */
+          if(hubaSensor1.hubaDone)
           {
-            sensorSample = hubaBufferToData();
+            sensorSample = hubaBufferToData(&hubaSensor1);
             sensor1PressureSamples[sample] = sensorSample.pressure;
             sensor1TempSamples[sample] = sensorSample.temperature;
-            hubaDone = false;
+            hubaSensor1.hubaDone = false;
             sample++;
           }
+
+          /* Sample second Huba sensor */
+          if(hubaSensor2.hubaDone)
+          {
+            sensorSample = hubaBufferToData(&hubaSensor2);
+            sensor2PressureSamples[sample] = sensorSample.pressure;
+            sensor2TempSamples[sample] = sensorSample.temperature;
+            hubaSensor2.hubaDone = false;
+            sample++;
+          }
+
         }
         HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
@@ -678,7 +700,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {
-    hubaTimerCallback(htim);
+    hubaTimerCallback(&hubaSensor1);
   }
 }
 
