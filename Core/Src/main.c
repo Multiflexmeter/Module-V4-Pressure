@@ -255,8 +255,11 @@ int main(void)
         memset(timeBuffer, 0, 32);
         HAL_Delay(2);
         HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+
+        /* Sample the Huba sensor */
         while(sample < samples)
         {
+          /* Sample received? */
           if(hubaDone)
           {
             sensorSample = hubaBufferToData(hubaBuffer);
@@ -712,24 +715,34 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {
+    /* Capture the falling edge */
     if(!firstCapture)
     {
+      /* Store the start time */
       strobeTimeStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
       firstCapture = true;
     }
+
+    /* Capture the rising edge */
     else
     {
       uint32_t difference = 0;
+
+      /* Store the end time */
       strobeTimeEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
+      /* Determine the difference */
       if(strobeTimeEnd > strobeTimeStart)
         difference = strobeTimeEnd - strobeTimeStart;
 
       else if(strobeTimeStart > strobeTimeEnd)
-        difference = (0xFFFFFFFF - strobeTimeStart) - strobeTimeEnd;
+        difference = (0xFFFFFFFF - strobeTimeStart) + strobeTimeEnd;
 
+      /* Reset if the time if larger then 150us */
       if(difference > 5000)
+      {
         bitIndex = 0;
+      }
       else
       {
         timeBuffer[bitIndex] = difference/32;
