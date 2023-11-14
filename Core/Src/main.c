@@ -258,6 +258,7 @@ int main(void)
 
         }
         HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
+        HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
         storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
@@ -712,11 +713,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-//  if(htim == hubaSensor1.htim)
-//  {
-//    hubaTimerCallback(&hubaSensor1);
-//  }
-  if(htim == hubaSensor2.htim)
+  if(htim == hubaSensor1.htim)
+  {
+    hubaTimerCallback(&hubaSensor1);
+  }
+  else if(htim == hubaSensor2.htim)
   {
     hubaTimerCallback(&hubaSensor2);
   }
