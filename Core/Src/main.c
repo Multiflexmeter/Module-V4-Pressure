@@ -161,8 +161,17 @@ int main(void)
     {
       case POLL_SENSOR:
         /* Initialize both Keller sensors */
-        bool sensor1Present = KellerInit(0x01);
-        bool sensor2Present = KellerInit(0x02);
+        bool sensor1Present = false;
+        bool sensor2Present = false;
+
+        for(uint8_t i=0; i<3;i++)
+        {
+          if(!sensor1Present)
+            sensor1Present = KellerInit(0x01);
+
+          if(!sensor2Present)
+            sensor2Present = KellerInit(0x02);
+        }
 
         /* Collect the samples specified in the MeasurementSamples register */
         for (uint8_t sample = 0; sample < samples; ++sample)
