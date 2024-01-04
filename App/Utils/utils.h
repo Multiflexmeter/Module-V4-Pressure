@@ -14,4 +14,8 @@ void setSlaveAddress(void);
 float findMedian(float a[], uint8_t n);
 void enter_Sleep(void);
 
+void enableSensor1(void);
+void enableSensor2(void);
+void disableSensors(void);
+
 #endif /* UTILS_UTILS_H_ */

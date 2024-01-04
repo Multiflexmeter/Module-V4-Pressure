@@ -478,6 +478,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
@@ -505,8 +508,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DEBUG_LED2_Pin DEBUG_LED1_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin;
+  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin DEBUG_LED1_Pin
+                           BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|DEBUG_LED1_Pin
+                          |BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

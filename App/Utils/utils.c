@@ -66,6 +66,24 @@ float findMedian(float a[], uint8_t n)
   return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 
+void enableSensor1(void)
+{
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+}
+
+void enableSensor2(void)
+{
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+}
+
+void disableSensors(void)
+{
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
+}
+
 /**
  * @brief Enter sleep mode
  */
