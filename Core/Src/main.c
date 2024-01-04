@@ -151,7 +151,7 @@ void setSlaveAddress(uint8_t slotID)
   __HAL_I2C_ENABLE(&hi2c1);
 }
 
-void enableSensor1(void)
+void enter_Sleep( void )
 {
   HAL_GPIO_WritePin(SENSOR1_ENABLE_GPIO_Port, SENSOR1_ENABLE_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(SENSOR0_ENABLE_GPIO_Port, SENSOR0_ENABLE_Pin, GPIO_PIN_RESET);
@@ -270,14 +270,7 @@ int main(void)
           HAL_Delay(250);
         }
         else
-        {
-          HAL_PWR_DisableSleepOnExit();
-          HAL_SuspendTick();
-          HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-          HAL_ResumeTick();
-          HAL_Delay(30);
-        }
-
+          enter_Sleep();
         break;
     }
     /* USER CODE END WHILE */
