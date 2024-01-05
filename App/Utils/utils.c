@@ -10,6 +10,11 @@ int cmpfunc(const void* a, const void* b)
   return (*(int32_t*)a - *(int32_t*)b);
 }
 
+variant_t getVariant(void)
+{
+  return HAL_GPIO_ReadPin(VARIANT_DETECT_GPIO_Port, VARIANT_DETECT_Pin);
+}
+
 /**
  * @brief Determine the slot id based on the id inputs
  * @return The slot id

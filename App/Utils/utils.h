@@ -10,6 +10,13 @@
 
 #include "main.h"
 
+typedef enum
+{
+  RS485_VARIANT = 0,
+  ONEWIRE_VARIANT = 1,
+} variant_t;
+
+variant_t getVariant(void);
 void setSlaveAddress(void);
 float findMedian(float a[], uint8_t n);
 void enter_Sleep(void);

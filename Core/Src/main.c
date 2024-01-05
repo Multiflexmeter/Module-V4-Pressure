@@ -94,6 +94,7 @@ float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
 SensorDataKeller sensorSample;
 
 state_machine_t currentState = SLEEP;
+variant_t variant;
 uint16_t samples;
 /* USER CODE END PV */
 
@@ -151,6 +152,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
+  variant = getVariant();
 
   /* USER CODE END 2 */
 
@@ -228,22 +230,30 @@ int main(void)
         break;
 
       case ASSIGN_ADDRESS:
-        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
-        disableSensors();
-        enableSensor1();
-        HAL_Delay(100);
-        KellerSetBaudrate(250, BAUD_115200);
-        HAL_Delay(2);
-        KellerNewAddress(250, 0x01);
-        disableSensors();
+        if(variant == RS485_VARIANT)
+        {
+          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+          disableSensors();
 
-        enableSensor2();
-        HAL_Delay(100);
-        KellerSetBaudrate(250, BAUD_115200);
-        HAL_Delay(2);
-        KellerNewAddress(250, 0x02);
-        disableSensors();
-        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+          /* Set address and baudrate of first sensor */
+          enableSensor1();
+          HAL_Delay(100);
+          KellerSetBaudrate(250, BAUD_115200);
+          HAL_Delay(2);
+          KellerNewAddress(250, 0x01);
+          disableSensors();
+
+          /* Set address and baudrate of second sensor */
+          enableSensor2();
+          HAL_Delay(100);
+          KellerSetBaudrate(250, BAUD_115200);
+          HAL_Delay(2);
+          KellerNewAddress(250, 0x02);
+
+          /* Disable both sensors */
+          disableSensors();
+          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        }
         currentState = SLEEP;
         break;
 
@@ -533,8 +543,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin */
-  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin;
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin VARIANT_DETECT_Pin */
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|VARIANT_DETECT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
