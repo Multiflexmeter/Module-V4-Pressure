@@ -58,6 +58,7 @@ typedef enum
 {
   POLL_SENSOR,
   WRITE_REGISTER,
+  ASSIGN_ADDRESS,
   SLEEP,
 } state_machine_t;
 /* USER CODE END PTD */
@@ -84,6 +85,7 @@ UART_HandleTypeDef huart2;
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
+bool startMeas = false;
 
 float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
 float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
@@ -167,7 +169,9 @@ int main(void)
         for(uint8_t i=0; i<3;i++)
         {
           if(!sensor1Present)
+          {
             sensor1Present = KellerInit(0x01);
+          }
 
           if(!sensor2Present)
             sensor2Present = KellerInit(0x02);
@@ -207,6 +211,7 @@ int main(void)
         disableSensors();
         HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
         currentState = SLEEP;
+        startMeas = false;
         break;
 
       case WRITE_REGISTER:
@@ -222,12 +227,34 @@ int main(void)
         currentState = SLEEP;
         break;
 
+      case ASSIGN_ADDRESS:
+        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+        disableSensors();
+        enableSensor1();
+        HAL_Delay(100);
+        KellerSetBaudrate(250, BAUD_115200);
+        HAL_Delay(2);
+        KellerNewAddress(250, 0x01);
+        disableSensors();
+
+        enableSensor2();
+        HAL_Delay(100);
+        KellerSetBaudrate(250, BAUD_115200);
+        HAL_Delay(2);
+        KellerNewAddress(250, 0x02);
+        disableSensors();
+        HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+        currentState = SLEEP;
+        break;
+
       case SLEEP:
+        HAL_Delay(1000);
         if(writeFlag)
           currentState = WRITE_REGISTER;
 
         // If the measurement start register has been set to 1
-        if(!readMeasStart())
+        //if(readMeasStart())
+        if(startMeas)
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
           currentState = POLL_SENSOR;
@@ -235,10 +262,9 @@ int main(void)
           samples = readMeasSamples();
           HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
           HAL_Delay(2);
-          enableSensor1();
-          enableSensor2();
+          enableSensors();
           ModbusShutdown();
-          HAL_Delay(250);
+          HAL_Delay(35);
         }
         else
           enter_Sleep();

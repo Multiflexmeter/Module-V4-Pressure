@@ -68,13 +68,19 @@ float findMedian(float a[], uint8_t n)
 
 void enableSensor1(void)
 {
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
 }
 
 void enableSensor2(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
+}
+
+void enableSensors(void)
+{
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
 }
 

@@ -16,6 +16,7 @@ void enter_Sleep(void);
 
 void enableSensor1(void);
 void enableSensor2(void);
+void enableSensors(void);
 void disableSensors(void);
 
 #endif /* UTILS_UTILS_H_ */
