@@ -26,4 +26,7 @@ void enableSensor2(void);
 void enableSensors(void);
 void disableSensors(void);
 
+void assignAddressKeller(void);
+void measureKellerSensor(void);
+
 #endif /* UTILS_UTILS_H_ */

@@ -1,8 +1,14 @@
 #include "utils.h"
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include "SensorRegister.h"
+#include "keller.h"
+#include "modbus.h"
 
 extern I2C_HandleTypeDef hi2c1;
 
+#define SAMPLE_BUFFER_SIZE  10
 
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
@@ -71,24 +77,36 @@ float findMedian(float a[], uint8_t n)
   return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 
+/**
+ * @brief Enable sensor 1
+ */
 void enableSensor1(void)
 {
   HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
 }
 
+/**
+ * @brief Enable sensor 2
+ */
 void enableSensor2(void)
 {
   HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
 }
 
+/**
+ * @brief Enable both sensors
+ */
 void enableSensors(void)
 {
   HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
 }
 
+/**
+ * @brief Disable both sensors
+ */
 void disableSensors(void)
 {
   HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
@@ -106,4 +124,79 @@ void enter_Sleep(void)
   /* Ensure Flash memory stays on */
   FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
   __WFI();  // enter low-power mode
+}
+
+/* State functions */
+void assignAddressKeller(void)
+{
+  /* Enable the buck/boost */
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+  disableSensors();
+
+  /* Set address and baudrate of first sensor */
+  enableSensor1();
+  HAL_Delay(100);
+  KellerSetBaudrate(250, BAUD_115200);
+  HAL_Delay(2);
+  KellerNewAddress(250, 0x01);
+  disableSensors();
+
+  /* Set address and baudrate of second sensor */
+  enableSensor2();
+  HAL_Delay(100);
+  KellerSetBaudrate(250, BAUD_115200);
+  HAL_Delay(2);
+  KellerNewAddress(250, 0x02);
+
+  /* Disable both sensors */
+  disableSensors();
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+}
+
+void measureKellerSensor(void)
+{
+  uint16_t samples = readMeasSamples();
+  float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
+  float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
+  float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
+  float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
+  SensorDataKeller sensorSample;
+
+  /* Initialize both Keller sensors */
+  bool sensor1Present = KellerInit(0x01);
+  bool sensor2Present = KellerInit(0x02);
+
+  /* Collect the samples specified in the MeasurementSamples register */
+  for (uint8_t sample = 0; sample < samples; ++sample)
+  {
+    if(sensor1Present)
+    {
+      // Sample the first sensor
+      memset(&sensorSample, 0, sizeof(SensorDataKeller));
+      sensorSample = KellerReadTempAndPressure(0x01);
+      sensor1PressureSamples[sample] = sensorSample.pressure;
+      sensor1TempSamples[sample] = sensorSample.temperature;
+      HAL_Delay(1);
+    }
+
+    if(sensor2Present)
+    {
+      // Sample the second sensor
+      memset(&sensorSample, 0, sizeof(SensorDataKeller));
+      sensorSample = KellerReadTempAndPressure(0x02);
+      sensor2PressureSamples[sample] = sensorSample.pressure;
+      sensor2TempSamples[sample] = sensorSample.temperature;
+      HAL_Delay(1);
+    }
+  }
+
+  /* Disable the buck/boost and store the median in the registers */
+  disableSensors();
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  ModbusShutdown();
+  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+  setMeasurementStatus(MEASUREMENT_DONE);
+  stopMeas();
+  HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
 }
