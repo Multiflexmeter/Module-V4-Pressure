@@ -89,8 +89,12 @@ void Error_Handler(void);
 #define INT_GPIO_Port GPIOA
 #define USART_RX_EN_Pin GPIO_PIN_12
 #define USART_RX_EN_GPIO_Port GPIOA
+#define ONE_WIRE1_Pin GPIO_PIN_15
+#define ONE_WIRE1_GPIO_Port GPIOA
 #define BUCK_EN_Pin GPIO_PIN_3
 #define BUCK_EN_GPIO_Port GPIOB
+#define ONE_WIRE2_Pin GPIO_PIN_6
+#define ONE_WIRE2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

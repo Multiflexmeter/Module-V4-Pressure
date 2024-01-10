@@ -240,9 +240,9 @@ int32_t KellerReadTemperature(uint8_t slaveAddress)
   return KellerReadChannelInt(slaveAddress, CHANNEL_TOB1);
 }
 
-SensorDataKeller KellerReadTempAndPressure(uint8_t slaveAddress)
+SensorData KellerReadTempAndPressure(uint8_t slaveAddress)
 {
-  SensorDataKeller sensorData;
+  SensorData sensorData;
   uint8_t rxBuffer[8];
 
   ModbusReadHoldingRegister(slaveAddress, 0x100, 0x04, rxBuffer);

@@ -100,6 +100,6 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 
 int32_t KellerReadPressure(uint8_t slaveAddress);
 int32_t KellerReadTemperature(uint8_t slaveAddress);
-SensorDataKeller KellerReadTempAndPressure(uint8_t slaveAddress);
+SensorData KellerReadTempAndPressure(uint8_t slaveAddress);
 
 #endif /* KELLER_KELLERMODBUS_H_ */

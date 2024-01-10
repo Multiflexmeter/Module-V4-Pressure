@@ -19,7 +19,7 @@
 #define REG_ERROR_STATUS          0x51
 
 /* Registers Defaults*/
-#define DEF_FIRMWARE_VERSION  "0t4.y"
+#define DEF_FIRMWARE_VERSION  "0.1"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
 #define DEF_MEAS_START        0x00
@@ -54,6 +54,11 @@ typedef enum{
 }tENUM_READWRITE;
 
 typedef enum{
+  MFM_DRUKMODULE_RS485 = 0x01,
+  MFM_DRUKMODULE_ONEWIRE = 0x02
+}SensorType;
+
+typedef enum{
   NO_MEASUREMENT = 0x00,
   MEASUREMENT_ACTIVE = 0x01,
   MEASUREMENT_DONE = 0x0A,
@@ -70,7 +75,7 @@ typedef struct __attribute__((__packed__))
 {
   float pressure;
   float temperature;
-}SensorDataKeller;
+}SensorData;
 
 typedef struct
 {
@@ -89,6 +94,8 @@ void writeRegister(uint8_t *data, size_t lenght);
 void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);
 
 /* Internal register access functions */
+SensorType readSensorType(void);
+void setSensorType(SensorType type);
 uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
