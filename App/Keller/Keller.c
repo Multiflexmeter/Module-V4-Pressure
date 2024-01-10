@@ -174,24 +174,19 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
  */
 void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
 {
-  uint8_t uartConfig;
-
-  ModbusSetBaudrate(9600);
-  KellerInit(slaveAddress);
-  uartConfig = KellerReadConfig(slaveAddress, CONFIG_UART);
-  KellerWriteConfig(slaveAddress, CONFIG_UART, (uartConfig & 0xF0) | baudrate);
-
-  ModbusSetBaudrate(115200);
-  KellerInit(slaveAddress);
-  uartConfig = KellerReadConfig(slaveAddress, CONFIG_UART);
-  KellerWriteConfig(slaveAddress, CONFIG_UART, (uartConfig & 0xF0) | baudrate);
-
   if(baudrate == BAUD_115200)
-    ModbusSetBaudrate(115200);
-  else if(baudrate == BAUD_9600)
+  {
     ModbusSetBaudrate(9600);
+    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_115200);
+    ModbusSetBaudrate(115200);
+  }
+  else if(baudrate == BAUD_9600)
+  {
+    ModbusSetBaudrate(115200);
+    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_9600);
+    ModbusSetBaudrate(9600);
+  }
 
-  KellerInit(slaveAddress);
   return;
 }
 

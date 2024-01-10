@@ -131,20 +131,22 @@ void assignAddressKeller(void)
 {
   /* Enable the buck/boost */
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+  enableSensors();
+  HAL_Delay(10);
+  KellerSetBaudrate(0, BAUD_115200);
   disableSensors();
 
   /* Set address and baudrate of first sensor */
   enableSensor1();
-  HAL_Delay(100);
-  KellerSetBaudrate(250, BAUD_115200);
+  HAL_Delay(250);
+  KellerInit(250);
   HAL_Delay(2);
   KellerNewAddress(250, 0x01);
-  disableSensors();
 
   /* Set address and baudrate of second sensor */
   enableSensor2();
-  HAL_Delay(100);
-  KellerSetBaudrate(250, BAUD_115200);
+  HAL_Delay(250);
+  KellerInit(250);
   HAL_Delay(2);
   KellerNewAddress(250, 0x02);
 
@@ -164,6 +166,7 @@ void measureKellerSensor(void)
 
   /* Initialize both Keller sensors */
   bool sensor1Present = KellerInit(0x01);
+  HAL_Delay(2);
   bool sensor2Present = KellerInit(0x02);
 
   /* Collect the samples specified in the MeasurementSamples register */
@@ -176,7 +179,7 @@ void measureKellerSensor(void)
       sensorSample = KellerReadTempAndPressure(0x01);
       sensor1PressureSamples[sample] = sensorSample.pressure;
       sensor1TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(1);
+      HAL_Delay(2);
     }
 
     if(sensor2Present)
@@ -186,7 +189,7 @@ void measureKellerSensor(void)
       sensorSample = KellerReadTempAndPressure(0x02);
       sensor2PressureSamples[sample] = sensorSample.pressure;
       sensor2TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(1);
+      HAL_Delay(2);
     }
   }
 
