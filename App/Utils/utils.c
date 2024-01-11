@@ -218,7 +218,6 @@ void measureKellerSensor(void)
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
   setMeasurementStatus(MEASUREMENT_DONE);
   stopMeas();
-  HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
 }
 
 void measureHubaSensor(void)
@@ -272,7 +271,6 @@ void measureHubaSensor(void)
   }
   HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
   disableSensors();
   storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
