@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "SensorRegister.h"
+#include "Huba.h"
 
 typedef enum
 {
@@ -30,5 +31,6 @@ void disableSensors(void);
 
 void assignAddressKeller(void);
 void measureKellerSensor(void);
+void measureHubaSensor(void);
 
 #endif /* UTILS_UTILS_H_ */

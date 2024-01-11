@@ -4,9 +4,26 @@
 #include <string.h>
 #include "SensorRegister.h"
 #include "keller.h"
+#include "Huba.h"
 #include "modbus.h"
 
 extern I2C_HandleTypeDef hi2c1;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim21;
+
+HubaSensor hubaSensor1 = {
+    .htim = &htim2,
+    .bitIndex = 0,
+    .hubaDone = false,
+    .firstCapture = false
+};
+
+HubaSensor hubaSensor2 = {
+    .htim = &htim21,
+    .bitIndex = 0,
+    .hubaDone = false,
+    .firstCapture = false
+};
 
 #define SAMPLE_BUFFER_SIZE  10
 
@@ -202,4 +219,72 @@ void measureKellerSensor(void)
   setMeasurementStatus(MEASUREMENT_DONE);
   stopMeas();
   HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
+}
+
+void measureHubaSensor(void)
+{
+  uint8_t sample = 0;
+  uint16_t samples = readMeasSamples();
+
+  float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
+  float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
+  float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
+  float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
+  SensorData sensorSample;
+
+  hubaStart(&hubaSensor1);
+  while(sample < samples)
+  {
+    /* Sample first Huba sensor */
+    if(hubaSensor1.hubaDone)
+    {
+      sensorSample = hubaBufferToData(&hubaSensor1);
+      sensor1PressureSamples[sample] = sensorSample.pressure;
+      sensor1TempSamples[sample] = sensorSample.temperature;
+      hubaSensor1.hubaDone = false;
+      sample++;
+    }
+  }
+  HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
+  disableSensors();
+
+  HAL_Delay(5);
+  enableSensor2();
+  sample = 0;
+  hubaStart(&hubaSensor2);
+  while(sample < samples)
+  {
+    /* Sample second Huba sensor */
+    if(hubaSensor2.hubaDone)
+    {
+      sensorSample = hubaBufferToData(&hubaSensor2);
+      sensor2PressureSamples[sample] = sensorSample.pressure;
+      sensor2TempSamples[sample] = sensorSample.temperature;
+      hubaSensor2.hubaDone = false;
+      sample++;
+    }
+
+  }
+  HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
+  disableSensors();
+  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+
+  /* Finish measurement */
+  setMeasurementStatus(MEASUREMENT_DONE);
+  stopMeas();
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+  if(htim == hubaSensor1.htim)
+  {
+    hubaTimerCallback(&hubaSensor1);
+  }
+  else if(htim == hubaSensor2.htim)
+  {
+    hubaTimerCallback(&hubaSensor2);
+  }
 }
