@@ -135,12 +135,9 @@ void disableSensors(void)
  */
 void enter_Sleep(void)
 {
-  /* Configure low-power mode */
-  SCB->SCR &= ~( SCB_SCR_SLEEPDEEP_Msk );  // low-power mode = sleep mode
-
-  /* Ensure Flash memory stays on */
-  FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
-  __WFI();  // enter low-power mode
+  HAL_SuspendTick();
+  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+  HAL_ResumeTick();
 }
 
 /* State functions */

@@ -7,6 +7,7 @@ uint16_t supply3V3;
 
 void ADC_Start(ADC_HandleTypeDef* hadc)
 {
+  HAL_ADCEx_Calibration_Start(hadc, ADC_SINGLE_ENDED);
   HAL_ADC_Start_DMA(hadc, ADC_Buffer, 2);
 }
 

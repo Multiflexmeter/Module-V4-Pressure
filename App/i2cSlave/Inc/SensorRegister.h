@@ -22,7 +22,7 @@
 #define DEF_FIRMWARE_VERSION  "0.1"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
-#define DEF_MEAS_START        0x00
+#define DEF_MEAS_START        0x01
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064
 #define DEF_MEAS_DATA         0xFFFFFFFF
