@@ -65,6 +65,7 @@ typedef enum
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEBUG_MODE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -87,11 +88,14 @@ UART_HandleTypeDef huart2;
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
-bool startMeas = false;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
 uint16_t samples;
+
+#ifdef DEBUG_MODE
+  bool startMeas = false;
+#endif
 
 /* USER CODE END PV */
 
@@ -170,7 +174,10 @@ int main(void)
 
         /* Finish measurement */
         currentState = SLEEP;
-        startMeas = false;
+
+        #ifdef DEBUG_MODE
+          startMeas = false;
+        #endif
         break;
 
       case POLL_ONEWIRE_SENSOR:
@@ -178,8 +185,11 @@ int main(void)
         measureHubaSensor();
 
         /* Finish measurement */
-        startMeas = false;
         currentState = SLEEP;
+
+        #ifdef DEBUG_MODE
+          startMeas = false;
+        #endif
         break;
 
       case WRITE_REGISTER:
@@ -209,8 +219,11 @@ int main(void)
           currentState = WRITE_REGISTER;
 
         // If the measurement start register has been set to 1
-        //if(readMeasStart())
-        if(startMeas)
+        #ifdef DEBUG_MODE
+          if(startMeas)
+        #else
+          if(readMeasStart())
+        #endif
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
 
