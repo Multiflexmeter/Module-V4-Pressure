@@ -162,7 +162,7 @@ void measureKellerSensor(void)
   float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
   float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
   float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
-  SensorDataKeller sensorSample;
+  SensorData sensorSample;
 
   /* Initialize both Keller sensors */
   bool sensor1Present = KellerInit(0x01);
@@ -175,7 +175,7 @@ void measureKellerSensor(void)
     if(sensor1Present)
     {
       // Sample the first sensor
-      memset(&sensorSample, 0, sizeof(SensorDataKeller));
+      memset(&sensorSample, 0, sizeof(SensorData));
       sensorSample = KellerReadTempAndPressure(0x01);
       sensor1PressureSamples[sample] = sensorSample.pressure;
       sensor1TempSamples[sample] = sensorSample.temperature;
@@ -185,7 +185,7 @@ void measureKellerSensor(void)
     if(sensor2Present)
     {
       // Sample the second sensor
-      memset(&sensorSample, 0, sizeof(SensorDataKeller));
+      memset(&sensorSample, 0, sizeof(SensorData));
       sensorSample = KellerReadTempAndPressure(0x02);
       sensor2PressureSamples[sample] = sensorSample.pressure;
       sensor2TempSamples[sample] = sensorSample.temperature;

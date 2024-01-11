@@ -90,7 +90,6 @@ extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
 bool startMeas = false;
-SensorDataKeller sensorSample;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -180,10 +179,9 @@ int main(void)
     //ADC_Start(&hadc);
     switch (currentState)
     {
-      case POLL_SENSOR:
+      case POLL_RS485_SENSOR:
+        /* Measure the RS485 Sensor */
         measureKellerSensor();
-
-        /* Store the measurements in the registers */
 
         /* Finish measurement */
         currentState = SLEEP;
@@ -192,8 +190,13 @@ int main(void)
 
       case POLL_ONEWIRE_SENSOR:
         uint8_t sample = 0;
+        float sensor1PressureSamples[10];
+        float sensor1TempSamples[10];
+        float sensor2PressureSamples[10];
+        float sensor2TempSamples[10];
+        SensorData sensorSample;
+
         hubaStart(&hubaSensor1);
-        hubaStart(&hubaSensor2);
         while(sample < samples)
         {
           /* Sample first Huba sensor */
@@ -205,7 +208,16 @@ int main(void)
             hubaSensor1.hubaDone = false;
             sample++;
           }
+        }
+        HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
+        disableSensors();
 
+        HAL_Delay(5);
+        enableSensor2();
+        sample = 0;
+        hubaStart(&hubaSensor2);
+        while(sample < samples)
+        {
           /* Sample second Huba sensor */
           if(hubaSensor2.hubaDone)
           {
@@ -217,16 +229,17 @@ int main(void)
           }
 
         }
-        HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
         HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
         HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_SET);
+        disableSensors();
         storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
         storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
 
         /* Finish measurement */
         setMeasurementStatus(MEASUREMENT_DONE);
         stopMeas();
+        startMeas = false;
         currentState = SLEEP;
         break;
 
@@ -262,19 +275,24 @@ int main(void)
         {
           HAL_GPIO_WritePin(DEBUG_LED2_GPIO_Port, DEBUG_LED2_Pin, GPIO_PIN_RESET);
 
-          /* Check which sensor type to poll */
-          if(readSensorType() == MFM_DRUKMODULE_RS485)
-            currentState = POLL_RS485_SENSOR;
-          else if(readSensorType() == MFM_DRUKMODULE_ONEWIRE)
-            currentState = POLL_ONEWIRE_SENSOR;
-
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
           HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
           HAL_Delay(2);
-          enableSensors();
-          ModbusShutdown();
-          HAL_Delay(35);
+
+          /* Check which sensor type to poll */
+          if(variant == RS485_VARIANT)
+          {
+            enableSensors();
+            currentState = POLL_RS485_SENSOR;
+            ModbusShutdown();
+            HAL_Delay(35);
+          }
+          else if(variant == ONEWIRE_VARIANT)
+          {
+            enableSensor1();
+            currentState = POLL_ONEWIRE_SENSOR;
+          }
         }
         else
           enter_Sleep();
@@ -307,8 +325,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_8;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_4;
   RCC_OscInitStruct.PLL.PLLDIV = RCC_PLLDIV_2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -319,8 +338,8 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
@@ -668,10 +687,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin DEBUG_LED1_Pin
-                           BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|DEBUG_LED1_Pin
-                          |BUCK_EN_Pin;
+  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
