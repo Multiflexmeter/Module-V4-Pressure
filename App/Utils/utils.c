@@ -35,7 +35,10 @@ int cmpfunc(const void* a, const void* b)
 
 variant_t getVariant(void)
 {
-  return HAL_GPIO_ReadPin(VARIANT_DETECT_GPIO_Port, VARIANT_DETECT_Pin);
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  variant_t variant = HAL_GPIO_ReadPin(VARIANT_DETECT_GPIO_Port, VARIANT_DETECT_Pin);
+  __HAL_RCC_GPIOB_CLK_DISABLE();
+  return variant;
 }
 
 /**
