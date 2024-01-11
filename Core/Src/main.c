@@ -201,7 +201,6 @@ int main(void)
         break;
 
       case SLEEP:
-        HAL_Delay(1000);
         if (writeFlag)
           currentState = WRITE_REGISTER;
 
