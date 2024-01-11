@@ -232,6 +232,7 @@ void measureHubaSensor(void)
   float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
 
+  uint32_t timeout = HAL_GetTick() + 250;
   hubaStart(&hubaSensor1);
   while(sample < samples)
   {
@@ -244,6 +245,8 @@ void measureHubaSensor(void)
       hubaSensor1.hubaDone = false;
       sample++;
     }
+    else if(HAL_GetTick() > timeout)
+      break;
   }
   HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
   disableSensors();
@@ -251,6 +254,7 @@ void measureHubaSensor(void)
   HAL_Delay(5);
   enableSensor2();
   sample = 0;
+  timeout = HAL_GetTick() + 250;
   hubaStart(&hubaSensor2);
   while(sample < samples)
   {
@@ -263,7 +267,8 @@ void measureHubaSensor(void)
       hubaSensor2.hubaDone = false;
       sample++;
     }
-
+    else if(HAL_GetTick() > timeout)
+      break;
   }
   HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);

@@ -3,14 +3,6 @@
 #include "Huba.h"
 #include <string.h>
 
-//uint8_t hubaBuffer[32];
-//uint8_t timeBuffer[32];
-//uint32_t strobeTimeStart = 0;
-//uint32_t strobeTimeEnd = 0;
-//uint8_t bitIndex = 0;
-//bool firstCapture = false;
-//bool hubaDone = false;
-
 void hubaStart(HubaSensor *sensor)
 {
   sensor->bitIndex = 0;
