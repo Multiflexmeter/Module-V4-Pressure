@@ -53,7 +53,10 @@ int8_t findRegIndex(uint8_t regAddress)
   while((index < size) && (registers[index].adres != regAddress)) ++index;
 
   if(index == size)
+  {
     registerErrorStatus = ADDRESS_ERROR;
+    return -1;
+  }
 
   return (index == size ? -1 : index);
 }
