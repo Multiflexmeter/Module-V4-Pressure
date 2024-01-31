@@ -66,11 +66,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
     }
     else
     {
-      if(regIndex > 0)
-      {
-        readRegister(regIndex, txBuffer, regSize);
-        sensorSlaveTransmit(txBuffer, regSize);
-      }
+      readRegister(regIndex, txBuffer, regSize);
+      sensorSlaveTransmit(txBuffer, regSize);
     }
   }
 }
@@ -81,9 +78,16 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
   if(rxcount == 0)
   {
     regIndex = findRegIndex(RxData[0]);
+
+    // Abort if the register is not found.
+    if( regIndex < 0 )
+    {
+      return;
+    }
+
     regSize = registers[regIndex].datatype * registers[regIndex].size;
 
-    // Abort if the register can't be found
+    // Abort if the register size is wrong
     if(regSize < 0)
     {
       return;
