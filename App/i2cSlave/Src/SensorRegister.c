@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include "SensorRegister.h"
 #include "crc16.h"

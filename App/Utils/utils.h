@@ -9,8 +9,6 @@
 #define UTILS_UTILS_H_
 
 #include "main.h"
-#include "SensorRegister.h"
-#include "Huba.h"
 
 typedef enum
 {
