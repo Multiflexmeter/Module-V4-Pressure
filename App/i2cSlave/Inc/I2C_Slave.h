@@ -13,6 +13,7 @@
 extern bool writeFlag;
 extern uint8_t regWriteData[5];
 extern uint8_t regSize;
+extern volatile bool sensorSlaveErrorFlag;
 
 void sensorSlaveTransmit(uint8_t *data, uint8_t size);
 

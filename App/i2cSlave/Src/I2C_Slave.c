@@ -19,7 +19,10 @@ uint8_t regSize;
 bool writeFlag = false;
 int8_t rxcount = 0;
 
+volatile bool sensorSlaveErrorFlag = false;
+
 /* Functions */
+
 
 /**
  * @brief Calculate the CRC and transmit the sensor register data
@@ -57,6 +60,16 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   // Master requests to read the selected register
   else
   {
+    if( regIndex < 0 ) //wrong register
+    {
+      __HAL_I2C_DISABLE(hi2c); //abort with disable, prevent stalling SCL low.
+
+      sensorSlaveErrorFlag = true; //set flag to reboot I2C at main
+
+      return;
+    }
+
+
     // Transmit the data in the selected register
     if(registers[regIndex].adres == REG_MEAS_DATA || registers[regIndex].adres == REG_SENSOR_DATA)
     {

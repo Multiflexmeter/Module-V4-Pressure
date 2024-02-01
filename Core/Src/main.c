@@ -237,6 +237,19 @@ int main(void)
           enter_Sleep();
         break;
     }
+
+    //check sensorSlave error is active and restart the I2C.
+    if( sensorSlaveErrorFlag )
+    {
+      sensorSlaveErrorFlag = false;
+
+      HAL_I2C_DeInit(&hi2c1);
+
+      MX_I2C1_Init();
+      HAL_I2C_EnableListen_IT(&hi2c1);
+      setSlaveAddress();
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
