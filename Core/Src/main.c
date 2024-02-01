@@ -88,7 +88,6 @@ UART_HandleTypeDef huart2;
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
 extern bool writeFlag;
-extern volatile errorFlag;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -111,7 +110,7 @@ void OneWireSystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern I2C_HandleTypeDef hi2c1;
+
 /* USER CODE END 0 */
 
 /**
@@ -152,128 +151,92 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_DMA_Init();
-//  MX_ADC_Init();
+  MX_DMA_Init();
+  MX_ADC_Init();
   MX_I2C1_Init();
-//  MX_USART2_UART_Init();
-//  MX_TIM2_Init();
-//  MX_TIM21_Init();
+  MX_USART2_UART_Init();
+  MX_TIM2_Init();
+  MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
-//  ModbusInit(&huart2);
+  ModbusInit(&huart2);
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
-
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
-  GPIO_InitStruct.Pin = DEBUG_SW2_Pin|DEBUG_SW1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-
-  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
-//  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
-
-  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
 
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-    if( errorFlag )
-    {
-      HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-      errorFlag = false;
-
-      HAL_I2C_DeInit(&hi2c1);
-
-      MX_I2C1_Init();
-      HAL_I2C_EnableListen_IT(&hi2c1);
-      setSlaveAddress();
-
-      HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-    }
-
-    HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
-    HAL_Delay(2);
-
-    HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
     //ADC_Start(&hadc);
-//    switch (currentState)
-//    {
-//      case POLL_RS485_SENSOR:
-//        /* Measure the RS485 Sensor */
-//        measureKellerSensor();
-//
-//        /* Finish measurement */
-//        currentState = SLEEP;
-//        break;
-//
-//      case POLL_ONEWIRE_SENSOR:
-//        /* Measure the OneWire Sensor */
-//        measureHubaSensor();
-//
-//        /* Finish measurement */
-//        currentState = SLEEP;
-//        break;
-//
-//      case WRITE_REGISTER:
-//        if (regWriteData[0] == REG_SENSOR_SELECTED)
-//        {
-//          writeRegister(regWriteData, regSize + 3);
-//          storeSelectedSensor(regWriteData[1]);
-//        }
-//        else
-//          writeRegister(regWriteData, regSize + 3);
-//
-//        writeFlag = false;
-//        currentState = SLEEP;
-//        break;
-//
-//      case ASSIGN_ADDRESS:
-//        if (variant == RS485_VARIANT)
-//        {
-//          assignAddressKeller();
-//        }
-//        currentState = SLEEP;
-//        break;
-//
-//      case SLEEP:
-//        if (writeFlag)
-//          currentState = WRITE_REGISTER;
-//
-//        // If the measurement start register has been set to 1
-//        if(readMeasStart())
-//        {
-//          setMeasurementStatus(MEASUREMENT_ACTIVE);
-//          samples = readMeasSamples();
-//          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
-//          HAL_Delay(2);
-//
-//          /* Check which sensor type to poll */
-//          if (variant == RS485_VARIANT)
-//          {
-//            enableSensors();
-//            currentState = POLL_RS485_SENSOR;
-//            ModbusShutdown();
-//            HAL_Delay(35);
-//          }
-//          else if (variant == ONEWIRE_VARIANT)
-//          {
-//            enableSensor1();
-//            currentState = POLL_ONEWIRE_SENSOR;
-//          }
-//        }
-////        else
-////          enter_Sleep();
-//        break;
-//    }
+    switch (currentState)
+    {
+      case POLL_RS485_SENSOR:
+        /* Measure the RS485 Sensor */
+        measureKellerSensor();
+
+        /* Finish measurement */
+        currentState = SLEEP;
+        break;
+
+      case POLL_ONEWIRE_SENSOR:
+        /* Measure the OneWire Sensor */
+        measureHubaSensor();
+
+        /* Finish measurement */
+        currentState = SLEEP;
+        break;
+
+      case WRITE_REGISTER:
+        if (regWriteData[0] == REG_SENSOR_SELECTED)
+        {
+          writeRegister(regWriteData, regSize + 3);
+          storeSelectedSensor(regWriteData[1]);
+        }
+        else
+          writeRegister(regWriteData, regSize + 3);
+
+        writeFlag = false;
+        currentState = SLEEP;
+        break;
+
+      case ASSIGN_ADDRESS:
+        if (variant == RS485_VARIANT)
+        {
+          assignAddressKeller();
+        }
+        currentState = SLEEP;
+        break;
+
+      case SLEEP:
+        if (writeFlag)
+          currentState = WRITE_REGISTER;
+
+        // If the measurement start register has been set to 1
+        if(readMeasStart())
+        {
+          setMeasurementStatus(MEASUREMENT_ACTIVE);
+          samples = readMeasSamples();
+          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+          HAL_Delay(2);
+
+          /* Check which sensor type to poll */
+          if (variant == RS485_VARIANT)
+          {
+            enableSensors();
+            currentState = POLL_RS485_SENSOR;
+            ModbusShutdown();
+            HAL_Delay(35);
+          }
+          else if (variant == ONEWIRE_VARIANT)
+          {
+            enableSensor1();
+            currentState = POLL_ONEWIRE_SENSOR;
+          }
+        }
+        else
+          enter_Sleep();
+        break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

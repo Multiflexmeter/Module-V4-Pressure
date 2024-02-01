@@ -19,8 +19,6 @@ uint8_t regSize;
 bool writeFlag = false;
 int8_t rxcount = 0;
 
-volatile bool errorFlag = false;
-
 /* Functions */
 
 /**
@@ -42,54 +40,23 @@ void sensorSlaveTransmit(uint8_t *data, uint8_t size)
 /* Callbacks */
 void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
 {
-//  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
   // Re-enable the listen interrupt after it has been triggered
   HAL_I2C_EnableListen_IT(hi2c);
-//  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
 }
 
-uint8_t copyTransferDirection;
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
-  copyTransferDirection = TransferDirection;
   // The master wants to transmit data
   if (TransferDirection == I2C_DIRECTION_TRANSMIT)
   {
     // Receive the sensor register adres
     HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData, 1, I2C_FIRST_FRAME);
-//    __HAL_I2C_GENERATE_NACK(hi2c);
     rxcount = 0;
   }
 
   // Master requests to read the selected register
   else
   {
-    if( regIndex < 0 )
-    {
-//      txBuffer[0] = 0;
-//      HAL_I2C_Slave_Seq_Transmit_IT(hi2c, txBuffer, 0x1, I2C_LAST_FRAME);
-//      __HAL_I2C_GENERATE_NACK(hi2c);
-
-//      HAL_I2C_MspDeInit(hi2c);
-//      HAL_I2C_MspInit(hi2c);
-
-
-      HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_SET);
-//
-      HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
-
-      __HAL_I2C_DISABLE(hi2c);
-
-      errorFlag = true;
-
-
-
-      return;
-    }
-
-
     // Transmit the data in the selected register
     if(registers[regIndex].adres == REG_MEAS_DATA || registers[regIndex].adres == REG_SENSOR_DATA)
     {
@@ -103,29 +70,10 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
       sensorSlaveTransmit(txBuffer, regSize);
     }
   }
-  HAL_GPIO_WritePin(DEBUG_SW1_GPIO_Port, DEBUG_SW1_Pin, GPIO_PIN_RESET);
-}
-
-uint32_t count_txAbortCpltCallback;
-void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-  count_txAbortCpltCallback++;
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-}
-
-uint32_t count_txCpltCallback;
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-  count_txCpltCallback++;
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-  //HAL_I2C_Slave_Seq_Transmit_IT(hi2c, txBuffer, 0x1, I2C_LAST_FRAME);
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
   // Find the register and store the size
   if(rxcount == 0)
   {
@@ -134,13 +82,6 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     // Abort if the register is not found.
     if( regIndex < 0 )
     {
-      HAL_I2C_Slave_Seq_Receive_IT(hi2c, RxData+1, 1, I2C_LAST_FRAME);
-      rxcount++;
-//      __HAL_I2C_GENERATE_NACK(hi2c);
-
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
       return;
     }
 
@@ -149,11 +90,6 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     // Abort if the register size is wrong
     if(regSize < 0)
     {
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
       return;
     }
   }
@@ -182,67 +118,9 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     memcpy(regWriteData, RxData, regSize + CRC_SIZE + 1);
     writeFlag = true;
   }
-  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
 }
-uint32_t previousErrorCode = 0;
+
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_SET);
-  uint32_t errorcode = HAL_I2C_GetError(hi2c);
-
-  previousErrorCode = errorcode;
-  if (errorcode == HAL_I2C_ERROR_NONE)  // No error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_BERR ) //BERR error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_ARLO ) //ARLO error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_AF ) //ACKF error
-  {
-
-  }
-
-
-  if( errorcode & HAL_I2C_ERROR_OVR ) //OVR error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_DMA ) //DMA transfer error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_TIMEOUT ) //Timeout error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_SIZE ) //Size Management error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_DMA_PARAM ) //DMA Parameter error
-  {
-
-  }
-
-  if( errorcode & HAL_I2C_ERROR_INVALID_PARAM ) //Invalid Parameters error
-  {
-
-  }
-
-  writeFlag = false;
   HAL_I2C_EnableListen_IT(hi2c);
-//  HAL_GPIO_WritePin(DEBUG_SW2_GPIO_Port, DEBUG_SW2_Pin, GPIO_PIN_RESET);
 }
