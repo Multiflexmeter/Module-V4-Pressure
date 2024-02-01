@@ -89,6 +89,7 @@ typedef struct
 extern const SensorReg registers[];
 
 /* Functions */
+const bool invalidIndex( int8_t index );
 int8_t findRegIndex(uint8_t regAddress);
 void writeRegister(uint8_t *data, size_t lenght);
 void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size);

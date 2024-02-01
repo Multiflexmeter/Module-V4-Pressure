@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include "SensorRegister.h"
 #include "crc16.h"
@@ -38,6 +39,17 @@ const SensorReg registers[] =
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
 };
 
+/**
+ * @fn const bool invalidIndex(int8_t)
+ * @brief functions return true if index is not within the valid range
+ *
+ * @param index
+ * @return
+ */
+const bool invalidIndex( int8_t index )
+{
+  return (index < 0 || index >= sizeof(registers) / sizeof(registers[0])) ? true : false;
+}
 
 /**
  * @brief Find the index of the register in the constant register array.
@@ -53,10 +65,7 @@ int8_t findRegIndex(uint8_t regAddress)
   while((index < size) && (registers[index].adres != regAddress)) ++index;
 
   if(index == size)
-  {
     registerErrorStatus = ADDRESS_ERROR;
-    return -1;
-  }
 
   return (index == size ? -1 : index);
 }
@@ -70,6 +79,12 @@ int8_t findRegIndex(uint8_t regAddress)
 void writeRegister(uint8_t *data, size_t lenght)
 {
   int8_t regIndex = findRegIndex(data[0]);
+
+  if( regIndex < 0 )
+  {
+    registerErrorStatus = ADDRESS_ERROR;
+    return;
+  }
 
   /* Check if writing to register is allowed */
   if(registers[regIndex].RW == READWRITE)
