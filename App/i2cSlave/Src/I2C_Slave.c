@@ -60,7 +60,7 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   // Master requests to read the selected register
   else
   {
-    if( regIndex < 0 ) //wrong register
+    if( invalidIndex(regIndex) ) //wrong register
     {
       __HAL_I2C_DISABLE(hi2c); //abort with disable, prevent stalling SCL low.
 
@@ -93,7 +93,7 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
     regIndex = findRegIndex(RxData[0]);
 
     // Abort if the register is not found.
-    if( regIndex < 0 )
+    if( invalidIndex(regIndex) )
     {
       return;
     }

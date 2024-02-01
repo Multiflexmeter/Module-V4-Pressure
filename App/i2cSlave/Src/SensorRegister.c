@@ -39,6 +39,17 @@ const SensorReg registers[] =
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
 };
 
+/**
+ * @fn const bool invalidIndex(int8_t)
+ * @brief functions return true if index is not within the valid range
+ *
+ * @param index
+ * @return
+ */
+const bool invalidIndex( int8_t index )
+{
+  return (index < 0 || index >= sizeof(registers) / sizeof(registers[0])) ? true : false;
+}
 
 /**
  * @brief Find the index of the register in the constant register array.
