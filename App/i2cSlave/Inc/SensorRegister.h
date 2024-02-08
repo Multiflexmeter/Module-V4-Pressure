@@ -19,7 +19,7 @@
 #define REG_ERROR_STATUS          0x51
 
 /* Registers Defaults*/
-#define DEF_FIRMWARE_VERSION  "0.1"
+#define DEF_FIRMWARE_VERSION  "0.2"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
 #define DEF_MEAS_START        0x00
