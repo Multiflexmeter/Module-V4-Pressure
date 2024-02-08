@@ -46,11 +46,11 @@
 									<listOptionValue builtIn="false" value="../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32L0xx/Include"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/i2cSlave/Inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Keller}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/ADC}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Utils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/P22296-2-SW/App/Huba}&quot;"/>
+									<listOptionValue builtIn="false" value="../App/i2cSlave/Inc"/>
+									<listOptionValue builtIn="false" value="../App/Keller"/>
+									<listOptionValue builtIn="false" value="../App/ADC"/>
+									<listOptionValue builtIn="false" value="../App/Utils"/>
+									<listOptionValue builtIn="false" value="../App/Huba"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.734691335" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -87,7 +87,13 @@
 		</cconfiguration>
 		<cconfiguration id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.release.268820557">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.release.268820557" moduleId="org.eclipse.cdt.core.settings" name="Release">
-				<externalSettings/>
+				<externalSettings>
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/P22296-2-SW"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/P22296-2-SW/Release"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="P22296-2-SW" srcPrefixMapping="" srcRootPath=""/>
+					</externalSetting>
+				</externalSettings>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
