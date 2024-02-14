@@ -204,15 +204,27 @@ int main(void)
         {
           assignAddressKeller();
         }
+        setInitStatusReady();
         currentState = SLEEP;
         break;
 
       case SLEEP:
+
+        //check if a write flag is found
         if (writeFlag)
+        {
           currentState = WRITE_REGISTER;
+        }
+
+        //check if a sensor init command is received
+        else if( getInitStartStatus())
+        {
+          setInitStatusBusy();
+          currentState = ASSIGN_ADDRESS;
+        }
 
         // If the measurement start register has been set to 1
-        if(readMeasStart())
+        else if(readMeasStart())
         {
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
@@ -233,8 +245,13 @@ int main(void)
             currentState = POLL_ONEWIRE_SENSOR;
           }
         }
+
+        //no active commands, sleep can be entered.
         else
+        {
           enter_Sleep();
+        }
+
         break;
     }
 
