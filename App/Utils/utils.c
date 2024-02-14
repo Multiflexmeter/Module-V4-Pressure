@@ -98,12 +98,33 @@ float findMedian(float a[], uint8_t n)
 }
 
 /**
+ * @fn void controlSensor1(GPIO_PinState)
+ * @brief function to control sensor 1
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlSensor1(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, state );
+}
+
+/**
+ * @fn void controlSensor2(GPIO_PinState)
+ * @brief function to control sensor 2
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlSensor2(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, state );
+}
+
+/**
  * @brief Enable sensor 1
  */
 void enableSensor1(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+  controlSensor1(GPIO_PIN_SET);
 }
 
 /**
@@ -111,8 +132,7 @@ void enableSensor1(void)
  */
 void enableSensor2(void)
 {
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
+  controlSensor2(GPIO_PIN_SET);
 }
 
 /**
@@ -120,8 +140,8 @@ void enableSensor2(void)
  */
 void enableSensors(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+  controlSensor1(GPIO_PIN_SET);
+  controlSensor2(GPIO_PIN_SET);
 }
 
 /**
@@ -129,8 +149,8 @@ void enableSensors(void)
  */
 void disableSensors(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
+  controlSensor1(GPIO_PIN_RESET);
+  controlSensor2(GPIO_PIN_RESET);
 }
 
 /**
