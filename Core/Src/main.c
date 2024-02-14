@@ -237,7 +237,6 @@ int main(void)
           {
             enableSensors();
             currentState = POLL_RS485_SENSOR;
-            ModbusShutdown();
             HAL_Delay(35);
           }
           else if (variant == ONEWIRE_VARIANT)
