@@ -20,33 +20,36 @@ static UART_HandleTypeDef *ModbusHandle;
 void ModbusInit(UART_HandleTypeDef *modbusHandle)
 {
   ModbusHandle = modbusHandle;
+  ModbusShutdown(); //make sure transmitter and receiver are off.
 }
 
 /**
- * @brief Enable the external RS485 TX Transceiver
+ * @brief Enable the external RS485 TX Transceiver ( and disable RX receiver )
  */
 void ModbusEnableTX(void)
 {
-  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_SET); //disable, low active
+  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_SET); //enable, high active
 }
 
 /**
- * @brief Disable the external RS485 TX Transceiver
+ * @brief Disable the external RS485 TX Transceiver ( and enable RX receiver )
  */
 void ModbusDisableTX(void)
 {
-  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_RESET); //enable, low active
+  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET); //disable, high active
 }
 
 /**
- * @brief Put the RS485 Driver in shutdown
+ * @brief Put the RS485 Driver in shutdown.
+ * disabled RX, receiver
+ * disabled TX, transmitter
  */
 void ModbusShutdown(void)
 {
-  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RX_ENABLE_PORT, RX_ENABLE_PIN, GPIO_PIN_SET);   //disable, low active
+  HAL_GPIO_WritePin(TX_ENABLE_PORT, TX_ENABLE_PIN, GPIO_PIN_RESET); //disable, high active
 }
 
 /**

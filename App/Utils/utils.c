@@ -98,12 +98,33 @@ float findMedian(float a[], uint8_t n)
 }
 
 /**
+ * @fn void controlSensor1(GPIO_PinState)
+ * @brief function to control sensor 1
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlSensor1(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, !state );
+}
+
+/**
+ * @fn void controlSensor2(GPIO_PinState)
+ * @brief function to control sensor 2
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlSensor2(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, !state );
+}
+
+/**
  * @brief Enable sensor 1
  */
 void enableSensor1(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+  controlSensor1(GPIO_PIN_SET);
 }
 
 /**
@@ -111,17 +132,7 @@ void enableSensor1(void)
  */
 void enableSensor2(void)
 {
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
-}
-
-/**
- * @brief Enable both sensors
- */
-void enableSensors(void)
-{
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_RESET);
+  controlSensor2(GPIO_PIN_SET);
 }
 
 /**
@@ -129,8 +140,8 @@ void enableSensors(void)
  */
 void disableSensors(void)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, GPIO_PIN_SET);
+  controlSensor1(GPIO_PIN_RESET);
+  controlSensor2(GPIO_PIN_RESET);
 }
 
 /**
@@ -143,13 +154,45 @@ void enter_Sleep(void)
   HAL_ResumeTick();
 }
 
+/**
+ * @fn void controlBuckConverter(GPIO_PinState)
+ * @brief function to control buck converter
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlBuckConverter(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, state);
+}
+
+/**
+ * @fn void switchOnSensor_BothKeller(void)
+ * @brief function to swtich on the buck converter and sensors 1 + 2.
+ * After the buck a fixed delay of 5ms.
+ * After the first sensor a fixed delay of 2ms
+ * After the second sensor a fixed delay of 10ms
+ */
+void switchOnSensor_BothKeller(void)
+{
+  /* Enable the buck/boost */
+  controlBuckConverter(GPIO_PIN_SET);
+
+  HAL_Delay(5); //wait for stable supply for sensors
+
+  /* switch on sensors one by one */
+  enableSensor1(); //first enable sensor 1
+  HAL_Delay(2);    //wait short while
+  enableSensor2(); //second enable sensor 2
+
+  HAL_Delay(10);
+
+}
+
 /* State functions */
 void assignAddressKeller(void)
 {
-  /* Enable the buck/boost */
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
-  enableSensors();
-  HAL_Delay(10);
+  switchOnSensor_BothKeller();
+
   KellerSetBaudrate(0, BAUD_115200);
   disableSensors();
 
@@ -169,7 +212,7 @@ void assignAddressKeller(void)
 
   /* Disable both sensors */
   disableSensors();
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 }
 
 void measureKellerSensor(void)
@@ -184,7 +227,9 @@ void measureKellerSensor(void)
   /* Initialize both Keller sensors */
   bool sensor1Present = KellerInit(0x01);
   HAL_Delay(2);
+
   bool sensor2Present = KellerInit(0x02);
+  HAL_Delay(2);
 
   /* Collect the samples specified in the MeasurementSamples register */
   for (uint8_t sample = 0; sample < samples; ++sample)
@@ -212,7 +257,7 @@ void measureKellerSensor(void)
 
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
   storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
@@ -223,6 +268,9 @@ void measureKellerSensor(void)
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
+
+  enableSensor1(); //enable sensor 1
+
   uint16_t samples = readMeasSamples();
 
   float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
@@ -270,7 +318,7 @@ void measureHubaSensor(void)
       break;
   }
   HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   disableSensors();
   storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);

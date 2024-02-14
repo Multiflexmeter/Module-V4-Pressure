@@ -229,20 +229,19 @@ int main(void)
         {
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
-          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
-          HAL_Delay(2);
 
           /* Check which sensor type to poll */
           if (variant == RS485_VARIANT)
           {
-            enableSensors();
+            switchOnSensor_BothKeller(); //switch on timed buck converter and sensor1 + sensor2
+
             currentState = POLL_RS485_SENSOR;
-            ModbusShutdown();
-            HAL_Delay(35);
+            HAL_Delay(25); //todo remove, now 10ms at switch on + 25 = 35ms same as before
           }
           else if (variant == ONEWIRE_VARIANT)
           {
-            enableSensor1();
+            controlBuckConverter( GPIO_PIN_SET); //enable buck converter
+            HAL_Delay(2); //wait for stabilized supply
             currentState = POLL_ONEWIRE_SENSOR;
           }
         }

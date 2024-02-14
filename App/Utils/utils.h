@@ -22,10 +22,14 @@ float findMedian(float a[], uint8_t n);
 void enter_Sleep(void);
 void determineSensorType(void);
 
+void controlSensor1(GPIO_PinState state);
+void controlSensor2(GPIO_PinState state);
 void enableSensor1(void);
 void enableSensor2(void);
-void enableSensors(void);
 void disableSensors(void);
+
+void controlBuckConverter(GPIO_PinState state);
+void switchOnSensor_BothKeller(void);
 
 void assignAddressKeller(void);
 void measureKellerSensor(void);
