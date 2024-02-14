@@ -26,7 +26,6 @@ void controlSensor1(GPIO_PinState state);
 void controlSensor2(GPIO_PinState state);
 void enableSensor1(void);
 void enableSensor2(void);
-void enableSensors(void);
 void disableSensors(void);
 
 void controlBuckConverter(GPIO_PinState state);

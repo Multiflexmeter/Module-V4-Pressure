@@ -136,15 +136,6 @@ void enableSensor2(void)
 }
 
 /**
- * @brief Enable both sensors
- */
-void enableSensors(void)
-{
-  controlSensor1(GPIO_PIN_SET);
-  controlSensor2(GPIO_PIN_SET);
-}
-
-/**
  * @brief Disable both sensors
  */
 void disableSensors(void)
