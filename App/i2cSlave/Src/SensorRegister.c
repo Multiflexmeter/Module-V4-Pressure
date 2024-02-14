@@ -9,6 +9,8 @@
 static uint8_t registerFirmwareVersion[10] = DEF_FIRMWARE_VERSION;
 static uint8_t registerProtocolVersion = DEF_PROTOCOL_VERSION;
 static uint16_t registerSensorType = DEF_SENSOR_TYPE;
+static uint8_t registerInitStart= DEF_INIT_START;
+static uint8_t registerInitStatus= DEF_INIT_STATUS;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
@@ -26,6 +28,8 @@ const SensorReg registers[] =
     {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ},
     {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ},
     {REG_SENSOR_TYPE,       &registerSensorType,          UINT16_T, 1,  READ},
+    {REG_INIT_START,        &registerInitStart,           UINT8_T,  1,  READWRITE},
+    {REG_INIT_STATUS,       &registerInitStatus,          UINT8_T,  1,  READ},
     {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE},
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
