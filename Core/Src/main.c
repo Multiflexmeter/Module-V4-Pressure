@@ -240,7 +240,6 @@ int main(void)
           }
           else if (variant == ONEWIRE_VARIANT)
           {
-            enableSensor1();
             controlBuckConverter( GPIO_PIN_SET); //enable buck converter
             HAL_Delay(2); //wait for stabilized supply
             currentState = POLL_ONEWIRE_SENSOR;

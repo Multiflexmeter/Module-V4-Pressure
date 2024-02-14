@@ -277,6 +277,9 @@ void measureKellerSensor(void)
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
+
+  enableSensor1(); //enable sensor 1
+
   uint16_t samples = readMeasSamples();
 
   float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
