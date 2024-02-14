@@ -105,7 +105,7 @@ float findMedian(float a[], uint8_t n)
  */
 void controlSensor1(GPIO_PinState state)
 {
-  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, state );
+  HAL_GPIO_WritePin(SENSOR1_EN_GPIO_Port, SENSOR1_EN_Pin, !state );
 }
 
 /**
@@ -116,7 +116,7 @@ void controlSensor1(GPIO_PinState state)
  */
 void controlSensor2(GPIO_PinState state)
 {
-  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, state );
+  HAL_GPIO_WritePin(SENSOR2_EN_GPIO_Port, SENSOR2_EN_Pin, !state );
 }
 
 /**
