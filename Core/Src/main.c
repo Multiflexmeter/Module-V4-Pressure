@@ -146,6 +146,7 @@ int main(void)
   {
     SystemClock_Config();
     setSensorType(MFM_DRUKMODULE_RS485);
+    enableInitFunction(); //enable the sensor init function
   }
   /* USER CODE END SysInit */
 
