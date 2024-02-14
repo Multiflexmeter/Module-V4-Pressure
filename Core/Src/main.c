@@ -229,7 +229,7 @@ int main(void)
         {
           setMeasurementStatus(MEASUREMENT_ACTIVE);
           samples = readMeasSamples();
-          HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+          controlBuckConverter(GPIO_PIN_SET); //enable buck converter
           HAL_Delay(2);
 
           /* Check which sensor type to poll */

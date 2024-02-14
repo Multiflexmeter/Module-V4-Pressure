@@ -178,7 +178,7 @@ void controlBuckConverter(GPIO_PinState state)
 void assignAddressKeller(void)
 {
   /* Enable the buck/boost */
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_SET);
+  controlBuckConverter(GPIO_PIN_SET);
   enableSensors();
   HAL_Delay(10);
   KellerSetBaudrate(0, BAUD_115200);
@@ -200,7 +200,7 @@ void assignAddressKeller(void)
 
   /* Disable both sensors */
   disableSensors();
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 }
 
 void measureKellerSensor(void)
@@ -243,7 +243,7 @@ void measureKellerSensor(void)
 
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
   storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
@@ -301,7 +301,7 @@ void measureHubaSensor(void)
       break;
   }
   HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
-  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, GPIO_PIN_RESET);
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   disableSensors();
   storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
   storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
