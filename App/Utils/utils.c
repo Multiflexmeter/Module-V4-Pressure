@@ -200,10 +200,8 @@ void switchOnSensor_BothKeller(void)
 /* State functions */
 void assignAddressKeller(void)
 {
-  /* Enable the buck/boost */
-  controlBuckConverter(GPIO_PIN_SET);
-  enableSensors();
-  HAL_Delay(10);
+  switchOnSensor_BothKeller();
+
   KellerSetBaudrate(0, BAUD_115200);
   disableSensors();
 
