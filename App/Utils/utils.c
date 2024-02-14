@@ -174,6 +174,29 @@ void controlBuckConverter(GPIO_PinState state)
   HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, state);
 }
 
+/**
+ * @fn void switchOnSensor_BothKeller(void)
+ * @brief function to swtich on the buck converter and sensors 1 + 2.
+ * After the buck a fixed delay of 5ms.
+ * After the first sensor a fixed delay of 2ms
+ * After the second sensor a fixed delay of 10ms
+ */
+void switchOnSensor_BothKeller(void)
+{
+  /* Enable the buck/boost */
+  controlBuckConverter(GPIO_PIN_SET);
+
+  HAL_Delay(5); //wait for stable supply for sensors
+
+  /* switch on sensors one by one */
+  enableSensor1(); //first enable sensor 1
+  HAL_Delay(2);    //wait short while
+  enableSensor2(); //second enable sensor 2
+
+  HAL_Delay(10);
+
+}
+
 /* State functions */
 void assignAddressKeller(void)
 {

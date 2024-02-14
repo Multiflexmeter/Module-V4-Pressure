@@ -30,6 +30,7 @@ void enableSensors(void);
 void disableSensors(void);
 
 void controlBuckConverter(GPIO_PinState state);
+void switchOnSensor_BothKeller(void);
 
 void assignAddressKeller(void);
 void measureKellerSensor(void);
