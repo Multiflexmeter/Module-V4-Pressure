@@ -163,6 +163,17 @@ void enter_Sleep(void)
   HAL_ResumeTick();
 }
 
+/**
+ * @fn void controlBuckConverter(GPIO_PinState)
+ * @brief function to control buck converter
+ *
+ * @param state : GPIO_PIN_SET = enable, GPIO_PIN_RESET = disable
+ */
+void controlBuckConverter(GPIO_PinState state)
+{
+  HAL_GPIO_WritePin(BUCK_EN_GPIO_Port, BUCK_EN_Pin, state);
+}
+
 /* State functions */
 void assignAddressKeller(void)
 {

@@ -29,6 +29,8 @@ void enableSensor2(void);
 void enableSensors(void);
 void disableSensors(void);
 
+void controlBuckConverter(GPIO_PinState state);
+
 void assignAddressKeller(void);
 void measureKellerSensor(void);
 void measureHubaSensor(void);
