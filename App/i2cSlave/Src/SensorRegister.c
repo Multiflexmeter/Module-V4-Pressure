@@ -195,3 +195,49 @@ void storeSelectedSensor(uint8_t sensor)
   /* Store selected sensor data */
   registerSensorData = registerMeasurementData[sensor];
 }
+
+/**
+ * @fn void enableInitFunction(void)
+ * @brief function to enable runtime the init function
+ *
+ */
+const void enableInitFunction(void)
+{
+  //check if function is disabled, then enable it.
+  if( registerInitStatus == 0xFF)
+  {
+    registerInitStatus = 0x00; //enable init function
+  }
+}
+
+/**
+ * @fn bool getInitStartStatus(void)
+ * @brief function to get the sensor init start status
+ *
+ * @return true = start init, false = no init
+ */
+const bool getInitStartStatus(void)
+{
+  return registerInitStart;
+}
+
+/**
+ * @fn void setInitStatusBusy(void)
+ * @brief function to set init status busy
+ *
+ */
+const void setInitStatusBusy(void)
+{
+  registerInitStatus = 0x01; //set busy
+}
+
+/**
+ * @fn void setInitStatusReady(void)
+ * @brief function to set init status ready
+ *
+ */
+const void setInitStatusReady(void)
+{
+  registerInitStatus = 0x0A; //set ready
+  registerInitStart = 0; //reset
+}

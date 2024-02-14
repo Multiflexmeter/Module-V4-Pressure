@@ -108,4 +108,9 @@ void storeMeasurement(float pressure, float temperature, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
 
+const void enableInitFunction(void);
+const bool getInitStartStatus(void);
+const void setInitStatusBusy(void);
+const void setInitStatusReady(void);
+
 #endif /* SENSORREGISTER_H_ */
