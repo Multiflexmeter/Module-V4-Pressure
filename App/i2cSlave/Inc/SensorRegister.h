@@ -6,6 +6,8 @@
 #define REG_FIRMWARE_VERSION      0x01
 #define REG_PROTOCOL_VERSION      0x02
 #define REG_SENSOR_TYPE           0x03
+#define REG_INIT_START            0x0A
+#define REG_INIT_STATUS           0x0B
 #define REG_MEAS_START            0x10
 #define REG_MEAS_STATUS           0x11
 #define REG_MEAS_TIME             0x12
@@ -22,6 +24,8 @@
 #define DEF_FIRMWARE_VERSION  "0.2"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
+#define DEF_INIT_START        0x00
+#define DEF_INIT_STATUS       0xFF //default not available, when be enabled runtime.
 #define DEF_MEAS_START        0x00
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064
@@ -103,5 +107,10 @@ uint8_t readMeasSamples(void);
 void storeMeasurement(float pressure, float temperature, uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
+
+const void enableInitFunction(void);
+const bool getInitStartStatus(void);
+const void setInitStatusBusy(void);
+const void setInitStatusReady(void);
 
 #endif /* SENSORREGISTER_H_ */
