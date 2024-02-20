@@ -12,7 +12,7 @@ extern I2C_HandleTypeDef hi2c1;
 
 uint8_t RxData[RxSIZE];
 uint8_t regWriteData[RxSIZE];
-uint8_t txBuffer[35];
+uint8_t txBuffer[40]; //maximum needed for transmit measuring data: 1 byte datasize + 36 bytes data + 2 bytes crc: 39
 
 int8_t regIndex;
 uint8_t regSize;
@@ -69,6 +69,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
       return;
     }
 
+    if( (regSize + 1 + 2 ) > sizeof(txBuffer) ) //guard, check size with X dataBytes, 1 byte dataSize and 2 bytes CRC will fit in txBuffer.
+      return;
 
     // Transmit the data in the selected register
     if(registers[regIndex].adres == REG_MEAS_DATA || registers[regIndex].adres == REG_SENSOR_DATA)
