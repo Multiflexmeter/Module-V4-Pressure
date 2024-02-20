@@ -69,6 +69,8 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
       return;
     }
 
+    if( (regSize + 1 + 2 ) > sizeof(txBuffer) ) //guard, check size with X dataBytes, 1 byte dataSize and 2 bytes CRC will fit in txBuffer.
+      return;
 
     // Transmit the data in the selected register
     if(registers[regIndex].adres == REG_MEAS_DATA || registers[regIndex].adres == REG_SENSOR_DATA)
