@@ -224,6 +224,11 @@ void measureKellerSensor(void)
   float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
 
+  /* send dummy byte first, sometimes needed because Keller sensor does not response on first command */
+  uint8_t data[1] = {0xFF};
+  ModbusTransmitData(data, sizeof(data));
+  HAL_Delay(2);
+
   /* Initialize both Keller sensors */
   bool sensor1Present = KellerInit(0x01);
   HAL_Delay(2);
