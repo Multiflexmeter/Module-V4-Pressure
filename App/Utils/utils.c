@@ -215,6 +215,18 @@ void assignAddressKeller(void)
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 }
 
+/**
+ * @fn void measureKellerSensor(void)
+ * @brief function first polls sensor 1 and sensor 2.
+ * Sensor must already be powered
+ * Then it reads the sensor value for X times
+ * After reading the sensors are disabled.
+ * The buckbooster is disabled
+ * The median value is calculated from the samples which are made
+ *
+ * @note: function does not repeat the initialize, because it's time consuming and costs extra power.
+ * Repeat the initialize can be consider if problems with not found sensors remain.
+ */
 void measureKellerSensor(void)
 {
   uint16_t samples = readMeasSamples();
