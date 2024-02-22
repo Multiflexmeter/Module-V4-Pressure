@@ -72,6 +72,24 @@ void ModbusFlushRxBuffer(void)
 }
 
 /**
+ * @fn void ModbusTransmitData(uint8_t*, uint16_t)
+ * @brief function to send an data array to the modbus uart directly
+ *
+ * @param data : pointer to data
+ * @param length : length of data
+ */
+void ModbusTransmitData(uint8_t *data, uint16_t length)
+{
+  /* Flush the RX buffer */
+  ModbusFlushRxBuffer();
+
+  /* Transmit the message */
+  ModbusEnableTX();
+  HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
+  ModbusDisableTX();
+}
+
+/**
  * @brief Transmit the Modbus message over the bus
  *
  * @param data is a pointer to the data buffer
