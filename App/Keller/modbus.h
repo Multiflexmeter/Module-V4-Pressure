@@ -61,6 +61,7 @@ void ModbusDisableTX(void);
 void ModbusShutdown(void);
 void ModbusSetBaudrate(uint32_t baudrate);
 
+void ModbusTransmitData(uint8_t *data, uint16_t length);
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
 void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 

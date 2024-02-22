@@ -72,7 +72,26 @@ void ModbusFlushRxBuffer(void)
 }
 
 /**
+ * @fn void ModbusTransmitData(uint8_t*, uint16_t)
+ * @brief function to send an data array to the modbus uart directly
+ *
+ * @param data : pointer to data
+ * @param length : length of data
+ */
+void ModbusTransmitData(uint8_t *data, uint16_t length)
+{
+  /* Flush the RX buffer */
+  ModbusFlushRxBuffer();
+
+  /* Transmit the message */
+  ModbusEnableTX();
+  HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
+  ModbusDisableTX();
+}
+
+/**
  * @brief Transmit the Modbus message over the bus
+ * function calculates the CRC16 and adds it to the transmitted data
  *
  * @param data is a pointer to the data buffer
  * @param size is the size of the message without the CRC size
@@ -80,9 +99,6 @@ void ModbusFlushRxBuffer(void)
  */
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
-  /* Flush the RX buffer */
-  ModbusFlushRxBuffer();
-
   /* Copy data into the message */
   uint8_t message[size + CRC_SIZE];
   for (uint8_t i = 0; i < size; i++)
@@ -102,10 +118,7 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
     message[size + 1] = (crc & 0x00FF);
   }
 
-  /* Transmit the message */
-  ModbusEnableTX();
-  HAL_UART_Transmit(ModbusHandle, message, size + CRC_SIZE, MODBUS_TIMEOUT);
-  ModbusDisableTX();
+  ModbusTransmitData(message, size + CRC_SIZE);
 }
 
 /**
