@@ -287,7 +287,20 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return response[2];
+  //check response, functioncode returns, then OKAY.
+  if( response[1] == FunctionWriteDeviceAddress)
+  {
+    return response[2];
+  }
+
+  //else failed The slave responds with an exception error
+
+  if( response[1] & 0x80 )
+  {
+    KellerErrorResponse(response[2]);
+  }
+
+  return 0;
 }
 
 
