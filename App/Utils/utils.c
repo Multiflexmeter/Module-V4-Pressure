@@ -209,25 +209,21 @@ bool assignAddressKellerWithBroadcast(uint8_t address)
 /* State functions */
 void assignAddressKeller(void)
 {
-  switchOnSensor_BothKeller();
+  controlBuckConverter(GPIO_PIN_SET);
 
-  KellerSetBaudrate(0, BAUD_115200);
-  disableSensors();
+  HAL_Delay(5); //wait for stable supply for sensors
 
   /* Set address and baudrate of first sensor */
   enableSensor1();
   HAL_Delay(250);
-  KellerInit(250);
-  HAL_Delay(2);
-  KellerNewAddress(250, 0x01);
+  assignAddressKellerWithBroadcast(0x01);
+
   disableSensors(); //make sure sensor 1 is disabled.
 
   /* Set address and baudrate of second sensor */
   enableSensor2();
   HAL_Delay(250);
-  KellerInit(250);
-  HAL_Delay(2);
-  KellerNewAddress(250, 0x02);
+  assignAddressKellerWithBroadcast(0x02);
 
   /* Disable both sensors */
   disableSensors();
