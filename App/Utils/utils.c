@@ -218,9 +218,16 @@ bool assignAddressKellerWithBroadcast(uint8_t address)
   return KellerNewAddress(250, address);
 }
 
-/* State functions */
-void assignAddressKeller(void)
+/**
+ * @fn bool assignAddressKeller(void)
+ * @brief function to assign address for keller sensors
+ *
+ * @return true = succeed, false = failure
+ */
+bool assignAddressKeller(void)
 {
+  bool resultSensor1 = 0;
+  bool resultSensor2 = 0;
   controlBuckConverter(GPIO_PIN_SET);
 
   HAL_Delay(5); //wait for stable supply for sensors
@@ -228,18 +235,20 @@ void assignAddressKeller(void)
   /* Set address and baudrate of first sensor */
   enableSensor1();
   HAL_Delay(250);
-  assignAddressKellerWithBroadcast(0x01);
+  resultSensor1 = assignAddressKellerWithBroadcast(0x01);
 
   disableSensors(); //make sure sensor 1 is disabled.
 
   /* Set address and baudrate of second sensor */
   enableSensor2();
   HAL_Delay(250);
-  assignAddressKellerWithBroadcast(0x02);
+  resultSensor2 = assignAddressKellerWithBroadcast(0x02);
 
   /* Disable both sensors */
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
+
+  return (resultSensor1 == true && resultSensor2 == true);
 }
 
 /**
