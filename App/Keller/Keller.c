@@ -11,6 +11,29 @@ static uint32_t count_illegalDataValue;
 static uint32_t count_slaveDeviceFailure;
 static uint32_t count_noInitialisation;
 
+/**
+ * @fn bool KellerVerifyResultOkay(uint8_t*, uint8_t)
+ * @brief function to verify keller response
+ *
+ * @param response
+ * @param functionCode
+ * @return
+ */
+bool KellerVerifyResultOkay(uint8_t * response, uint8_t functionCode)
+{
+  if( response[1] == functionCode)
+  {
+    return true;
+  }
+
+  //else failed The slave responds with an exception error
+
+  if( response[1] & 0x80 )
+  {
+    KellerErrorResponse(response[2]);
+  }
+  return false;
+}
 
 
 /**
