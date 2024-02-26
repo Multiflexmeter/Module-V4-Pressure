@@ -202,6 +202,7 @@ void assignAddressKeller(void)
   KellerInit(250);
   HAL_Delay(2);
   KellerNewAddress(250, 0x01);
+  disableSensors(); //make sure sensor 1 is disabled.
 
   /* Set address and baudrate of second sensor */
   enableSensor2();
