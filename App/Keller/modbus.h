@@ -21,7 +21,7 @@
 #define TX_ENABLE_PORT            USART_TX_EN_GPIO_Port
 #define TX_ENABLE_PIN             USART_TX_EN_Pin
 
-#define MODBUS_TIMEOUT            10
+#define MODBUS_TIMEOUT            20
 
 /* Modbus Function codes */
 typedef enum
@@ -60,6 +60,7 @@ void ModbusEnableTX(void);
 void ModbusDisableTX(void);
 void ModbusShutdown(void);
 void ModbusSetBaudrate(uint32_t baudrate);
+uint32_t ModbusGetBaudrate(void);
 
 void ModbusTransmitData(uint8_t *data, uint16_t length);
 void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);

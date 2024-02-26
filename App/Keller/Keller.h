@@ -95,7 +95,8 @@ typedef enum
 /* Keller Functions */
 bool KellerInit(uint8_t slaveAddress);
 uint32_t KellerSerialnumber(uint8_t slaveAddress);
-void KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
+bool KellerSetBaudrate(uint8_t slaveAddress, uint8_t baudrate);
+bool KellerCheckBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate);
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress);
 
 int32_t KellerReadPressure(uint8_t slaveAddress);

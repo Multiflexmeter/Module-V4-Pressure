@@ -201,12 +201,15 @@ int main(void)
         break;
 
       case ASSIGN_ADDRESS:
-        if (variant == RS485_VARIANT)
         {
-          assignAddressKeller();
+          bool result = true;
+          if (variant == RS485_VARIANT)
+          {
+            result = assignAddressKeller();
+          }
+          setInitStatusReady(result);
+          currentState = SLEEP;
         }
-        setInitStatusReady();
-        currentState = SLEEP;
         break;
 
       case SLEEP:

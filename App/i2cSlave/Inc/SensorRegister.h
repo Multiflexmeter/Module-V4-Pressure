@@ -111,6 +111,6 @@ void storeSelectedSensor(uint8_t sensor);
 const void enableInitFunction(void);
 const bool getInitStartStatus(void);
 const void setInitStatusBusy(void);
-const void setInitStatusReady(void);
+const void setInitStatusReady(bool resultOkay);
 
 #endif /* SENSORREGISTER_H_ */

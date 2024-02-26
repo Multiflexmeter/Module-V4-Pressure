@@ -188,32 +188,68 @@ void switchOnSensor_BothKeller(void)
 
 }
 
-/* State functions */
-void assignAddressKeller(void)
+/**
+ * @fn bool assignAddressKellerBroadcast(uint8_t)
+ * @brief function first checks baudrate is 9600, force it to 115200, then set address
+ *
+ * @param address : new address of sensor
+ * @return result of new address. true = succeed, false = failure
+ */
+bool assignAddressKellerWithBroadcast(uint8_t address)
 {
-  switchOnSensor_BothKeller();
+  int retry = 3;
+  //check sensor is at production baudrate, increase baudrate to 115200
+  if( KellerCheckBaudrate(250, BAUD_9600) )
+  {
+    HAL_Delay(2);
+    KellerSetBaudrate(250, BAUD_115200);
+    HAL_Delay(10);
+  }
 
-  KellerSetBaudrate(0, BAUD_115200);
-  disableSensors();
+  HAL_Delay(2);
+  // check if sensor works at 115200,
+  // retry must be used, because after chaning baudrate the sensor does not response on first message
+  while( KellerCheckBaudrate(250, BAUD_115200) == false && retry )
+  {
+    retry--;
+    HAL_Delay(2);
+  }
+
+  //set new address, verify result is equal to address, then succeed.
+  return (KellerNewAddress(250, address) == address);
+  }
+
+/**
+ * @fn bool assignAddressKeller(void)
+ * @brief function to assign address for keller sensors
+ *
+ * @return true = succeed, false = failure
+ */
+bool assignAddressKeller(void)
+{
+  bool resultSensor1 = 0;
+  bool resultSensor2 = 0;
+  controlBuckConverter(GPIO_PIN_SET);
+
+  HAL_Delay(5); //wait for stable supply for sensors
 
   /* Set address and baudrate of first sensor */
   enableSensor1();
   HAL_Delay(250);
-  KellerInit(250);
-  HAL_Delay(2);
-  KellerNewAddress(250, 0x01);
+  resultSensor1 = assignAddressKellerWithBroadcast(0x01);
+
   disableSensors(); //make sure sensor 1 is disabled.
 
   /* Set address and baudrate of second sensor */
   enableSensor2();
   HAL_Delay(250);
-  KellerInit(250);
-  HAL_Delay(2);
-  KellerNewAddress(250, 0x02);
+  resultSensor2 = assignAddressKellerWithBroadcast(0x02);
 
   /* Disable both sensors */
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
+
+  return (resultSensor1 == true && resultSensor2 == true);
 }
 
 /**

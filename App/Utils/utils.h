@@ -9,6 +9,7 @@
 #define UTILS_UTILS_H_
 
 #include "main.h"
+#include <stdbool.h>
 
 typedef enum
 {
@@ -31,7 +32,7 @@ void disableSensors(void);
 void controlBuckConverter(GPIO_PinState state);
 void switchOnSensor_BothKeller(void);
 
-void assignAddressKeller(void);
+bool assignAddressKeller(void);
 void measureKellerSensor(void);
 void measureHubaSensor(void);
 

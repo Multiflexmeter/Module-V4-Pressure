@@ -64,6 +64,17 @@ void ModbusSetBaudrate(uint32_t baudrate)
 }
 
 /**
+ * @fn uint32_t ModbusGetBaudrate(void)
+ * @brief function to get the baudrate for the Modbus communication
+ *
+ * @return baudrate
+ */
+uint32_t ModbusGetBaudrate(void)
+{
+  return ModbusHandle->Init.BaudRate;
+}
+
+/**
  * @brief Flush the receive buffer
  */
 void ModbusFlushRxBuffer(void)

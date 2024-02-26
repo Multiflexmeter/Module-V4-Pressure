@@ -236,8 +236,8 @@ const void setInitStatusBusy(void)
  * @brief function to set init status ready
  *
  */
-const void setInitStatusReady(void)
+const void setInitStatusReady(bool resultOkay)
 {
-  registerInitStatus = 0x0A; //set ready
+  registerInitStatus = resultOkay ? 0x0A : 0x0F; //set ready 0x0A or failure 0x0F
   registerInitStart = 0; //reset
 }

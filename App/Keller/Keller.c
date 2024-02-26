@@ -5,6 +5,72 @@
 #include "crc16.h"
 
 
+static uint32_t count_illegalNonImplementedFunction;
+static uint32_t count_illegalDataAddress;
+static uint32_t count_illegalDataValue;
+static uint32_t count_slaveDeviceFailure;
+static uint32_t count_noInitialisation;
+
+/**
+ * @fn void KellerErrorResponse(uint8_t)
+ * @brief function to deal with an error exception for debug
+ *
+ * @param data
+ */
+void KellerErrorResponse(uint8_t data)
+{
+  switch (data )
+  {
+    case 0x01: //illegal non-implemented function 1
+      assert_param(0);
+      count_illegalNonImplementedFunction++;
+      break;
+    case 0x02: //illegal data address 2
+      assert_param(0);
+      count_illegalDataAddress++;
+      break;
+    case 0x03: //illegal data value 3
+      assert_param(0);
+      count_illegalDataValue++;
+      break;
+    case 0x04: //slave device failure 4
+      assert_param(0);
+      count_slaveDeviceFailure++;
+      break;
+    case 0x20: //initialisation (only KELLER bus) 32
+      assert_param(0);
+      count_noInitialisation++;
+      break;
+    default:
+      break;
+  }
+}
+
+/**
+ * @fn bool KellerVerifyResultOkay(uint8_t*, uint8_t)
+ * @brief function to verify keller response
+ *
+ * @param response
+ * @param functionCode
+ * @return
+ */
+bool KellerVerifyResultOkay(uint8_t * response, uint8_t functionCode)
+{
+  if( response[1] == functionCode)
+  {
+    return true;
+  }
+
+  //else failed The slave responds with an exception error
+
+  if( response[1] & 0x80 )
+  {
+    KellerErrorResponse(response[2]);
+  }
+  return false;
+}
+
+
 /* Keller Private Functions */
 
 float KellerArrayToFloat(uint8_t *array)
@@ -36,17 +102,25 @@ uint8_t KellerReadConfig(uint8_t slaveAddress, uint8_t configNumber)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return response[2];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return response[2]; //return response[2]
+  }
+
+  return 0; //error return 0
 }
 
 /**
+ * @fn bool KellerWriteConfig(uint8_t, uint8_t, uint8_t)
  * @brief Write the configuration register
  *
  * @param slaveAddress The slave address of the sensor
  * @param configNumber The number of the configuration register
  * @param data The data to write to the register
+ * @return true = succeed, false = failed
  */
-void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
+bool KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
 {
   uint8_t request[4];
   uint8_t response[8];
@@ -61,7 +135,13 @@ void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return;
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return response[2] == 0; //return valied if response value is 0
+  }
+
+  return 0; //error return 0
 }
 
 /**
@@ -86,11 +166,17 @@ float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
-  uint32_t vBuffer = ((uint32_t) response[2] << 24) | ((uint32_t) response[3] << 16) | ((uint32_t) response[4] << 8) | ((uint32_t) response[5]);
-  float result;
-  memcpy(&result, &vBuffer, sizeof(result));
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    uint32_t vBuffer = ((uint32_t) response[2] << 24) | ((uint32_t) response[3] << 16) | ((uint32_t) response[4] << 8) | ((uint32_t) response[5]);
+    float result;
+    memcpy(&result, &vBuffer, sizeof(result));
 
-  return result;
+    return result;
+  }
+
+  return 0; //error return 0
 }
 
 /**
@@ -115,7 +201,13 @@ int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
-  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  }
+
+  return 0; //error return 0
 }
 
 
@@ -137,10 +229,14 @@ bool KellerInit(uint8_t slaveAddress)
   ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
   ModbusReceive(response, 10, CRC_BIG_ENDIAN);
 
-  if(response[1] == FunctionInitialiseDevices)
+
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
     return true;
-  else
-    return false;
+  }
+
+  return false; //error return 0
 }
 
 /**
@@ -163,31 +259,71 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
   ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
   ModbusReceive(response, 8, CRC_BIG_ENDIAN);
 
-  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  }
+
+  return 0; //error return 0
 }
 
 /**
+ * @fn bool KellerSetBaudrate(uint8_t, Keller_Baudrate_t)
  * @brief Change the baudrate of the Keller sensor
  *
  * @param slaveAddress The slave address of the sensor
  * @param baudrate The baudrate to set the Keller sensor to
+ * @return true = succeed, false = failed
  */
-void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
+bool KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
 {
+  bool result = 0;
   if(baudrate == BAUD_115200)
   {
     ModbusSetBaudrate(9600);
-    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_115200);
+    result = KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_115200);
     ModbusSetBaudrate(115200);
   }
   else if(baudrate == BAUD_9600)
   {
     ModbusSetBaudrate(115200);
-    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_9600);
+    result = KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_9600);
     ModbusSetBaudrate(9600);
   }
 
-  return;
+  return result;
+}
+
+
+/**
+ * @fn bool KellerCheckBaudrate(uint8_t, Keller_Baudrate_t)
+ * @brief function to verify the current baudrate.
+ *
+ * @param slaveAddress
+ * @param baudrate
+ * @return
+ */
+bool KellerCheckBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
+{
+  uint32_t currentBaudrate = ModbusGetBaudrate();
+  if(baudrate == BAUD_115200)
+  {
+    ModbusSetBaudrate(115200);
+  }
+  else if (baudrate == BAUD_9600)
+  {
+    ModbusSetBaudrate(9600);
+  }
+
+  uint8_t data[1] = { 0xFF };
+  ModbusTransmitData(data, sizeof(data));
+  HAL_Delay(2);
+  bool status = KellerInit(250);
+
+  ModbusSetBaudrate(currentBaudrate); //switch back to previous baudrate.
+
+  return status;
 }
 
 /**
@@ -212,7 +348,13 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return response[2];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return response[2]; //return new address
+  }
+
+  return 0; //error return 0
 }
 
 
