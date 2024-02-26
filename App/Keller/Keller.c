@@ -5,6 +5,50 @@
 #include "crc16.h"
 
 
+static uint32_t count_illegalNonImplementedFunction;
+static uint32_t count_illegalDataAddress;
+static uint32_t count_illegalDataValue;
+static uint32_t count_slaveDeviceFailure;
+static uint32_t count_noInitialisation;
+
+
+
+/**
+ * @fn void KellerErrorResponse(uint8_t)
+ * @brief function to deal with an error exception for debug
+ *
+ * @param data
+ */
+void KellerErrorResponse(uint8_t data)
+{
+  switch (data )
+  {
+    case 0x01: //illegal non-implemented function 1
+      assert_param(0);
+      count_illegalNonImplementedFunction++;
+      break;
+    case 0x02: //illegal data address 2
+      assert_param(0);
+      count_illegalDataAddress++;
+      break;
+    case 0x03: //illegal data value 3
+      assert_param(0);
+      count_illegalDataValue++;
+      break;
+    case 0x04: //slave device failure 4
+      assert_param(0);
+      count_slaveDeviceFailure++;
+      break;
+    case 0x20: //initialisation (only KELLER bus) 32
+      assert_param(0);
+      count_noInitialisation++;
+      break;
+    default:
+      break;
+  }
+}
+
+
 /* Keller Private Functions */
 
 float KellerArrayToFloat(uint8_t *array)
