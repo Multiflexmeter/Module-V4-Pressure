@@ -202,7 +202,12 @@ bool assignAddressKellerWithBroadcast(uint8_t address)
   {
     HAL_Delay(2);
     KellerSetBaudrate(250, BAUD_115200);
+
   }
+  HAL_Delay(2);
+  KellerCheckBaudrate(250, BAUD_115200);
+
+  HAL_Delay(2);
   return KellerNewAddress(250, address);
 }
 
