@@ -190,6 +190,37 @@ void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
   return;
 }
 
+
+/**
+ * @fn bool KellerCheckBaudrate(uint8_t, Keller_Baudrate_t)
+ * @brief function to verify the current baudrate.
+ *
+ * @param slaveAddress
+ * @param baudrate
+ * @return
+ */
+bool KellerCheckBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
+{
+  uint32_t currentBaudrate = ModbusGetBaudrate();
+  if(baudrate == BAUD_115200)
+  {
+    ModbusSetBaudrate(115200);
+  }
+  else if (baudrate == BAUD_9600)
+  {
+    ModbusSetBaudrate(9600);
+  }
+
+  uint8_t data[1] = { 0xFF };
+  ModbusTransmitData(data, sizeof(data));
+  HAL_Delay(2);
+  bool status = KellerInit(250);
+
+  ModbusSetBaudrate(currentBaudrate); //switch back to previous baudrate.
+
+  return status;
+}
+
 /**
  * @brief Change the slave address off the Keller sensor
  *
