@@ -106,13 +106,15 @@ uint8_t KellerReadConfig(uint8_t slaveAddress, uint8_t configNumber)
 }
 
 /**
+ * @fn bool KellerWriteConfig(uint8_t, uint8_t, uint8_t)
  * @brief Write the configuration register
  *
  * @param slaveAddress The slave address of the sensor
  * @param configNumber The number of the configuration register
  * @param data The data to write to the register
+ * @return true = succeed, false = failed
  */
-void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
+bool KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
 {
   uint8_t request[4];
   uint8_t response[8];
@@ -127,7 +129,14 @@ void KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return;
+
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return response[2] == 0; //return valied if response value is 0
+  }
+
+  return 0; //error return 0
 }
 
 /**
@@ -233,27 +242,30 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
 }
 
 /**
+ * @fn bool KellerSetBaudrate(uint8_t, Keller_Baudrate_t)
  * @brief Change the baudrate of the Keller sensor
  *
  * @param slaveAddress The slave address of the sensor
  * @param baudrate The baudrate to set the Keller sensor to
+ * @return true = succeed, false = failed
  */
-void KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
+bool KellerSetBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
 {
+  bool result = 0;
   if(baudrate == BAUD_115200)
   {
     ModbusSetBaudrate(9600);
-    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_115200);
+    result = KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_115200);
     ModbusSetBaudrate(115200);
   }
   else if(baudrate == BAUD_9600)
   {
     ModbusSetBaudrate(115200);
-    KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_9600);
+    result = KellerWriteConfig(slaveAddress, CONFIG_UART, BAUD_9600);
     ModbusSetBaudrate(9600);
   }
 
-  return;
+  return result;
 }
 
 
