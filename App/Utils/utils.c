@@ -188,6 +188,24 @@ void switchOnSensor_BothKeller(void)
 
 }
 
+/**
+ * @fn bool assignAddressKellerBroadcast(uint8_t)
+ * @brief function first checks baudrate is 9600, force it to 115200, then set address
+ *
+ * @param address : new address of sensor
+ * @return result of new address
+ */
+bool assignAddressKellerWithBroadcast(uint8_t address)
+{
+  //check sensor is at production baudrate, increase baudrate to 115200
+  if( KellerCheckBaudrate(250, BAUD_9600) )
+  {
+    HAL_Delay(2);
+    KellerSetBaudrate(250, BAUD_115200);
+  }
+  return KellerNewAddress(250, address);
+}
+
 /* State functions */
 void assignAddressKeller(void)
 {
