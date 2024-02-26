@@ -21,7 +21,7 @@
 #define REG_ERROR_STATUS          0x51
 
 /* Registers Defaults*/
-#define DEF_FIRMWARE_VERSION  "0.3d"
+#define DEF_FIRMWARE_VERSION  "0.3e"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
 #define DEF_INIT_START        0x00
