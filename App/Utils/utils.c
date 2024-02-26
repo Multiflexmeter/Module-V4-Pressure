@@ -197,17 +197,24 @@ void switchOnSensor_BothKeller(void)
  */
 bool assignAddressKellerWithBroadcast(uint8_t address)
 {
+  int retry = 3;
   //check sensor is at production baudrate, increase baudrate to 115200
   if( KellerCheckBaudrate(250, BAUD_9600) )
   {
     HAL_Delay(2);
     KellerSetBaudrate(250, BAUD_115200);
-
+    HAL_Delay(10);
   }
-  HAL_Delay(2);
-  KellerCheckBaudrate(250, BAUD_115200);
 
   HAL_Delay(2);
+  // check if sensor works at 115200,
+  // retry must be used, because after chaning baudrate the sensor does not response on first message
+  while( KellerCheckBaudrate(250, BAUD_115200) == false && retry )
+  {
+    retry--;
+    HAL_Delay(2);
+  }
+
   return KellerNewAddress(250, address);
 }
 
