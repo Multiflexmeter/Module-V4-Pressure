@@ -238,6 +238,6 @@ const void setInitStatusBusy(void)
  */
 const void setInitStatusReady(bool resultOkay)
 {
-  registerInitStatus = resultOkay ? 0x0A : 0xF0; //set ready 0x0A or failure 0xF0
+  registerInitStatus = resultOkay ? 0x0A : 0x0F; //set ready 0x0A or failure 0x0F
   registerInitStart = 0; //reset
 }
