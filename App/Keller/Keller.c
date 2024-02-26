@@ -102,7 +102,13 @@ uint8_t KellerReadConfig(uint8_t slaveAddress, uint8_t configNumber)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
 
-  return response[2];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return response[2]; //return response[2]
+  }
+
+  return 0; //error return 0
 }
 
 /**
@@ -128,7 +134,6 @@ bool KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   // Transmit command and receive response
   ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
   ModbusReceive(response, 5, CRC_BIG_ENDIAN);
-
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -161,11 +166,17 @@ float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
-  uint32_t vBuffer = ((uint32_t) response[2] << 24) | ((uint32_t) response[3] << 16) | ((uint32_t) response[4] << 8) | ((uint32_t) response[5]);
-  float result;
-  memcpy(&result, &vBuffer, sizeof(result));
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    uint32_t vBuffer = ((uint32_t) response[2] << 24) | ((uint32_t) response[3] << 16) | ((uint32_t) response[4] << 8) | ((uint32_t) response[5]);
+    float result;
+    memcpy(&result, &vBuffer, sizeof(result));
 
-  return result;
+    return result;
+  }
+
+  return 0; //error return 0
 }
 
 /**
@@ -190,7 +201,13 @@ int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
   ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
   ModbusReceive(response, 9, CRC_BIG_ENDIAN);
 
-  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  }
+
+  return 0; //error return 0
 }
 
 
@@ -212,10 +229,14 @@ bool KellerInit(uint8_t slaveAddress)
   ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
   ModbusReceive(response, 10, CRC_BIG_ENDIAN);
 
-  if(response[1] == FunctionInitialiseDevices)
+
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
     return true;
-  else
-    return false;
+  }
+
+  return false; //error return 0
 }
 
 /**
@@ -238,7 +259,13 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
   ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
   ModbusReceive(response, 8, CRC_BIG_ENDIAN);
 
-  return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  //verify result
+  if( KellerVerifyResultOkay(response, request[1]) )
+  {
+    return (response[2] << 24) + (response[3] << 16) + (response[4] << 8) + response[5];
+  }
+
+  return 0; //error return 0
 }
 
 /**
