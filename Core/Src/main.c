@@ -87,7 +87,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
-extern bool writeFlag;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -140,6 +139,7 @@ int main(void)
   {
     OneWireSystemClock_Config();
     setSensorType(MFM_DRUKMODULE_ONEWIRE);
+    setMeasureTime(DEF_MEAS_TIME_ONEWIRE);
   }
 
   else if(variant == RS485_VARIANT)
@@ -147,6 +147,7 @@ int main(void)
     SystemClock_Config();
     setSensorType(MFM_DRUKMODULE_RS485);
     enableInitFunction(); //enable the sensor init function
+    setMeasureTime(DEF_MEAS_TIME_RS485);
   }
   /* USER CODE END SysInit */
 
@@ -247,12 +248,6 @@ int main(void)
             HAL_Delay(2); //wait for stabilized supply
             currentState = POLL_ONEWIRE_SENSOR;
           }
-        }
-
-        //no active commands, sleep can be entered.
-        else
-        {
-          enter_Sleep();
         }
 
         break;

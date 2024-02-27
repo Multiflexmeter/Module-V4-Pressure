@@ -241,3 +241,18 @@ const void setInitStatusReady(bool resultOkay)
   registerInitStatus = resultOkay ? 0x0A : 0x0F; //set ready 0x0A or failure 0x0F
   registerInitStart = 0; //reset
 }
+
+/**
+ * @fn const void setMeasureTime(uint16_t)
+ * @brief function to set a conditional measure time based on sensormodule type
+ * Minimum value of \ref DEF_MEAS_TIME is used
+ *
+ * @param newTime
+ */
+const void setMeasureTime(uint16_t newTime)
+{
+  if( newTime > DEF_MEAS_TIME )
+  {
+    registerMeasurementTime = newTime;
+  }
+}
