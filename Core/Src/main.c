@@ -254,7 +254,9 @@ int main(void)
         //no active commands, sleep can be entered.
         else
         {
+          HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
           enter_Sleep();
+          HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
         }
 
         break;
@@ -630,6 +632,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
 
+  HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SLOT_GPIO1_GPIO_Port, SLOT_GPIO1_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
@@ -660,6 +665,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
   GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
