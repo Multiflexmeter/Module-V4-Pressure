@@ -140,6 +140,7 @@ int main(void)
   {
     OneWireSystemClock_Config();
     setSensorType(MFM_DRUKMODULE_ONEWIRE);
+    setMeasureTime(DEF_MEAS_TIME_ONEWIRE);
   }
 
   else if(variant == RS485_VARIANT)
@@ -147,6 +148,7 @@ int main(void)
     SystemClock_Config();
     setSensorType(MFM_DRUKMODULE_RS485);
     enableInitFunction(); //enable the sensor init function
+    setMeasureTime(DEF_MEAS_TIME_RS485);
   }
   /* USER CODE END SysInit */
 
