@@ -250,12 +250,6 @@ int main(void)
           }
         }
 
-        //no active commands, sleep can be entered.
-        else
-        {
-          enter_Sleep();
-        }
-
         break;
     }
 
