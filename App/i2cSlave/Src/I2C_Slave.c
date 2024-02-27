@@ -16,7 +16,7 @@ uint8_t txBuffer[40]; //maximum needed for transmit measuring data: 1 byte datas
 
 int8_t regIndex;
 uint8_t regSize;
-bool writeFlag = false;
+volatile bool writeFlag = false;
 int8_t rxcount = 0;
 
 volatile bool sensorSlaveErrorFlag = false;
