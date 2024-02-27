@@ -87,7 +87,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSORSLOT;
 extern uint16_t supply3V3;
-extern bool writeFlag;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
