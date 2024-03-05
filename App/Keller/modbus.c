@@ -9,10 +9,12 @@
 #define KELLER_MODBUS_C_
 
 #include <string.h>
+#include <stdbool.h>
 #include "modbus.h"
 #include "crc16.h"
 
 static UART_HandleTypeDef *ModbusHandle;
+static volatile bool modbusRxReady = false;
 
 /**
  * @brief Initialize the Modbus UART handle
@@ -136,6 +138,21 @@ HAL_StatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness en
   return result;
 }
 
+
+/**
+ * @fn void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)
+ * @brief override function for HAL_UART_RxCpltCallback
+ *
+ * @param huart
+ */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if( huart == ModbusHandle )
+  {
+    modbusRxReady = true;  //enable, message received
+  }
+}
+
 /**
  * @brief Receives the Modbus data on the bus
  *
@@ -147,11 +164,20 @@ HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness end
 {
   /* Receive the modbus response */
   ModbusDisableTX();
-  HAL_StatusTypeDef status = HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
-  if(status != HAL_OK)
+  modbusRxReady = false;
+  HAL_UART_AbortReceive( ModbusHandle );//abort previous action
+  HAL_StatusTypeDef status = HAL_UART_Receive_DMA(ModbusHandle, data, size);
+
+  uint8_t timeout = MODBUS_TIMEOUT;
+  do
+  {
+    HAL_Delay(1);
+  } while(modbusRxReady == false && --timeout);
+
+  if(modbusRxReady == false)
   {
     memset(data, 0, size);
-    return status;
+    return HAL_TIMEOUT;
   }
 
   /* Check the CRC */
