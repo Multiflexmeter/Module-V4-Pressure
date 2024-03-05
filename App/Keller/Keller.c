@@ -337,7 +337,7 @@ bool KellerCheckBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
 uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
 {
   uint8_t request[3];
-  uint8_t response[5];
+  uint8_t response[5] = {0};
 
   // Fill the Modbus request command
   request[0] = currentSlaveAddress;
