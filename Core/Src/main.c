@@ -206,7 +206,7 @@ int main(void)
           bool result = true;
           if (variant == RS485_VARIANT)
           {
-            result = assignAddressKellerBothSensors();
+            result = assignAddressKeller(getSelectedSensor());
           }
           setInitStatusReady(result);
           currentState = SLEEP;
