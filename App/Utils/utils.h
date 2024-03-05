@@ -33,6 +33,7 @@ void controlBuckConverter(GPIO_PinState state);
 void switchOnSensor_BothKeller(void);
 
 bool assignAddressKellerBothSensors(void);
+bool assignAddressKeller(uint8_t sensor);
 void measureKellerSensor(void);
 void measureHubaSensor(void);
 

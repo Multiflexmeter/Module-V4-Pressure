@@ -253,6 +253,56 @@ bool assignAddressKellerBothSensors(void)
 }
 
 /**
+ * @fn bool assignAddressKeller(uint8_t)
+ * @brief function to assign address for keller sensors
+ *
+ * @param sensor : number of sensor default start at 0. Accept 0 - 1
+ * @return true = succeed, false = failure
+ */
+bool assignAddressKeller(uint8_t sensor)
+{
+  bool resultSensor = false;
+
+  /* check sensor input is valid */
+  if( sensor >= DEF_SENSOR_AMOUNT )
+  {
+    return resultSensor;
+  }
+
+  /* enable supply */
+  controlBuckConverter(GPIO_PIN_SET);
+
+  HAL_Delay(5); //wait for stable supply for sensors
+
+  if( sensor == 0 )
+  {
+    /* Set address and baudrate of first sensor */
+    enableSensor1();
+  }
+  else if( sensor == 1)
+  {
+    /* Set address and baudrate of second sensor */
+    enableSensor2();
+  }
+  else //not valid
+  {
+    //nothing cannot happen
+
+    static_assert( DEF_SENSOR_AMOUNT == 2, "function not suitable for this amount of sensors");
+  }
+
+  HAL_Delay(250); //wait
+  resultSensor = assignAddressKellerWithBroadcast(sensor + 1); //assign address 0=0x01, 1=0x02
+
+  /* Disable both sensors */
+  disableSensors();
+  controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
+
+  return (resultSensor == true );
+}
+
+
+/**
  * @fn void measureKellerSensor(void)
  * @brief function first polls sensor 1 and sensor 2.
  * Sensor must already be powered
