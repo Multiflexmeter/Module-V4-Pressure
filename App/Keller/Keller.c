@@ -347,7 +347,6 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   // Transmit command and receive response
   uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
-  lastStatusTx = statusTx;
   if (statusTx != HAL_OK)
   {
     return 10;
