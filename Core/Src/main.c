@@ -208,7 +208,15 @@ int main(void)
           {
             result = assignAddressKeller(getSelectedSensor());
           }
+
+          if( result == false)
+          {
+            HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+          }
+
           setInitStatusReady(result);
+
+          HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
           currentState = SLEEP;
         }
         break;

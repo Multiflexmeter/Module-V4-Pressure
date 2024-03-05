@@ -326,6 +326,10 @@ bool KellerCheckBaudrate(uint8_t slaveAddress, Keller_Baudrate_t baudrate)
   return status;
 }
 
+uint32_t countErrorNewAddress;
+uint8_t lastStatusRx;
+uint8_t lastStatusTx;
+HAL_TickFreqTypeDef freq;
 /**
  * @brief Change the slave address off the Keller sensor
  *
@@ -344,18 +348,35 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   request[1] = FunctionWriteDeviceAddress;
   request[2] = newSlaveAddress;
 
+//  freq = HAL_GetTickFreq();
+//
+//  uint32_t tickStart = HAL_GetTick();
+//
+//  HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+//  while( HAL_GetTick() < tickStart + 10 );
+//  HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
+
   // Transmit command and receive response
   uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
 
   lastStatusTx = statusTx;
   if (statusTx != HAL_OK)
   {
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+    countErrorNewAddress++;
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
     return 10;
   }
 
+//  HAL_Delay(1);
+
   uint8_t statusRx = ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  lastStatusRx = statusRx;
   if (statusRx != HAL_OK)
   {
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+    countErrorNewAddress++;
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
     return 11;
   }
 
@@ -363,6 +384,13 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   if( KellerVerifyResultOkay(response, request[1]) )
   {
     return response[2]; //return new address
+  }
+
+  else
+  {
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+    countErrorNewAddress++;
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
   }
 
   return 0; //error return 0
