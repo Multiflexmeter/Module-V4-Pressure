@@ -54,6 +54,14 @@ typedef enum
   CRC_LITTLE_ENDIAN
 }CRC_Endianness;
 
+typedef enum
+{
+  MODBUS_HAL_OK = HAL_OK,
+  MODBUS_HAL_ERROR = HAL_ERROR,
+  MODBUS_HAL_BUSY = HAL_BUSY,
+  MODBUS_HAL_TIMEOUT = HAL_TIMEOUT,
+  MODBUS_CRC_ERROR = 4,
+}Modbus_TxRxStatusTypeDef;
 
 void ModbusInit(UART_HandleTypeDef *modbusHandle);
 void ModbusEnableTX(void);
@@ -62,9 +70,9 @@ void ModbusShutdown(void);
 void ModbusSetBaudrate(uint32_t baudrate);
 uint32_t ModbusGetBaudrate(void);
 
-HAL_StatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length);
-HAL_StatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
-HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
+Modbus_TxRxStatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length);
+Modbus_TxRxStatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
+Modbus_TxRxStatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
 MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
 MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);

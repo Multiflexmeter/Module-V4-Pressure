@@ -91,7 +91,7 @@ void ModbusFlushRxBuffer(void)
  * @param data : pointer to data
  * @param length : length of data
  */
-HAL_StatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length)
+Modbus_TxRxStatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length)
 {
   /* Flush the RX buffer */
   ModbusFlushRxBuffer();
@@ -112,7 +112,7 @@ HAL_StatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length)
  * @param size is the size of the message without the CRC size
  * @param endian is the endianness of the CRC
  */
-HAL_StatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
+Modbus_TxRxStatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Copy data into the message */
   uint8_t message[size + CRC_SIZE];
@@ -160,7 +160,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  * @param size is the size of the message to receive
  * @param endian is the endianness of the CRC
  */
-HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
+Modbus_TxRxStatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Receive the modbus response */
   ModbusDisableTX();
@@ -188,7 +188,7 @@ HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness end
     if(crc != (data[size-1] << 8) + data[size-2])
     {
       memset(data, 0, size);
-      return 4;
+      return MODBUS_CRC_ERROR;
     }
   }
   else if (endian == CRC_LITTLE_ENDIAN)
@@ -196,7 +196,7 @@ HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness end
     if(crc != (data[size-2] << 8) + data[size-1])
     {
       memset(data, 0, size);
-      return 5;
+      return MODBUS_CRC_ERROR;
     }
   }
 
