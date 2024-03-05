@@ -115,5 +115,6 @@ const bool getInitStartStatus(void);
 const void setInitStatusBusy(void);
 const void setInitStatusReady(bool resultOkay);
 const void setMeasureTime(uint16_t newTime);
+const uint8_t getSelectedSensor(void);
 
 #endif /* SENSORREGISTER_H_ */
