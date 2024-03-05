@@ -147,12 +147,10 @@ HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness end
 {
   /* Receive the modbus response */
   ModbusDisableTX();
-  HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
-  HAL_StatusTypeDef status = HAL_UART_Receive(ModbusHandle, data, size, 20 /*MODBUS_TIMEOUT*/);
-  HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
+  HAL_StatusTypeDef status = HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
   if(status != HAL_OK)
   {
-    //memset(data, 0, size);
+    memset(data, 0, size);
     return status;
   }
 
