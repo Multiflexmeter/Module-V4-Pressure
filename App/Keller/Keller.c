@@ -99,8 +99,17 @@ uint8_t KellerReadConfig(uint8_t slaveAddress, uint8_t configNumber)
   request[2] = configNumber;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -132,8 +141,17 @@ bool KellerWriteConfig(uint8_t slaveAddress, uint8_t configNumber, uint8_t data)
   request[3] = data;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 4, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -163,8 +181,17 @@ float KellerReadChannelFloat(uint8_t slaveAddress, uint8_t channel)
   request[2] = channel;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 9, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 9, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -198,8 +225,17 @@ int32_t KellerReadChannelInt(uint8_t slaveAddress, uint8_t channel)
   request[2] = channel;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 9, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 9, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -226,9 +262,17 @@ bool KellerInit(uint8_t slaveAddress)
   request[1] = FunctionInitialiseDevices;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 10, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
 
+  uint8_t statusRx = ModbusReceive(response, 10, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -256,8 +300,17 @@ uint32_t KellerSerialnumber(uint8_t slaveAddress)
   request[1] = FunctionReadSerialNumber;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 8, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 2, CRC_BIG_ENDIAN);
+  if (statusTx != MODBUS_HAL_OK)
+  {
+    return 0;//error Tx
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 8, CRC_BIG_ENDIAN);
+  if (statusRx != MODBUS_HAL_OK)
+  {
+    return 0;//error Rx
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
@@ -346,16 +399,15 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
 
   // Transmit command and receive response
   uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-
-  if (statusTx != HAL_OK)
+  if (statusTx != MODBUS_HAL_OK)
   {
-    return 10;
+    return 0; //error Tx
   }
 
   uint8_t statusRx = ModbusReceive(response, 5, CRC_BIG_ENDIAN);
-  if (statusRx != HAL_OK)
+  if (statusRx != MODBUS_HAL_OK)
   {
-    return 11;
+    return 0;//error Rx
   }
 
   //verify result
