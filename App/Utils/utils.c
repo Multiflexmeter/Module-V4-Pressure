@@ -225,7 +225,7 @@ bool assignAddressKellerWithBroadcast(uint8_t address)
  *
  * @return true = succeed, false = failure
  */
-bool assignAddressKeller(void)
+bool assignAddressKellerBothSensors(void)
 {
   bool resultSensor1 = 0;
   bool resultSensor2 = 0;
