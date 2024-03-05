@@ -62,9 +62,9 @@ void ModbusShutdown(void);
 void ModbusSetBaudrate(uint32_t baudrate);
 uint32_t ModbusGetBaudrate(void);
 
-void ModbusTransmitData(uint8_t *data, uint16_t length);
-void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
-void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
+HAL_StatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length);
+HAL_StatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian);
+HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian);
 
 MODBUS_StatusTypeDef ModbusWriteSingleRegister(uint8_t slaveAddress, uint16_t registerAddress, uint16_t data);
 MODBUS_StatusTypeDef ModbusWriteMultipleRegister(uint8_t slaveAddress, uint16_t startAddress, uint16_t lenght, uint16_t *data);

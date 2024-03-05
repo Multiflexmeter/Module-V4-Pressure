@@ -89,15 +89,17 @@ void ModbusFlushRxBuffer(void)
  * @param data : pointer to data
  * @param length : length of data
  */
-void ModbusTransmitData(uint8_t *data, uint16_t length)
+HAL_StatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length)
 {
   /* Flush the RX buffer */
   ModbusFlushRxBuffer();
 
   /* Transmit the message */
   ModbusEnableTX();
-  HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
+  HAL_StatusTypeDef result = HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
   ModbusDisableTX();
+
+  return result;
 }
 
 /**
@@ -108,7 +110,7 @@ void ModbusTransmitData(uint8_t *data, uint16_t length)
  * @param size is the size of the message without the CRC size
  * @param endian is the endianness of the CRC
  */
-void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
+HAL_StatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Copy data into the message */
   uint8_t message[size + CRC_SIZE];
@@ -129,7 +131,9 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
     message[size + 1] = (crc & 0x00FF);
   }
 
-  ModbusTransmitData(message, size + CRC_SIZE);
+  HAL_StatusTypeDef result = ModbusTransmitData(message, size + CRC_SIZE);
+
+  return result;
 }
 
 /**
@@ -139,7 +143,7 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
  * @param size is the size of the message to receive
  * @param endian is the endianness of the CRC
  */
-void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
+HAL_StatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Receive the modbus response */
   ModbusDisableTX();
@@ -147,7 +151,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
   if(status != HAL_OK)
   {
     memset(data, 0, size);
-    return;
+    return status;
   }
 
   /* Check the CRC */
@@ -158,7 +162,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-1] << 8) + data[size-2])
     {
       memset(data, 0, size);
-      return;
+      return 4;
     }
   }
   else if (endian == CRC_LITTLE_ENDIAN)
@@ -166,9 +170,11 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-2] << 8) + data[size-1])
     {
       memset(data, 0, size);
-      return;
+      return 5;
     }
   }
+
+  return status;
 }
 
 /**
