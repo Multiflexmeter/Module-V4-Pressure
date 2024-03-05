@@ -345,8 +345,19 @@ uint8_t KellerNewAddress(uint8_t currentSlaveAddress, uint8_t newSlaveAddress)
   request[2] = newSlaveAddress;
 
   // Transmit command and receive response
-  ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
-  ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  uint8_t statusTx = ModbusTransmit(request, 3, CRC_BIG_ENDIAN);
+
+  lastStatusTx = statusTx;
+  if (statusTx != HAL_OK)
+  {
+    return 10;
+  }
+
+  uint8_t statusRx = ModbusReceive(response, 5, CRC_BIG_ENDIAN);
+  if (statusRx != HAL_OK)
+  {
+    return 11;
+  }
 
   //verify result
   if( KellerVerifyResultOkay(response, request[1]) )
