@@ -32,7 +32,8 @@ void disableSensors(void);
 void controlBuckConverter(GPIO_PinState state);
 void switchOnSensor_BothKeller(void);
 
-bool assignAddressKeller(void);
+bool assignAddressKellerBothSensors(void);
+bool assignAddressKeller(uint8_t sensor);
 void measureKellerSensor(void);
 void measureHubaSensor(void);
 

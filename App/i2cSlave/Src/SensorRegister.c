@@ -256,3 +256,14 @@ const void setMeasureTime(uint16_t newTime)
     registerMeasurementTime = newTime;
   }
 }
+
+/**
+ * @fn const uint8_t getSelectedSensor(void)
+ * @brief function to return the selected sensor
+ *
+ * @return sensor number, starting from 0.
+ */
+const uint8_t getSelectedSensor(void)
+{
+  return registerSensorSelected;
+}

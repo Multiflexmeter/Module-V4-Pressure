@@ -9,10 +9,12 @@
 #define KELLER_MODBUS_C_
 
 #include <string.h>
+#include <stdbool.h>
 #include "modbus.h"
 #include "crc16.h"
 
 static UART_HandleTypeDef *ModbusHandle;
+static volatile bool modbusRxReady = false;
 
 /**
  * @brief Initialize the Modbus UART handle
@@ -89,15 +91,17 @@ void ModbusFlushRxBuffer(void)
  * @param data : pointer to data
  * @param length : length of data
  */
-void ModbusTransmitData(uint8_t *data, uint16_t length)
+Modbus_TxRxStatusTypeDef ModbusTransmitData(uint8_t *data, uint16_t length)
 {
   /* Flush the RX buffer */
   ModbusFlushRxBuffer();
 
   /* Transmit the message */
   ModbusEnableTX();
-  HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
+  HAL_StatusTypeDef result = HAL_UART_Transmit(ModbusHandle, data, length, MODBUS_TIMEOUT);
   ModbusDisableTX();
+
+  return result;
 }
 
 /**
@@ -108,7 +112,7 @@ void ModbusTransmitData(uint8_t *data, uint16_t length)
  * @param size is the size of the message without the CRC size
  * @param endian is the endianness of the CRC
  */
-void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
+Modbus_TxRxStatusTypeDef ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Copy data into the message */
   uint8_t message[size + CRC_SIZE];
@@ -129,7 +133,24 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
     message[size + 1] = (crc & 0x00FF);
   }
 
-  ModbusTransmitData(message, size + CRC_SIZE);
+  HAL_StatusTypeDef result = ModbusTransmitData(message, size + CRC_SIZE);
+
+  return result;
+}
+
+
+/**
+ * @fn void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)
+ * @brief override function for HAL_UART_RxCpltCallback
+ *
+ * @param huart
+ */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if( huart == ModbusHandle )
+  {
+    modbusRxReady = true;  //enable, message received
+  }
 }
 
 /**
@@ -139,15 +160,24 @@ void ModbusTransmit(uint8_t *data, uint16_t size, CRC_Endianness endian)
  * @param size is the size of the message to receive
  * @param endian is the endianness of the CRC
  */
-void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
+Modbus_TxRxStatusTypeDef ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
 {
   /* Receive the modbus response */
   ModbusDisableTX();
-  HAL_StatusTypeDef status = HAL_UART_Receive(ModbusHandle, data, size, MODBUS_TIMEOUT);
-  if(status != HAL_OK)
+  modbusRxReady = false;
+  HAL_UART_AbortReceive( ModbusHandle );//abort previous action
+  HAL_StatusTypeDef status = HAL_UART_Receive_DMA(ModbusHandle, data, size);
+
+  uint8_t timeout = MODBUS_TIMEOUT;
+  do
+  {
+    HAL_Delay(1);
+  } while(modbusRxReady == false && --timeout);
+
+  if(modbusRxReady == false)
   {
     memset(data, 0, size);
-    return;
+    return HAL_TIMEOUT;
   }
 
   /* Check the CRC */
@@ -158,7 +188,7 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-1] << 8) + data[size-2])
     {
       memset(data, 0, size);
-      return;
+      return MODBUS_CRC_ERROR;
     }
   }
   else if (endian == CRC_LITTLE_ENDIAN)
@@ -166,9 +196,11 @@ void ModbusReceive(uint8_t *data, uint16_t size, CRC_Endianness endian)
     if(crc != (data[size-2] << 8) + data[size-1])
     {
       memset(data, 0, size);
-      return;
+      return MODBUS_CRC_ERROR;
     }
   }
+
+  return status;
 }
 
 /**

@@ -83,6 +83,8 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim21;
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSORSLOT;
@@ -165,6 +167,7 @@ int main(void)
   setSlaveAddress();
 
   /* USER CODE END 2 */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -206,7 +209,7 @@ int main(void)
           bool result = true;
           if (variant == RS485_VARIANT)
           {
-            result = assignAddressKeller();
+            result = assignAddressKeller(getSelectedSensor());
           }
           setInitStatusReady(result);
           currentState = SLEEP;
@@ -597,6 +600,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel4_5_6_7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
 
 }
 
