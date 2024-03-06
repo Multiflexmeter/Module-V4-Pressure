@@ -416,7 +416,7 @@ void measureHubaSensor(void)
   for( int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
   {
     sample = 0;
-    uint32_t timeout = HAL_GetTick() + 250;
+    uint32_t timeout = HAL_GetTick() + 10 + (samples * 22) / 10;
     switch( sensorNr )
     {
       case 0:

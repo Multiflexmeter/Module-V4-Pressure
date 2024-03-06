@@ -30,8 +30,8 @@
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x0064 //100ms for 10 samples
 #define DEF_MEAS_TIME_ONEWIRE (DEF_MEAS_TIME) //for 10 samples
-#define DEF_MEAS_TIME_START_ONEWIRE       0xA0 //10
-#define DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE  0x09 //9
+#define DEF_MEAS_TIME_START_ONEWIRE       0x13 //19
+#define DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE  0x05 //5
 #define DEF_MEAS_TIME_RS485   0x00C8 //200ms for 10 samples
 #define DEF_MEAS_TIME_START_RS485       0x3C //60
 #define DEF_MEAS_TIME_PER_SAMPLE_RS485  0x10 //16
