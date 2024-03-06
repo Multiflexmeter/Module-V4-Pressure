@@ -31,6 +31,9 @@ HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 #define SAMPLE_BUFFER_SIZE  10
 #define SAMPLE_MAX_BUFFER_SIZE  100
 
+float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
 {
@@ -321,8 +324,7 @@ bool assignAddressKeller(uint8_t sensor)
 void measureKellerSensor(void)
 {
   uint16_t samples = readMeasSamples();
-  float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
-  float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
+
   SensorData sensorSample;
 
   bool sensorPresent[DEF_SENSOR_AMOUNT];
@@ -378,8 +380,6 @@ void measureHubaSensor(void)
 {
   uint8_t sample = 0;
   uint16_t samples = readMeasSamples();
-  float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
-  float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
 
   for( int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
