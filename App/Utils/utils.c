@@ -308,6 +308,28 @@ bool assignAddressKeller(uint8_t sensor)
   return (resultSensor == true );
 }
 
+/**
+ * @fn uint16_t getNumberOfSamples(void)
+ * @brief helper function to minimize and maximize the number of samples readed from register.
+ *
+ * @return samples from 1 - 100
+ */
+uint16_t getNumberOfSamples(void)
+{
+  uint16_t samples = readMeasSamples();
+
+  if ( samples == 0 ) //guard no zero
+  {
+    return 1;
+  }
+
+  if( samples > SAMPLE_MAX_BUFFER_SIZE) //guard maximum
+  {
+    return SAMPLE_MAX_BUFFER_SIZE;
+  }
+
+  return samples;
+}
 
 /**
  * @fn void measureKellerSensor(void)
