@@ -291,3 +291,41 @@ const uint8_t getSelectedSensor(void)
 {
   return registerSensorSelected;
 }
+
+/**
+ * @fn void updateMeasureTime(void)
+ * @brief update routine for measure time for a new number of samples
+ *
+ */
+void updateMeasureTime(void)
+{
+  uint16_t samples = registerMeasurementSamples;
+  uint16_t newTime = 0;
+  if( samples == 0 )
+    samples = 1;
+  if( samples > 100 )
+    samples = 100;
+
+  switch(registerSensorType)
+  {
+    case MFM_DRUKMODULE_RS485:
+
+      newTime = DEF_MEAS_TIME_START_RS485 + samples * DEF_MEAS_TIME_PER_SAMPLE_RS485;
+      registerMeasurementTime = newTime;
+
+      break;
+
+    case MFM_DRUKMODULE_ONEWIRE:
+
+      newTime = DEF_MEAS_TIME_START_ONEWIRE + samples * DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE;
+      registerMeasurementTime = DEF_MEAS_TIME_ONEWIRE;
+
+      break;
+
+    default:
+
+      registerMeasurementTime = DEF_MEAS_TIME;
+
+      break;
+  }
+}
