@@ -172,6 +172,8 @@ uint8_t readMeasSamples(void)
  */
 void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 {
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
   registerMeasurementData[sensor].pressure = pressure;
   registerMeasurementData[sensor].temperature = temperature;
 }
