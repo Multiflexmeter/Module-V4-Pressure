@@ -364,7 +364,7 @@ void measureKellerSensor(void)
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
 
-  for( int i=0; i<2; i++)
+  for( int i=0; i<DEF_SENSOR_AMOUNT; i++)
   {
     clearMeasurement(i);
   }
