@@ -388,7 +388,7 @@ void measureKellerSensor(void)
 
     if( sensorPresent[sensorNr] )
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), 0);
+      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
     }
   }
 
@@ -460,7 +460,7 @@ void measureHubaSensor(void)
     clearMeasurement(sensorNr);
     if (hubaSensor[sensorNr].hubaDone)
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), 0);
+      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
     }
   }
 
