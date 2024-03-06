@@ -363,8 +363,22 @@ void measureKellerSensor(void)
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
-  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
-  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+
+  for( int i=0; i<2; i++)
+  {
+    clearMeasurement(i);
+  }
+
+  if( sensor1Present )
+  {
+    storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+  }
+
+  if( sensor2Present )
+  {
+    storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+  }
+
   setMeasurementStatus(MEASUREMENT_DONE);
   stopMeas();
 }
