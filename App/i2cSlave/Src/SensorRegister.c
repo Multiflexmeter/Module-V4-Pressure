@@ -177,6 +177,20 @@ void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 }
 
 /**
+ * @fn void clearMeasurement(uint8_t)
+ * @brief clear the current measurement to 0xFF value
+ *
+ * @param sensor is the sensor the data is taken from
+ */
+void clearMeasurement( uint8_t sensor)
+{
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
+
+  memset(&registerMeasurementData[sensor], 0xFF, sizeof(registerMeasurementData[sensor]));
+}
+
+/**
  * @brief Set the measurement status
  *
  * @param status is the status to set
