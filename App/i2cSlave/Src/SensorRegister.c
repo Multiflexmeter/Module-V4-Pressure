@@ -23,24 +23,26 @@ static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
+void updateMeasureTime(void);
+
 const SensorReg registers[] =
 {
-    {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ},
-    {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ},
-    {REG_SENSOR_TYPE,       &registerSensorType,          UINT16_T, 1,  READ},
-    {REG_INIT_START,        &registerInitStart,           UINT8_T,  1,  READWRITE},
-    {REG_INIT_STATUS,       &registerInitStatus,          UINT8_T,  1,  READ},
-    {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE},
-    {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
-    {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
-    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ},
-    {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
-    {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
-    {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
-    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE},
-    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ},
-    {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ},
-    {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
+    {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ,       0},
+    {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ,       0},
+    {REG_SENSOR_TYPE,       &registerSensorType,          UINT16_T, 1,  READ,       0},
+    {REG_INIT_START,        &registerInitStart,           UINT8_T,  1,  READWRITE,  0},
+    {REG_INIT_STATUS,       &registerInitStatus,          UINT8_T,  1,  READ,       0},
+    {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ,       0},
+    {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE,  0},
+    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ,    0},
+    {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ,       0},
+    {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
+    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ,     0},
+    {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
+    {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
 
 /**
@@ -107,6 +109,12 @@ void writeRegister(uint8_t *data, size_t lenght)
         uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
         memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
       }
+
+      //check if a change callback is availble, then call it.
+      if( registers[regIndex].changeCallback )
+      {
+        registers[regIndex].changeCallback();
+      }
     }
     /* Message CRC is not correct. CRC error occurred */
     else
@@ -172,8 +180,24 @@ uint8_t readMeasSamples(void)
  */
 void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 {
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
   registerMeasurementData[sensor].pressure = pressure;
   registerMeasurementData[sensor].temperature = temperature;
+}
+
+/**
+ * @fn void clearMeasurement(uint8_t)
+ * @brief clear the current measurement to 0xFF value
+ *
+ * @param sensor is the sensor the data is taken from
+ */
+void clearMeasurement( uint8_t sensor)
+{
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
+
+  memset(&registerMeasurementData[sensor], 0xFF, sizeof(registerMeasurementData[sensor]));
 }
 
 /**
@@ -266,4 +290,42 @@ const void setMeasureTime(uint16_t newTime)
 const uint8_t getSelectedSensor(void)
 {
   return registerSensorSelected;
+}
+
+/**
+ * @fn void updateMeasureTime(void)
+ * @brief update routine for measure time for a new number of samples
+ *
+ */
+void updateMeasureTime(void)
+{
+  uint16_t samples = registerMeasurementSamples;
+  uint16_t newTime = 0;
+  if( samples == 0 )
+    samples = 1;
+  if( samples > 100 )
+    samples = 100;
+
+  switch(registerSensorType)
+  {
+    case MFM_DRUKMODULE_RS485:
+
+      newTime = DEF_MEAS_TIME_START_RS485 + samples * DEF_MEAS_TIME_PER_SAMPLE_RS485;
+      registerMeasurementTime = newTime;
+
+      break;
+
+    case MFM_DRUKMODULE_ONEWIRE:
+
+      newTime = DEF_MEAS_TIME_START_ONEWIRE + samples * DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE;
+      registerMeasurementTime = newTime;
+
+      break;
+
+    default:
+
+      registerMeasurementTime = DEF_MEAS_TIME;
+
+      break;
+  }
 }

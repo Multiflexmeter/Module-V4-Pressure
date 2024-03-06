@@ -11,21 +11,28 @@ extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim21;
 
-HubaSensor hubaSensor1 = {
-    .htim = &htim2,
-    .bitIndex = 0,
-    .hubaDone = false,
-    .firstCapture = false
-};
-
-HubaSensor hubaSensor2 = {
-    .htim = &htim21,
-    .bitIndex = 0,
-    .hubaDone = false,
-    .firstCapture = false
+HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
+{ //
+    { //sensor 1
+        .htim = &htim2, //
+        .bitIndex = 0, //
+        .hubaDone = false, //
+        .firstCapture = false, //
+    }//end sensor 1
+    ,//
+    { //sensor 2
+        .htim = &htim21, //
+        .bitIndex = 0, //
+        .hubaDone = false, //
+        .firstCapture = false, //
+    }//end sensor 2
 };
 
 #define SAMPLE_BUFFER_SIZE  10
+#define SAMPLE_MAX_BUFFER_SIZE  100
+
+float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
@@ -301,6 +308,28 @@ bool assignAddressKeller(uint8_t sensor)
   return (resultSensor == true );
 }
 
+/**
+ * @fn uint16_t getNumberOfSamples(void)
+ * @brief helper function to minimize and maximize the number of samples readed from register.
+ *
+ * @return samples from 1 - 100
+ */
+uint16_t getNumberOfSamples(void)
+{
+  uint16_t samples = readMeasSamples();
+
+  if ( samples == 0 ) //guard no zero
+  {
+    return 1;
+  }
+
+  if( samples > SAMPLE_MAX_BUFFER_SIZE) //guard maximum
+  {
+    return SAMPLE_MAX_BUFFER_SIZE;
+  }
+
+  return samples;
+}
 
 /**
  * @fn void measureKellerSensor(void)
@@ -316,12 +345,9 @@ bool assignAddressKeller(uint8_t sensor)
  */
 void measureKellerSensor(void)
 {
-  uint16_t samples = readMeasSamples();
-  float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
+  bool sensorPresent[DEF_SENSOR_AMOUNT];
+  uint16_t samples = getNumberOfSamples();
 
   /* send dummy byte first, sometimes needed because Keller sensor does not response on first command */
   uint8_t data[1] = {0xFF};
@@ -329,33 +355,25 @@ void measureKellerSensor(void)
   HAL_Delay(2);
 
   /* Initialize both Keller sensors */
-  bool sensor1Present = KellerInit(0x01);
-  HAL_Delay(2);
-
-  bool sensor2Present = KellerInit(0x02);
-  HAL_Delay(2);
+  for( int sensorNr=0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
+  {
+    sensorPresent[sensorNr] = KellerInit( sensorNr+0x01 ); //Initialize the sensor 1 and sensor 2
+    HAL_Delay(2);
+  }
 
   /* Collect the samples specified in the MeasurementSamples register */
   for (uint8_t sample = 0; sample < samples; ++sample)
   {
-    if(sensor1Present)
+    for (int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
     {
-      // Sample the first sensor
-      memset(&sensorSample, 0, sizeof(SensorData));
-      sensorSample = KellerReadTempAndPressure(0x01);
-      sensor1PressureSamples[sample] = sensorSample.pressure;
-      sensor1TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(2);
-    }
-
-    if(sensor2Present)
-    {
-      // Sample the second sensor
-      memset(&sensorSample, 0, sizeof(SensorData));
-      sensorSample = KellerReadTempAndPressure(0x02);
-      sensor2PressureSamples[sample] = sensorSample.pressure;
-      sensor2TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(2);
+      if (sensorPresent[sensorNr]) //check sensor is present
+      {
+        memset(&sensorSample, 0, sizeof(SensorData)); //clear memory
+        sensorSample = KellerReadTempAndPressure(sensorNr+0x01);
+        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
+        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        HAL_Delay(2);
+      }
     }
   }
 
@@ -363,69 +381,90 @@ void measureKellerSensor(void)
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
-  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
-  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+
+  for( int sensorNr=0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
+  {
+    clearMeasurement( sensorNr );
+
+    if( sensorPresent[sensorNr] )
+    {
+      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+    }
+  }
+
   setMeasurementStatus(MEASUREMENT_DONE);
   stopMeas();
 }
 
+/**
+ * @fn void measureHubaSensor(void)
+ * @brief function reads available onewire sensors in a loop.
+ * Number of samples is read, sensor supply is enabled
+ * Sensor must already be powered
+ * Then it reads the sensor value for X times
+ * After reading the sensors are disabled.
+ * The buckbooster is disabled finally
+ * The median value is calculated from the samples which are made and stored
+ */
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
-
-  enableSensor1(); //enable sensor 1
-
-  uint16_t samples = readMeasSamples();
-
-  float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
+  uint16_t samples = getNumberOfSamples();
+  bool sensorFound[DEF_SENSOR_AMOUNT] = {0};
 
-  uint32_t timeout = HAL_GetTick() + 250;
-  hubaStart(&hubaSensor1);
-  while(sample < samples)
+  for( int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
   {
-    /* Sample first Huba sensor */
-    if(hubaSensor1.hubaDone)
+    sample = 0;
+    uint32_t timeout = HAL_GetTick() + 10 + (samples * 22) / 10;
+    switch( sensorNr )
     {
-      sensorSample = hubaBufferToData(&hubaSensor1);
-      sensor1PressureSamples[sample] = sensorSample.pressure;
-      sensor1TempSamples[sample] = sensorSample.temperature;
-      hubaSensor1.hubaDone = false;
-      sample++;
+      case 0:
+        enableSensor1(); //enable sensor 1
+        break;
+      case 1:
+        enableSensor2(); //enable sensor 2
+        break;
+      default:
+        //nothing, wrong value
+        break;
     }
-    else if(HAL_GetTick() > timeout)
-      break;
-  }
-  HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
-  disableSensors();
 
-  HAL_Delay(5);
-  enableSensor2();
-  sample = 0;
-  timeout = HAL_GetTick() + 250;
-  hubaStart(&hubaSensor2);
-  while(sample < samples)
-  {
-    /* Sample second Huba sensor */
-    if(hubaSensor2.hubaDone)
+    hubaStart(&hubaSensor[sensorNr]);
+    while(sample < samples)
     {
-      sensorSample = hubaBufferToData(&hubaSensor2);
-      sensor2PressureSamples[sample] = sensorSample.pressure;
-      sensor2TempSamples[sample] = sensorSample.temperature;
-      hubaSensor2.hubaDone = false;
-      sample++;
+      /* Sample first Huba sensor */
+      if(hubaSensor[sensorNr].hubaDone)
+      {
+        sensorFound[sensorNr] = true;
+        sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
+        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
+        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        hubaSensor[sensorNr].hubaDone = false;
+        sample++;
+      }
+      else if(HAL_GetTick() > timeout)
+        break;
     }
-    else if(HAL_GetTick() > timeout)
-      break;
+    HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
+    disableSensors();
+
+    // set delay between, not at last cycle.
+    if( sensorNr + 1 < DEF_SENSOR_AMOUNT )
+    {
+      HAL_Delay(5);
+    }
   }
-  HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
-  disableSensors();
-  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
-  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+
+  for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)
+  {
+    clearMeasurement(sensorNr);
+    if (sensorFound[sensorNr])
+    {
+      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+    }
+  }
 
   /* Finish measurement */
   setMeasurementStatus(MEASUREMENT_DONE);
@@ -434,12 +473,12 @@ void measureHubaSensor(void)
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-  if(htim == hubaSensor1.htim)
+  if(htim == hubaSensor[0].htim)
   {
-    hubaTimerCallback(&hubaSensor1);
+    hubaTimerCallback(&hubaSensor[0]);
   }
-  else if(htim == hubaSensor2.htim)
+  else if(htim == hubaSensor[1].htim)
   {
-    hubaTimerCallback(&hubaSensor2);
+    hubaTimerCallback(&hubaSensor[1]);
   }
 }

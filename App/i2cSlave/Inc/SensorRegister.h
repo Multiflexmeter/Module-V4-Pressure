@@ -28,9 +28,13 @@
 #define DEF_INIT_STATUS       0xFF //default not available, when be enabled runtime.
 #define DEF_MEAS_START        0x00
 #define DEF_MEAS_STATUS       0x00
-#define DEF_MEAS_TIME         0x0064 //100ms
-#define DEF_MEAS_TIME_ONEWIRE (DEF_MEAS_TIME)
-#define DEF_MEAS_TIME_RS485   0x00C8 //200ms
+#define DEF_MEAS_TIME         0x0064 //100ms for 10 samples
+#define DEF_MEAS_TIME_ONEWIRE (DEF_MEAS_TIME) //for 10 samples
+#define DEF_MEAS_TIME_START_ONEWIRE       0x13 //19
+#define DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE  0x05 //5
+#define DEF_MEAS_TIME_RS485   0x00C8 //200ms for 10 samples
+#define DEF_MEAS_TIME_START_RS485       0x3C //60
+#define DEF_MEAS_TIME_PER_SAMPLE_RS485  0x10 //16
 #define DEF_MEAS_DATA         0xFFFFFFFF
 #define DEF_SENSOR_AMOUNT     0x02
 #define DEF_SENSOR_SELECTED   0x00
@@ -90,6 +94,7 @@ typedef struct
   tENUM_Datatype datatype;
   uint8_t size;
   tENUM_READWRITE RW;
+  void (* changeCallback)(void);
 }SensorReg;
 
 extern const SensorReg registers[];
@@ -107,6 +112,7 @@ uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
 void storeMeasurement(float pressure, float temperature, uint8_t sensor);
+void clearMeasurement( uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
 
