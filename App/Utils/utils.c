@@ -396,6 +396,16 @@ void measureKellerSensor(void)
   stopMeas();
 }
 
+/**
+ * @fn void measureHubaSensor(void)
+ * @brief function reads available onewire sensors in a loop.
+ * Number of samples is read, sensor supply is enabled
+ * Sensor must already be powered
+ * Then it reads the sensor value for X times
+ * After reading the sensors are disabled.
+ * The buckbooster is disabled finally
+ * The median value is calculated from the samples which are made and stored
+ */
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
