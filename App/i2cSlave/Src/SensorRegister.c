@@ -23,24 +23,26 @@ static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
+void updateMeasureTime(void);
+
 const SensorReg registers[] =
 {
-    {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ},
-    {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ},
-    {REG_SENSOR_TYPE,       &registerSensorType,          UINT16_T, 1,  READ},
-    {REG_INIT_START,        &registerInitStart,           UINT8_T,  1,  READWRITE},
-    {REG_INIT_STATUS,       &registerInitStatus,          UINT8_T,  1,  READ},
-    {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE},
-    {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ},
-    {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE},
-    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ},
-    {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ},
-    {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE},
-    {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE},
-    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE},
-    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ},
-    {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ},
-    {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ}
+    {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ,       0},
+    {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ,       0},
+    {REG_SENSOR_TYPE,       &registerSensorType,          UINT16_T, 1,  READ,       0},
+    {REG_INIT_START,        &registerInitStart,           UINT8_T,  1,  READWRITE,  0},
+    {REG_INIT_STATUS,       &registerInitStatus,          UINT8_T,  1,  READ,       0},
+    {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ,       0},
+    {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE,  0},
+    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ,    0},
+    {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ,       0},
+    {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
+    {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  0},
+    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ,     0},
+    {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
+    {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
 
 /**
@@ -106,6 +108,12 @@ void writeRegister(uint8_t *data, size_t lenght)
         /* convert the 2 uint8_t byte array to a uint16_t */
         uint16_t writeData = ((data[2]<<8) & 0xFF00) + (data[1] & 0xFF);
         memcpy(registers[regIndex].regPtr, &writeData, sizeof(uint16_t));
+      }
+
+      //check if a change callback is availble, then call it.
+      if( registers[regIndex].changeCallback )
+      {
+        registers[regIndex].changeCallback();
       }
     }
     /* Message CRC is not correct. CRC error occurred */

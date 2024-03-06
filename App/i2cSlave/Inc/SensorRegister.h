@@ -90,6 +90,7 @@ typedef struct
   tENUM_Datatype datatype;
   uint8_t size;
   tENUM_READWRITE RW;
+  void (* changeCallback)(void);
 }SensorReg;
 
 extern const SensorReg registers[];
