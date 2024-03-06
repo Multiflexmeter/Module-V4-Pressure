@@ -317,11 +317,11 @@ bool assignAddressKeller(uint8_t sensor)
 void measureKellerSensor(void)
 {
   uint16_t samples = readMeasSamples();
-  float sensor1PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor1TempSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2PressureSamples[SAMPLE_BUFFER_SIZE];
-  float sensor2TempSamples[SAMPLE_BUFFER_SIZE];
+  float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
+  float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_BUFFER_SIZE];
   SensorData sensorSample;
+
+  bool sensorPresent[DEF_SENSOR_AMOUNT];
 
   /* send dummy byte first, sometimes needed because Keller sensor does not response on first command */
   uint8_t data[1] = {0xFF};
@@ -329,33 +329,25 @@ void measureKellerSensor(void)
   HAL_Delay(2);
 
   /* Initialize both Keller sensors */
-  bool sensor1Present = KellerInit(0x01);
-  HAL_Delay(2);
-
-  bool sensor2Present = KellerInit(0x02);
-  HAL_Delay(2);
+  for( int sensorNr=0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
+  {
+    sensorPresent[sensorNr] = KellerInit( sensorNr+0x01 ); //Initialize the sensor 1 and sensor 2
+    HAL_Delay(2);
+  }
 
   /* Collect the samples specified in the MeasurementSamples register */
   for (uint8_t sample = 0; sample < samples; ++sample)
   {
-    if(sensor1Present)
+    for (int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
     {
-      // Sample the first sensor
-      memset(&sensorSample, 0, sizeof(SensorData));
-      sensorSample = KellerReadTempAndPressure(0x01);
-      sensor1PressureSamples[sample] = sensorSample.pressure;
-      sensor1TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(2);
-    }
-
-    if(sensor2Present)
-    {
-      // Sample the second sensor
-      memset(&sensorSample, 0, sizeof(SensorData));
-      sensorSample = KellerReadTempAndPressure(0x02);
-      sensor2PressureSamples[sample] = sensorSample.pressure;
-      sensor2TempSamples[sample] = sensorSample.temperature;
-      HAL_Delay(2);
+      if (sensorPresent[sensorNr]) //check sensor is present
+      {
+        memset(&sensorSample, 0, sizeof(SensorData)); //clear memory
+        sensorSample = KellerReadTempAndPressure(sensorNr+0x01);
+        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
+        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        HAL_Delay(2);
+      }
     }
   }
 
@@ -364,19 +356,14 @@ void measureKellerSensor(void)
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
 
-  for( int i=0; i<DEF_SENSOR_AMOUNT; i++)
+  for( int sensorNr=0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
   {
-    clearMeasurement(i);
-  }
+    clearMeasurement( sensorNr );
 
-  if( sensor1Present )
-  {
-    storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
-  }
-
-  if( sensor2Present )
-  {
-    storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+    if( sensorPresent[sensorNr] )
+    {
+      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), 0);
+    }
   }
 
   setMeasurementStatus(MEASUREMENT_DONE);
