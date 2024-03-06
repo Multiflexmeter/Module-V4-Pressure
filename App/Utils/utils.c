@@ -345,11 +345,9 @@ uint16_t getNumberOfSamples(void)
  */
 void measureKellerSensor(void)
 {
-  uint16_t samples = readMeasSamples();
-
   SensorData sensorSample;
-
   bool sensorPresent[DEF_SENSOR_AMOUNT];
+  uint16_t samples = getNumberOfSamples();
 
   /* send dummy byte first, sometimes needed because Keller sensor does not response on first command */
   uint8_t data[1] = {0xFF};
@@ -401,8 +399,8 @@ void measureKellerSensor(void)
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
-  uint16_t samples = readMeasSamples();
   SensorData sensorSample;
+  uint16_t samples = getNumberOfSamples();
 
   for( int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
   {
