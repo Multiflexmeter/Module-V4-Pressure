@@ -411,6 +411,7 @@ void measureHubaSensor(void)
   uint8_t sample = 0;
   SensorData sensorSample;
   uint16_t samples = getNumberOfSamples();
+  bool sensorFound[DEF_SENSOR_AMOUNT] = {0};
 
   for( int sensorNr = 0; sensorNr < DEF_SENSOR_AMOUNT; sensorNr++)
   {
@@ -435,6 +436,7 @@ void measureHubaSensor(void)
       /* Sample first Huba sensor */
       if(hubaSensor[sensorNr].hubaDone)
       {
+        sensorFound[sensorNr] = true;
         sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
         sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
         sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
@@ -458,7 +460,7 @@ void measureHubaSensor(void)
   for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)
   {
     clearMeasurement(sensorNr);
-    if (hubaSensor[sensorNr].hubaDone)
+    if (sensorFound[sensorNr])
     {
       storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
     }
