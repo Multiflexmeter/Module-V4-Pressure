@@ -438,8 +438,20 @@ void measureHubaSensor(void)
   HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   disableSensors();
-  storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
-  storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+
+  for( int i=0; i<DEF_SENSOR_AMOUNT; i++)
+  {
+    clearMeasurement(i);
+  }
+
+  if( hubaSensor1.hubaDone)
+  {
+    storeMeasurement(findMedian(sensor1PressureSamples, samples), findMedian(sensor1TempSamples, samples), 0);
+  }
+  if( hubaSensor2.hubaDone)
+  {
+    storeMeasurement(findMedian(sensor2PressureSamples, samples), findMedian(sensor2TempSamples, samples), 1);
+  }
 
   /* Finish measurement */
   setMeasurementStatus(MEASUREMENT_DONE);
