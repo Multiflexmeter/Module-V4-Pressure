@@ -31,11 +31,11 @@ HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 #define SAMPLE_BUFFER_SIZE  10
 #define SAMPLE_MAX_BUFFER_SIZE  100
 
-float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
-float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorPressureSamplesKeller[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorTempSamplesKeller[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
-uint16_t sensorPressureSamples_uint16[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
-uint8_t sensorTempSamples_uint8[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+uint16_t sensorPressureSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+uint8_t sensorTempSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
@@ -421,8 +421,8 @@ void measureKellerSensor(void)
       {
         memset(&sensorSample, 0, sizeof(SensorData)); //clear memory
         sensorSample = KellerReadTempAndPressure(sensorNr+0x01);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressureData;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperatureData;
+        sensorPressureSamplesKeller[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamplesKeller[sensorNr][sample] = sensorSample.temperatureData;
         HAL_Delay(2);
       }
     }
@@ -439,7 +439,7 @@ void measureKellerSensor(void)
 
     if( sensorPresent[sensorNr] )
     {
-      storeMeasurement(findMedian_float(sensorPressureSamples[sensorNr], samples), findMedian_float(sensorTempSamples[sensorNr], samples), sensorNr);
+      storeMeasurementKeller(findMedian_float(sensorPressureSamplesKeller[sensorNr], samples), findMedian_float(sensorTempSamplesKeller[sensorNr], samples), sensorNr);
     }
   }
 
@@ -489,8 +489,8 @@ void measureHubaSensor(void)
       {
         sensorFound[sensorNr] = true;
         sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
-        sensorPressureSamples_uint16[sensorNr][sample] = sensorSample.pressureData;
-        sensorTempSamples_uint8[sensorNr][sample] = sensorSample.temperatureData;
+        sensorPressureSamplesHuba[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamplesHuba[sensorNr][sample] = sensorSample.temperatureData;
         hubaSensor[sensorNr].hubaDone = false;
         sample++;
       }
@@ -513,7 +513,7 @@ void measureHubaSensor(void)
     clearMeasurement(sensorNr);
     if (sensorFound[sensorNr])
     {
-      storeMeasurementHuba(findMedian_uint16(sensorPressureSamples_uint16[sensorNr], samples), findMedian_uint8(sensorTempSamples_uint8[sensorNr], samples), sensorNr);
+      storeMeasurementHuba(findMedian_uint16(sensorPressureSamplesHuba[sensorNr], samples), findMedian_uint8(sensorTempSamplesHuba[sensorNr], samples), sensorNr);
     }
   }
 

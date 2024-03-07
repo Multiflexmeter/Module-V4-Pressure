@@ -14,13 +14,13 @@ static uint8_t registerInitStatus= DEF_INIT_STATUS;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static SensorData registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorData registerMeasurementDataKeller[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
 static SensorDataHuba registerMeasurementDataHuba[2] = {{0xFFFF, 0xFF}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorData registerSensorDataKeller = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static SensorDataHuba registerSensorDataHuba = {0xFFFF, 0xFF};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
@@ -37,12 +37,12 @@ SensorReg registers[] =
     {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ,       0},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE,  0},
-    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ,    0},
+    {REG_MEAS_DATA,         &registerMeasurementDataKeller,     SENSORDATA_KELLER,  2,  READ,    0},
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ,       0},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
-    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ,     0},
+    {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
@@ -180,12 +180,12 @@ uint8_t readMeasSamples(void)
  * @param data is the raw sensor data
  * @param sensor is the sensor the data is taken from
  */
-void storeMeasurement(float pressure, float temperature, uint8_t sensor)
+void storeMeasurementKeller(float pressure, float temperature, uint8_t sensor)
 {
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
-  registerMeasurementData[sensor].pressureData = pressure;
-  registerMeasurementData[sensor].temperatureData = temperature;
+  registerMeasurementDataKeller[sensor].pressureData = pressure;
+  registerMeasurementDataKeller[sensor].temperatureData = temperature;
 }
 
 /**
@@ -216,7 +216,7 @@ void clearMeasurement( uint8_t sensor)
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
 
-  memset(&registerMeasurementData[sensor], 0xFF, sizeof(registerMeasurementData[sensor]));
+  memset(&registerMeasurementDataKeller[sensor], 0xFF, sizeof(registerMeasurementDataKeller[sensor]));
   memset(&registerMeasurementDataHuba[sensor], 0xFF, sizeof(registerMeasurementDataHuba[sensor]));
 }
 
@@ -237,7 +237,7 @@ void storeSelectedSensor(uint8_t sensor)
     return;
 
   /* Store selected sensor data */
-  registerSensorData = registerMeasurementData[sensor];
+  registerSensorDataKeller = registerMeasurementDataKeller[sensor];
   registerSensorDataHuba = registerMeasurementDataHuba[sensor];
 }
 
@@ -367,10 +367,10 @@ const void setMeasureDataSize(SensorType type)
 
   if (type == MFM_DRUKMODULE_RS485)
   {
-    registers[indexMeas].datatype = SENSORDATA;
-    registers[indexMeas].regPtr = &registerMeasurementData;
-    registers[indexSensor].datatype = SENSORDATA;
-    registers[indexSensor].regPtr = &registerSensorData;
+    registers[indexMeas].datatype = SENSORDATA_KELLER;
+    registers[indexMeas].regPtr = &registerMeasurementDataKeller;
+    registers[indexSensor].datatype = SENSORDATA_KELLER;
+    registers[indexSensor].regPtr = &registerSensorDataKeller;
 
   }
   else if (type == MFM_DRUKMODULE_ONEWIRE)
