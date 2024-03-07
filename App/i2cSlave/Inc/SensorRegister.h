@@ -45,6 +45,12 @@
 #define DEF_ERROR_STATUS      0
 
 /* Typedefs */
+typedef struct __attribute__((__packed__))
+{
+  float pressureData;
+  float temperatureData;
+}SensorData;
+
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
@@ -80,12 +86,6 @@ typedef enum{
   AVERAGE_SAMPLE = 0x10,
   MEDIAN_SAMPLE  = 0x20
 }MeasurementType;
-
-typedef struct __attribute__((__packed__))
-{
-  float pressureData;
-  float temperatureData;
-}SensorData;
 
 typedef struct
 {
