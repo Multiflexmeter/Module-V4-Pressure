@@ -513,7 +513,7 @@ void measureHubaSensor(void)
     clearMeasurement(sensorNr);
     if (sensorFound[sensorNr])
     {
-      storeMeasurement(findMedian_uint16(sensorPressureSamples_uint16[sensorNr], samples), findMedian_uint8(sensorTempSamples_uint8[sensorNr], samples), sensorNr);
+      storeMeasurementHuba(findMedian_uint16(sensorPressureSamples_uint16[sensorNr], samples), findMedian_uint8(sensorTempSamples_uint8[sensorNr], samples), sensorNr);
     }
   }
 
