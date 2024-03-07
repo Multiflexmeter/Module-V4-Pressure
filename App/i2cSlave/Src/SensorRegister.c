@@ -187,6 +187,23 @@ void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 }
 
 /**
+ * @fn void storeMeasurementHuba(uint8_t, uint8_t, uint8_t, uint8_t)
+ * @brief stores the huba measurement data.
+ *
+ * @param pressureHighByte  HighByte of pressure: The digital pressure output signal is a 14 bit value. The digital value 3000 represents the 0% FSO point and the digital value 11000 represents the 100%
+ * @param pressureLowByte   LowByte of pressure: The digital pressure output signal is a 14 bit value. The digital value 3000 represents the 0% FSO point and the digital value 11000 represents the 100%
+ * @param temperature temperature byte : an 8-bit temperature quantity spanning from -50 to 150°C.
+ * @param sensor is the sensor the data is taken from
+ */
+void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor)
+{
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
+  registerMeasurementData[sensor].Huba.pressureData = pressure;
+  registerMeasurementData[sensor].Huba.temperatureData = temperature;
+}
+
+/**
  * @fn void clearMeasurement(uint8_t)
  * @brief clear the current measurement to 0xFF value
  *

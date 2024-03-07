@@ -125,6 +125,7 @@ uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
 void storeMeasurement(float pressure, float temperature, uint8_t sensor);
+void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor);
 void clearMeasurement( uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
