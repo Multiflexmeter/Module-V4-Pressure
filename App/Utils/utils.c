@@ -34,6 +34,9 @@ HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
+uint16_t sensorPressureSamples_uint16[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+uint8_t sensorTempSamples_uint8[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
 {
@@ -447,7 +450,7 @@ void measureKellerSensor(void)
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
-  SensorData sensorSample;
+  SensorDataHuba sensorSample;
   uint16_t samples = getNumberOfSamples();
   bool sensorFound[DEF_SENSOR_AMOUNT] = {0};
 
@@ -476,8 +479,8 @@ void measureHubaSensor(void)
       {
         sensorFound[sensorNr] = true;
         sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressureData;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperatureData;
+        sensorPressureSamples_uint16[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamples_uint8[sensorNr][sample] = sensorSample.temperatureData;
         hubaSensor[sensorNr].hubaDone = false;
         sample++;
       }
@@ -500,7 +503,7 @@ void measureHubaSensor(void)
     clearMeasurement(sensorNr);
     if (sensorFound[sensorNr])
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+      storeMeasurement(findMedian_uint16(sensorPressureSamples_uint16[sensorNr], samples), findMedian_uint8(sensorTempSamples_uint8[sensorNr], samples), sensorNr);
     }
   }
 

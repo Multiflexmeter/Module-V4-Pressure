@@ -21,7 +21,7 @@ typedef struct
 }HubaSensor;
 
 void hubaStart(HubaSensor *sensor);
-SensorData hubaBufferToData(HubaSensor *sensor);
+SensorDataHuba hubaBufferToData(HubaSensor *sensor);
 void hubaTimerCallback(HubaSensor *sensor);
 
 #endif /* HUBA_HUBA_H_ */
