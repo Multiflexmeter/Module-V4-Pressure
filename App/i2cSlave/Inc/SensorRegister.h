@@ -53,7 +53,7 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
-  uint8_t pressureData[2];
+  uint16_t pressureData;
   uint8_t temperatureData;
 }SensorDataHuba;
 
