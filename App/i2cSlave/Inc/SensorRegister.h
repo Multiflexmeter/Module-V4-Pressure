@@ -54,7 +54,7 @@ typedef struct __attribute__((__packed__))
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
-  SENSORDATA = 8
+  SENSORDATA = (sizeof(SensorData)),
 }tENUM_Datatype;
 
 typedef enum{
