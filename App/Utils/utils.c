@@ -92,7 +92,7 @@ void setSlaveAddress(void)
  * @param n The lenght of the array
  * @return The median of the given array
  */
-float findMedian(float a[], uint8_t n)
+float findMedian_float(float a[], uint8_t n)
 {
   // First we sort the array
   qsort(a, n, sizeof(float), cmpfunc);
@@ -388,7 +388,7 @@ void measureKellerSensor(void)
 
     if( sensorPresent[sensorNr] )
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+      storeMeasurement(findMedian_float(sensorPressureSamples[sensorNr], samples), findMedian_float(sensorTempSamples[sensorNr], samples), sensorNr);
     }
   }
 

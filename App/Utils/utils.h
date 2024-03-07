@@ -19,7 +19,7 @@ typedef enum
 
 variant_t getVariant(void);
 void setSlaveAddress(void);
-float findMedian(float a[], uint8_t n);
+float findMedian_float(float a[], uint8_t n);
 void enter_Sleep(void);
 void determineSensorType(void);
 
