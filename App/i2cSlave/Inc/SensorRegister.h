@@ -83,8 +83,8 @@ typedef enum{
 
 typedef struct __attribute__((__packed__))
 {
-  float pressure;
-  float temperature;
+  float pressureData;
+  float temperatureData;
 }SensorData;
 
 typedef struct

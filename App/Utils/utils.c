@@ -370,8 +370,8 @@ void measureKellerSensor(void)
       {
         memset(&sensorSample, 0, sizeof(SensorData)); //clear memory
         sensorSample = KellerReadTempAndPressure(sensorNr+0x01);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        sensorPressureSamples[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamples[sensorNr][sample] = sensorSample.temperatureData;
         HAL_Delay(2);
       }
     }
@@ -438,8 +438,8 @@ void measureHubaSensor(void)
       {
         sensorFound[sensorNr] = true;
         sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        sensorPressureSamples[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamples[sensorNr][sample] = sensorSample.temperatureData;
         hubaSensor[sensorNr].hubaDone = false;
         sample++;
       }

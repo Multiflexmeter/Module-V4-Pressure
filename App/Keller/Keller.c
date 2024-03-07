@@ -451,8 +451,8 @@ SensorData KellerReadTempAndPressure(uint8_t slaveAddress)
 
   ModbusReadHoldingRegister(slaveAddress, 0x100, 0x04, rxBuffer);
 
-  sensorData.pressure = KellerArrayToFloat(rxBuffer);
-  sensorData.temperature = KellerArrayToFloat(rxBuffer+4);
+  sensorData.pressureData = KellerArrayToFloat(rxBuffer);
+  sensorData.temperatureData = KellerArrayToFloat(rxBuffer+4);
 
   return sensorData;
 }
