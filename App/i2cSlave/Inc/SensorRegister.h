@@ -57,6 +57,12 @@ typedef struct __attribute__((__packed__))
   uint8_t temperatureData;
 }SensorDataHuba;
 
+typedef struct __attribute__((__packed__))
+{
+  SensorData Keller;
+  SensorDataHuba Huba;
+}Union_SensorData;
+
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
