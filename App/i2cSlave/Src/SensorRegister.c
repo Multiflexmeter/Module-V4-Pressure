@@ -25,7 +25,7 @@ static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
 void updateMeasureTime(void);
 
-const SensorReg registers[] =
+SensorReg registers[] =
 {
     {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ,       0},
     {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ,       0},

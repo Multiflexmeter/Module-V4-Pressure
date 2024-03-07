@@ -102,15 +102,15 @@ typedef enum{
 
 typedef struct
 {
-  uint8_t adres;
+  const uint8_t adres;
   void *regPtr;
   tENUM_Datatype datatype;
   uint8_t size;
-  tENUM_READWRITE RW;
-  void (* changeCallback)(void);
+  const tENUM_READWRITE RW;
+  const void (* changeCallback)(void);
 }SensorReg;
 
-extern const SensorReg registers[];
+extern SensorReg registers[];
 
 /* Functions */
 const bool invalidIndex( int8_t index );
