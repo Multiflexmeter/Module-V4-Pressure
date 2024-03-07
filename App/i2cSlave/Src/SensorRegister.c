@@ -355,7 +355,7 @@ void updateMeasureTime(void)
  */
 const void setMeasureDataSize(SensorType type)
 {
-  if (type != MFM_DRUKMODULE_RS485 && type != MFM_DRUKMODULE_RS485)
+  if (type != MFM_DRUKMODULE_RS485 && type != MFM_DRUKMODULE_ONEWIRE)
     return;
 
   uint8_t indexMeas = findRegIndex(REG_MEAS_DATA); //find register index
