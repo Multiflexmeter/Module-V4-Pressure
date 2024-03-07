@@ -14,12 +14,14 @@ static uint8_t registerInitStatus= DEF_INIT_STATUS;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static Union_SensorData registerMeasurementData[2] = {{{DEF_MEAS_DATA, DEF_MEAS_DATA}}};
+static SensorData registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorDataHuba registerMeasurementDataHuba[2] = {{0xFFFF, 0xFF}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static Union_SensorData registerSensorData = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorDataHuba registerSensorDataHuba = {0xFFFF, 0xFF};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
@@ -182,8 +184,8 @@ void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 {
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
-  registerMeasurementData[sensor].Keller.pressureData = pressure;
-  registerMeasurementData[sensor].Keller.temperatureData = temperature;
+  registerMeasurementData[sensor].pressureData = pressure;
+  registerMeasurementData[sensor].temperatureData = temperature;
 }
 
 /**
@@ -199,8 +201,8 @@ void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor
 {
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
-  registerMeasurementData[sensor].Huba.pressureData = pressure;
-  registerMeasurementData[sensor].Huba.temperatureData = temperature;
+  registerMeasurementDataHuba[sensor].pressureData = pressure;
+  registerMeasurementDataHuba[sensor].temperatureData = temperature;
 }
 
 /**
@@ -215,6 +217,7 @@ void clearMeasurement( uint8_t sensor)
     return;
 
   memset(&registerMeasurementData[sensor], 0xFF, sizeof(registerMeasurementData[sensor]));
+  memset(&registerMeasurementDataHuba[sensor], 0xFF, sizeof(registerMeasurementDataHuba[sensor]));
 }
 
 /**
@@ -235,6 +238,7 @@ void storeSelectedSensor(uint8_t sensor)
 
   /* Store selected sensor data */
   registerSensorData = registerMeasurementData[sensor];
+  registerSensorDataHuba = registerMeasurementDataHuba[sensor];
 }
 
 /**
@@ -364,11 +368,16 @@ const void setMeasureDataSize(SensorType type)
   if (type == MFM_DRUKMODULE_RS485)
   {
     registers[indexMeas].datatype = SENSORDATA;
+    registers[indexMeas].regPtr = &registerMeasurementData;
     registers[indexSensor].datatype = SENSORDATA;
+    registers[indexSensor].regPtr = &registerSensorData;
+
   }
   else if (type == MFM_DRUKMODULE_ONEWIRE)
   {
     registers[indexMeas].datatype = SENSORDATA_HUBA;
+    registers[indexMeas].regPtr = &registerMeasurementDataHuba;
     registers[indexSensor].datatype = SENSORDATA_HUBA;
+    registers[indexSensor].regPtr = &registerSensorDataHuba;
   }
 }
