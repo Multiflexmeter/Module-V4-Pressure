@@ -31,13 +31,26 @@ HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 #define SAMPLE_BUFFER_SIZE  10
 #define SAMPLE_MAX_BUFFER_SIZE  100
 
-float sensorPressureSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
-float sensorTempSamples[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorPressureSamplesKeller[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+float sensorTempSamplesKeller[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+
+uint16_t sensorPressureSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
+uint8_t sensorTempSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
 /* Private functions */
 int cmpfunc(const void* a, const void* b)
 {
   return (*(int32_t*)a - *(int32_t*)b);
+}
+
+int cmpfunc_uint8(const void* a, const void* b)
+{
+  return (*(uint8_t*)a - *(uint8_t*)b);
+}
+
+int cmpfunc_uint16(const void* a, const void* b)
+{
+  return (*(uint16_t*)a - *(uint16_t*)b);
 }
 
 variant_t getVariant(void)
@@ -92,7 +105,7 @@ void setSlaveAddress(void)
  * @param n The lenght of the array
  * @return The median of the given array
  */
-float findMedian(float a[], uint8_t n)
+float findMedian_float(float a[], uint8_t n)
 {
   // First we sort the array
   qsort(a, n, sizeof(float), cmpfunc);
@@ -102,6 +115,44 @@ float findMedian(float a[], uint8_t n)
       return (float)a[n / 2];
 
   return (float)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+/**
+ * @brief Find the median of the given uint8 array
+ *
+ * @param a The array of uint8
+ * @param n The lenght of the array
+ * @return The median of the given array
+ */
+uint8_t findMedian_uint8(uint8_t a[], uint8_t n)
+{
+  // First we sort the array
+  qsort(a, n, sizeof(uint8_t), cmpfunc_uint8);
+
+  // check for even case
+  if (n % 2 != 0)
+      return (uint8_t)a[n / 2];
+
+  return (uint8_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+/**
+ * @brief Find the median of the given uint16 array
+ *
+ * @param a The array of uint16
+ * @param n The lenght of the array
+ * @return The median of the given array
+ */
+uint16_t findMedian_uint16(uint16_t a[], uint8_t n)
+{
+  // First we sort the array
+  qsort(a, n, sizeof(uint16_t), cmpfunc_uint16);
+
+  // check for even case
+  if (n % 2 != 0)
+      return (uint16_t)a[n / 2];
+
+  return (uint16_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
 }
 
 /**
@@ -370,8 +421,8 @@ void measureKellerSensor(void)
       {
         memset(&sensorSample, 0, sizeof(SensorData)); //clear memory
         sensorSample = KellerReadTempAndPressure(sensorNr+0x01);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        sensorPressureSamplesKeller[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamplesKeller[sensorNr][sample] = sensorSample.temperatureData;
         HAL_Delay(2);
       }
     }
@@ -388,7 +439,7 @@ void measureKellerSensor(void)
 
     if( sensorPresent[sensorNr] )
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+      storeMeasurementKeller(findMedian_float(sensorPressureSamplesKeller[sensorNr], samples), findMedian_float(sensorTempSamplesKeller[sensorNr], samples), sensorNr);
     }
   }
 
@@ -409,7 +460,7 @@ void measureKellerSensor(void)
 void measureHubaSensor(void)
 {
   uint8_t sample = 0;
-  SensorData sensorSample;
+  SensorDataHuba sensorSample;
   uint16_t samples = getNumberOfSamples();
   bool sensorFound[DEF_SENSOR_AMOUNT] = {0};
 
@@ -438,8 +489,8 @@ void measureHubaSensor(void)
       {
         sensorFound[sensorNr] = true;
         sensorSample = hubaBufferToData(&hubaSensor[sensorNr]);
-        sensorPressureSamples[sensorNr][sample] = sensorSample.pressure;
-        sensorTempSamples[sensorNr][sample] = sensorSample.temperature;
+        sensorPressureSamplesHuba[sensorNr][sample] = sensorSample.pressureData;
+        sensorTempSamplesHuba[sensorNr][sample] = sensorSample.temperatureData;
         hubaSensor[sensorNr].hubaDone = false;
         sample++;
       }
@@ -462,7 +513,7 @@ void measureHubaSensor(void)
     clearMeasurement(sensorNr);
     if (sensorFound[sensorNr])
     {
-      storeMeasurement(findMedian(sensorPressureSamples[sensorNr], samples), findMedian(sensorTempSamples[sensorNr], samples), sensorNr);
+      storeMeasurementHuba(findMedian_uint16(sensorPressureSamplesHuba[sensorNr], samples), findMedian_uint8(sensorTempSamplesHuba[sensorNr], samples), sensorNr);
     }
   }
 

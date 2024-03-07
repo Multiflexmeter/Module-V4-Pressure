@@ -14,18 +14,20 @@ static uint8_t registerInitStatus= DEF_INIT_STATUS;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static SensorData registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}, {DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorData registerMeasurementDataKeller[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static SensorDataHuba registerMeasurementDataHuba[2] = {{0xFFFF, 0xFF}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorData registerSensorDataKeller = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static SensorDataHuba registerSensorDataHuba = {0xFFFF, 0xFF};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
 void updateMeasureTime(void);
 
-const SensorReg registers[] =
+SensorReg registers[] =
 {
     {REG_FIRMWARE_VERSION,  &registerFirmwareVersion,     UINT8_T,  10, READ,       0},
     {REG_PROTOCOL_VERSION,  &registerProtocolVersion,     UINT8_T,  1,  READ,       0},
@@ -35,12 +37,12 @@ const SensorReg registers[] =
     {REG_MEAS_START,        &registerMeasurementStart,    UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_STATUS,       &registerMeasurementStatus,   UINT8_T,  1,  READ,       0},
     {REG_MEAS_TIME,         &registerMeasurementTime,     UINT16_T, 1,  READWRITE,  0},
-    {REG_MEAS_DATA,         &registerMeasurementData,     SENSORDATA,  2,  READ,    0},
+    {REG_MEAS_DATA,         &registerMeasurementDataKeller,     SENSORDATA_KELLER,  2,  READ,    0},
     {REG_SENSOR_AMOUNT,     &registerSensorAmount,        UINT8_T,  1,  READ,       0},
     {REG_SENSOR_SELECTED,   &registerSensorSelected,      UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
-    {REG_SENSOR_DATA,       &registerSensorData,          SENSORDATA, 1,  READ,     0},
+    {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
@@ -178,12 +180,29 @@ uint8_t readMeasSamples(void)
  * @param data is the raw sensor data
  * @param sensor is the sensor the data is taken from
  */
-void storeMeasurement(float pressure, float temperature, uint8_t sensor)
+void storeMeasurementKeller(float pressure, float temperature, uint8_t sensor)
 {
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
-  registerMeasurementData[sensor].pressure = pressure;
-  registerMeasurementData[sensor].temperature = temperature;
+  registerMeasurementDataKeller[sensor].pressureData = pressure;
+  registerMeasurementDataKeller[sensor].temperatureData = temperature;
+}
+
+/**
+ * @fn void storeMeasurementHuba(uint8_t, uint8_t, uint8_t, uint8_t)
+ * @brief stores the huba measurement data.
+ *
+ * @param pressureHighByte  HighByte of pressure: The digital pressure output signal is a 14 bit value. The digital value 3000 represents the 0% FSO point and the digital value 11000 represents the 100%
+ * @param pressureLowByte   LowByte of pressure: The digital pressure output signal is a 14 bit value. The digital value 3000 represents the 0% FSO point and the digital value 11000 represents the 100%
+ * @param temperature temperature byte : an 8-bit temperature quantity spanning from -50 to 150°C.
+ * @param sensor is the sensor the data is taken from
+ */
+void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor)
+{
+  if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
+    return;
+  registerMeasurementDataHuba[sensor].pressureData = pressure;
+  registerMeasurementDataHuba[sensor].temperatureData = temperature;
 }
 
 /**
@@ -197,7 +216,8 @@ void clearMeasurement( uint8_t sensor)
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
 
-  memset(&registerMeasurementData[sensor], 0xFF, sizeof(registerMeasurementData[sensor]));
+  memset(&registerMeasurementDataKeller[sensor], 0xFF, sizeof(registerMeasurementDataKeller[sensor]));
+  memset(&registerMeasurementDataHuba[sensor], 0xFF, sizeof(registerMeasurementDataHuba[sensor]));
 }
 
 /**
@@ -217,7 +237,8 @@ void storeSelectedSensor(uint8_t sensor)
     return;
 
   /* Store selected sensor data */
-  registerSensorData = registerMeasurementData[sensor];
+  registerSensorDataKeller = registerMeasurementDataKeller[sensor];
+  registerSensorDataHuba = registerMeasurementDataHuba[sensor];
 }
 
 /**
@@ -327,5 +348,36 @@ void updateMeasureTime(void)
       registerMeasurementTime = DEF_MEAS_TIME;
 
       break;
+  }
+}
+
+/**
+ * @fn const void setMeasureDataSize(SensorType)
+ * @brief function to change measure data size
+ *
+ * @param type sensortype
+ */
+const void setMeasureDataSize(SensorType type)
+{
+  if (type != MFM_DRUKMODULE_RS485 && type != MFM_DRUKMODULE_ONEWIRE)
+    return;
+
+  uint8_t indexMeas = findRegIndex(REG_MEAS_DATA); //find register index
+  uint8_t indexSensor = findRegIndex(REG_SENSOR_DATA); //find register index
+
+  if (type == MFM_DRUKMODULE_RS485)
+  {
+    registers[indexMeas].datatype = SENSORDATA_KELLER;
+    registers[indexMeas].regPtr = &registerMeasurementDataKeller;
+    registers[indexSensor].datatype = SENSORDATA_KELLER;
+    registers[indexSensor].regPtr = &registerSensorDataKeller;
+
+  }
+  else if (type == MFM_DRUKMODULE_ONEWIRE)
+  {
+    registers[indexMeas].datatype = SENSORDATA_HUBA;
+    registers[indexMeas].regPtr = &registerMeasurementDataHuba;
+    registers[indexSensor].datatype = SENSORDATA_HUBA;
+    registers[indexSensor].regPtr = &registerSensorDataHuba;
   }
 }

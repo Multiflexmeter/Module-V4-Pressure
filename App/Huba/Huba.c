@@ -11,9 +11,9 @@ void hubaStart(HubaSensor *sensor)
   HAL_TIM_IC_Start_IT(sensor->htim, TIM_CHANNEL_1);
 }
 
-SensorData hubaBufferToData(HubaSensor *sensor)
+SensorDataHuba hubaBufferToData(HubaSensor *sensor)
 {
-  SensorData sensorData;
+  SensorDataHuba sensorData;
   uint8_t dataBuffer[3] = {0, 0, 0};
   uint8_t byteIndex = 0;
   uint8_t bitIndex = 7;
@@ -42,9 +42,9 @@ SensorData hubaBufferToData(HubaSensor *sensor)
     }
   }
 
-  /* Convert data to pressure and temperature */
-  sensorData.pressure = (float) ((((dataBuffer[0]<<8) + dataBuffer[1])-3000)/8000.0) * 0.6; // Pressure in bar
-  sensorData.temperature = (float) ((dataBuffer[2]*200.0)/255) - 50; // temp in celsius
+  /* copy data to pressure and temperature */
+  sensorData.pressureData = (dataBuffer[0]<<8) + dataBuffer[1];
+  sensorData.temperatureData = dataBuffer[2];
 
   return sensorData;
 }

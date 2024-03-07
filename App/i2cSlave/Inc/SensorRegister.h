@@ -45,10 +45,23 @@
 #define DEF_ERROR_STATUS      0
 
 /* Typedefs */
+typedef struct __attribute__((__packed__))
+{
+  float pressureData;
+  float temperatureData;
+}SensorData;
+
+typedef struct __attribute__((__packed__))
+{
+  uint16_t pressureData;
+  uint8_t temperatureData;
+}SensorDataHuba;
+
 typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
-  SENSORDATA = 8
+  SENSORDATA_KELLER = (sizeof(SensorData)),
+  SENSORDATA_HUBA = (sizeof(SensorDataHuba)),
 }tENUM_Datatype;
 
 typedef enum{
@@ -81,23 +94,17 @@ typedef enum{
   MEDIAN_SAMPLE  = 0x20
 }MeasurementType;
 
-typedef struct __attribute__((__packed__))
-{
-  float pressure;
-  float temperature;
-}SensorData;
-
 typedef struct
 {
-  uint8_t adres;
+  const uint8_t adres;
   void *regPtr;
   tENUM_Datatype datatype;
   uint8_t size;
-  tENUM_READWRITE RW;
-  void (* changeCallback)(void);
+  const tENUM_READWRITE RW;
+  const void (* changeCallback)(void);
 }SensorReg;
 
-extern const SensorReg registers[];
+extern SensorReg registers[];
 
 /* Functions */
 const bool invalidIndex( int8_t index );
@@ -111,7 +118,8 @@ void setSensorType(SensorType type);
 uint8_t readMeasStart(void);
 void stopMeas(void);
 uint8_t readMeasSamples(void);
-void storeMeasurement(float pressure, float temperature, uint8_t sensor);
+void storeMeasurementKeller(float pressure, float temperature, uint8_t sensor);
+void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor);
 void clearMeasurement( uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
@@ -122,5 +130,6 @@ const void setInitStatusBusy(void);
 const void setInitStatusReady(bool resultOkay);
 const void setMeasureTime(uint16_t newTime);
 const uint8_t getSelectedSensor(void);
+const void setMeasureDataSize(SensorType type);
 
 #endif /* SENSORREGISTER_H_ */
