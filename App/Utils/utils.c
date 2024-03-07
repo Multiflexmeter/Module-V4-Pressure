@@ -105,6 +105,44 @@ float findMedian_float(float a[], uint8_t n)
 }
 
 /**
+ * @brief Find the median of the given uint8 array
+ *
+ * @param a The array of uint8
+ * @param n The lenght of the array
+ * @return The median of the given array
+ */
+uint8_t findMedian_uint8(uint8_t a[], uint8_t n)
+{
+  // First we sort the array
+  qsort(a, n, sizeof(uint8_t), cmpfunc);
+
+  // check for even case
+  if (n % 2 != 0)
+      return (uint8_t)a[n / 2];
+
+  return (uint8_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+/**
+ * @brief Find the median of the given uint16 array
+ *
+ * @param a The array of uint16
+ * @param n The lenght of the array
+ * @return The median of the given array
+ */
+uint16_t findMedian_uint16(uint16_t a[], uint8_t n)
+{
+  // First we sort the array
+  qsort(a, n, sizeof(uint16_t), cmpfunc);
+
+  // check for even case
+  if (n % 2 != 0)
+      return (uint16_t)a[n / 2];
+
+  return (uint16_t)(a[(n - 1) / 2] + a[n / 2]) / 2.0;
+}
+
+/**
  * @fn void controlSensor1(GPIO_PinState)
  * @brief function to control sensor 1
  *
