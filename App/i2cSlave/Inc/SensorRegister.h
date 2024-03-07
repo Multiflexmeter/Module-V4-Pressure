@@ -136,5 +136,6 @@ const void setInitStatusBusy(void);
 const void setInitStatusReady(bool resultOkay);
 const void setMeasureTime(uint16_t newTime);
 const uint8_t getSelectedSensor(void);
+const void setMeasureDataSize(SensorType type);
 
 #endif /* SENSORREGISTER_H_ */

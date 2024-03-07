@@ -346,3 +346,29 @@ void updateMeasureTime(void)
       break;
   }
 }
+
+/**
+ * @fn const void setMeasureDataSize(SensorType)
+ * @brief function to change measure data size
+ *
+ * @param type sensortype
+ */
+const void setMeasureDataSize(SensorType type)
+{
+  if (type != MFM_DRUKMODULE_RS485 && type != MFM_DRUKMODULE_RS485)
+    return;
+
+  uint8_t indexMeas = findRegIndex(REG_MEAS_DATA); //find register index
+  uint8_t indexSensor = findRegIndex(REG_SENSOR_DATA); //find register index
+
+  if (type == MFM_DRUKMODULE_RS485)
+  {
+    registers[indexMeas].datatype = SENSORDATA;
+    registers[indexSensor].datatype = SENSORDATA;
+  }
+  else if (type == MFM_DRUKMODULE_ONEWIRE)
+  {
+    registers[indexMeas].datatype = SENSORDATA_HUBA;
+    registers[indexSensor].datatype = SENSORDATA_HUBA;
+  }
+}
