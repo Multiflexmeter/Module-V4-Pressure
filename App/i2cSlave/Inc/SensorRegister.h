@@ -61,6 +61,7 @@ typedef enum{
   UINT8_T = 1,
   UINT16_T = 2,
   SENSORDATA = (sizeof(SensorData)),
+  SENSORDATA_HUBA = (sizeof(SensorDataHuba)),
 }tENUM_Datatype;
 
 typedef enum{
