@@ -14,12 +14,12 @@ static uint8_t registerInitStatus= DEF_INIT_STATUS;
 static uint8_t registerMeasurementStart = DEF_MEAS_START;
 static uint8_t registerMeasurementStatus = DEF_MEAS_STATUS;
 static uint16_t registerMeasurementTime = DEF_MEAS_TIME;
-static SensorData registerMeasurementData[2] = {{DEF_MEAS_DATA, DEF_MEAS_DATA}, {DEF_MEAS_DATA, DEF_MEAS_DATA}};
+static Union_SensorData registerMeasurementData[2] = {{{DEF_MEAS_DATA, DEF_MEAS_DATA}}};
 static uint8_t registerSensorAmount = DEF_SENSOR_AMOUNT;
 static uint8_t registerSensorSelected = DEF_SENSOR_SELECTED;
 static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
-static SensorData registerSensorData = {DEF_MEAS_DATA, DEF_MEAS_DATA};
+static Union_SensorData registerSensorData = {{DEF_MEAS_DATA, DEF_MEAS_DATA}};
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
@@ -182,8 +182,8 @@ void storeMeasurement(float pressure, float temperature, uint8_t sensor)
 {
   if( sensor >= DEF_SENSOR_AMOUNT ) //validate sensor index
     return;
-  registerMeasurementData[sensor].pressureData = pressure;
-  registerMeasurementData[sensor].temperatureData = temperature;
+  registerMeasurementData[sensor].Keller.pressureData = pressure;
+  registerMeasurementData[sensor].Keller.temperatureData = temperature;
 }
 
 /**
