@@ -43,6 +43,16 @@ int cmpfunc(const void* a, const void* b)
   return (*(int32_t*)a - *(int32_t*)b);
 }
 
+int cmpfunc_uint8(const void* a, const void* b)
+{
+  return (*(uint8_t*)a - *(uint8_t*)b);
+}
+
+int cmpfunc_uint16(const void* a, const void* b)
+{
+  return (*(uint16_t*)a - *(uint16_t*)b);
+}
+
 variant_t getVariant(void)
 {
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -117,7 +127,7 @@ float findMedian_float(float a[], uint8_t n)
 uint8_t findMedian_uint8(uint8_t a[], uint8_t n)
 {
   // First we sort the array
-  qsort(a, n, sizeof(uint8_t), cmpfunc);
+  qsort(a, n, sizeof(uint8_t), cmpfunc_uint8);
 
   // check for even case
   if (n % 2 != 0)
@@ -136,7 +146,7 @@ uint8_t findMedian_uint8(uint8_t a[], uint8_t n)
 uint16_t findMedian_uint16(uint16_t a[], uint8_t n)
 {
   // First we sort the array
-  qsort(a, n, sizeof(uint16_t), cmpfunc);
+  qsort(a, n, sizeof(uint16_t), cmpfunc_uint16);
 
   // check for even case
   if (n % 2 != 0)
