@@ -101,6 +101,11 @@ typedef enum{
   MEDIAN_SAMPLE  = 0x20
 }MeasurementType;
 
+/**
+ * @struct SensorReg
+ * @brief sensor communication registers struct
+ *
+ */
 typedef struct
 {
   const uint8_t adres;

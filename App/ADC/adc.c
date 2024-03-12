@@ -13,12 +13,25 @@ uint32_t ADC_Buffer[2];
 uint16_t supplyVSENSORSLOT;
 uint16_t supply3V3;
 
+/**
+ * @fn void ADC_Start(ADC_HandleTypeDef*)
+ * @brief function to start an ADC measurement. Single ended. DMA with 2 value buffer.
+ *
+ * @param hadc pointer to ADC handle
+ */
 void ADC_Start(ADC_HandleTypeDef* hadc)
 {
   HAL_ADCEx_Calibration_Start(hadc, ADC_SINGLE_ENDED);
   HAL_ADC_Start_DMA(hadc, ADC_Buffer, 2);
 }
 
+/**
+ * @fn void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef*)
+ * @brief ADC conversion complete callback function.
+ * Process the measured value 3V3 and VSensor.
+ *
+ * @param hadc pointer to ADC handle
+ */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   supply3V3 = ADC_Buffer[0] * CONV_FACTOR_ADC;

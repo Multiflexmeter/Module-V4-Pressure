@@ -15,6 +15,11 @@
 #define TIMEBUFFER_SIZE 30
 #define CLOCK_FREQUENCY
 
+/**
+ * @struct HubaSensor
+ * @brief setting and data structure for Huba measurement
+ *
+ */
 typedef struct
 {
   TIM_HandleTypeDef *htim;

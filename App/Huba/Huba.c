@@ -10,6 +10,12 @@
 #include "Huba.h"
 #include <string.h>
 
+/**
+ * @fn void hubaStart(HubaSensor*)
+ * @brief function to start a huba measurement of one channel
+ *
+ * @param sensor pointer to huba data object with settings and data
+ */
 void hubaStart(HubaSensor *sensor)
 {
   sensor->bitIndex = 0;
@@ -18,6 +24,13 @@ void hubaStart(HubaSensor *sensor)
   HAL_TIM_IC_Start_IT(sensor->htim, TIM_CHANNEL_1);
 }
 
+/**
+ * @fn SensorDataHuba hubaBufferToData(HubaSensor*)
+ * @brief function to process a new measurement
+ *
+ * @param sensor pointer to huba data object with settings and data
+ * @return new measurement
+ */
 SensorDataHuba hubaBufferToData(HubaSensor *sensor)
 {
   SensorDataHuba sensorData;
@@ -56,6 +69,12 @@ SensorDataHuba hubaBufferToData(HubaSensor *sensor)
   return sensorData;
 }
 
+/**
+ * @fn void hubaTimerCallback(HubaSensor*)
+ * @brief callback timer function to read data
+ *
+ * @param sensor pointer to huba data object with settings and data
+ */
 void hubaTimerCallback(HubaSensor *sensor)
 {
   /* Capture the falling edge */

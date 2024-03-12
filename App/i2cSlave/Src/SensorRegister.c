@@ -146,10 +146,23 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
   memcpy(data, registers[regIndex].regPtr, size);
 }
 
+/**
+ * @fn SensorType readSensorType(void)
+ * @brief function to return the current sensorTyp value
+ *
+ * @return \ref SensorType
+ */
 SensorType readSensorType(void)
 {
   return registerSensorType;
 }
+
+/**
+ * @fn void setSensorType(SensorType)
+ * @brief function to set the current sensorTyp
+ *
+ * @param type \ref SensorType
+ */
 void setSensorType(SensorType type)
 {
   registerSensorType = type;
@@ -166,6 +179,11 @@ uint8_t readMeasStart(void)
   return registerMeasurementStart;
 }
 
+/**
+ * @fn void stopMeas(void)
+ * @brief function to stop the current measurement
+ *
+ */
 void stopMeas(void)
 {
   registerMeasurementStart = 0;
@@ -239,6 +257,12 @@ void setMeasurementStatus(MeasurementStatus status)
   registerMeasurementStatus = status;
 }
 
+/**
+ * @fn void storeSelectedSensor(uint8_t)
+ * @brief function to store the selected sensor data
+ *
+ * @param sensor 0 or 1
+ */
 void storeSelectedSensor(uint8_t sensor)
 {
   /* Ignore invalid sensor numbers */
