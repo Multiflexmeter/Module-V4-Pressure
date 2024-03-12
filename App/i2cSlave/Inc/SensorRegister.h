@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           SensorRegister.h
+  * @brief          header for SensorRegister.c
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #ifndef SENSORREGISTER_H_
 #define SENSORREGISTER_H_

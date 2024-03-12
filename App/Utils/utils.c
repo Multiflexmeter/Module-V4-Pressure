@@ -1,3 +1,12 @@
+/**
+  ******************************************************************************
+  * @file           Utils.c
+  * @brief          Utils functions, general helper functions
+  * @author         D.Kerstens
+  * @date           Nov 9, 2023
+  ******************************************************************************
+  */
+
 #include "utils.h"
 #include <stdlib.h>
 #include <stdbool.h>

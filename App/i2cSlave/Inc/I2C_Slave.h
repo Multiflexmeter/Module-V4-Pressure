@@ -1,9 +1,10 @@
-/*
- * I2C_Slave.h
- *
- *  Created on: Jul 11, 2023
- *      Author: danny.kerstens
- */
+/**
+  ******************************************************************************
+  * @file           I2C_Slave.h
+  * @brief          header for I2C_Slave.c
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #ifndef I2C_SLAVE_H_
 #define I2C_SLAVE_H_

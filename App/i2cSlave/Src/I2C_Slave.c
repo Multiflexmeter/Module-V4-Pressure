@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           I2C_Slave.c
+  * @brief          I2C slave communication functions
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #include <string.h>
 #include <stdbool.h>

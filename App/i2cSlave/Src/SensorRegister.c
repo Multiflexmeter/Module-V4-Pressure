@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           SensorRegister.c
+  * @brief          SensorRegister functions
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #include <stdint.h>
 #include <stdbool.h>

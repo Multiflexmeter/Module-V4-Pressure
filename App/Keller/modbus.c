@@ -1,9 +1,11 @@
-/*
- * modbus.c
- *
- *  Created on: Sep 7, 2023
- *      Author: danny.kerstens
- */
+/**
+  ******************************************************************************
+  * @file           modbus.c
+  * @brief          modbus functions
+  * @author         D.Kerstens
+  * @date           Sep 7, 2023
+  ******************************************************************************
+  */
 
 #ifndef KELLER_MODBUS_C_
 #define KELLER_MODBUS_C_
