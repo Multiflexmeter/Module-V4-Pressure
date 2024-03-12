@@ -5,9 +5,12 @@ This application is developed on behalf of <a href="https://www.zeeland.nl/" tar
 More information about this project can be found on <a href="https://www.multiflexmeter.nl/" target=_blank>Multiflexmeter</a> website.<br> 
 </p>
 <p>
-It's developed in STM32CubeIde 1.12.0.<br>
+It's developed in STM32CubeIde 1.12.0 with firmware package FW_L0 V1.12.2.<br>
 The project is made completly standalone.<br>
 </p>
+
+<h2>Notes</h2>
+\li \c The use of enter_Sleep() can cause delayed measuring action, for now this is not used anymore.
 
 <h2>Revision</h2>
 <table>
