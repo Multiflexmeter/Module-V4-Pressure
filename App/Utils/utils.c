@@ -1,3 +1,12 @@
+/**
+  ******************************************************************************
+  * @file           Utils.c
+  * @brief          Utils functions, general helper functions
+  * @author         D.Kerstens
+  * @date           Nov 9, 2023
+  ******************************************************************************
+  */
+
 #include "utils.h"
 #include <stdlib.h>
 #include <stdbool.h>
@@ -38,21 +47,51 @@ uint16_t sensorPressureSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 uint8_t sensorTempSamplesHuba[DEF_SENSOR_AMOUNT][SAMPLE_MAX_BUFFER_SIZE];
 
 /* Private functions */
+/**
+ * @fn int cmpfunc(const void*, const void*)
+ * @brief compare help function for floats32 used with qsort()
+ *
+ * @param a first value in float
+ * @param b second value in float
+ * @return result : negative a < b, 0 a = b, positive a > b
+ */
 int cmpfunc(const void* a, const void* b)
 {
   return (*(int32_t*)a - *(int32_t*)b);
 }
 
+/**
+ * @fn int cmpfunc_uint8(const void*, const void*)
+ * @brief compare help function for uint8 used with qsort()
+ *
+ * @param a first value uint8
+ * @param b second value uint8
+ * @return result : negative a < b, 0 a = b, positive a > b
+ */
 int cmpfunc_uint8(const void* a, const void* b)
 {
   return (*(uint8_t*)a - *(uint8_t*)b);
 }
 
+/**
+ * @fn int cmpfunc_uint16(const void*, const void*)
+ * @brief compare help function for uint16 used with qsort()
+ *
+ * @param a first value uint16
+ * @param b second value uint16
+ * @return result : negative a < b, 0 a = b, positive a > b
+ */
 int cmpfunc_uint16(const void* a, const void* b)
 {
   return (*(uint16_t*)a - *(uint16_t*)b);
 }
 
+/**
+ * @fn variant_t getVariant(void)
+ * @brief function returns the board variant
+ *
+ * @return \ref variant_t RS485 or ONEWIRE
+ */
 variant_t getVariant(void)
 {
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -247,7 +286,7 @@ void switchOnSensor_BothKeller(void)
 }
 
 /**
- * @fn bool assignAddressKellerBroadcast(uint8_t)
+ * @fn bool assignAddressKellerWithBroadcast(uint8_t)
  * @brief function first checks baudrate is 9600, force it to 115200, then set address
  *
  * @param address : new address of sensor
@@ -522,6 +561,12 @@ void measureHubaSensor(void)
   stopMeas();
 }
 
+/**
+ * @fn void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef*)
+ * @brief  Input Capture callback in non-blocking mode
+ *
+ * @param  htim TIM IC handle
+ */
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   if(htim == hubaSensor[0].htim)

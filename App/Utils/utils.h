@@ -1,9 +1,11 @@
-/*
- * utils.h
- *
- *  Created on: Nov 9, 2023
- *      Author: danny.kerstens
- */
+/**
+  ******************************************************************************
+  * @file           Utils.h
+  * @brief          header for Utils.c
+  * @author         D.Kerstens
+  * @date           Nov 9, 2023
+  ******************************************************************************
+  */
 
 #ifndef UTILS_UTILS_H_
 #define UTILS_UTILS_H_

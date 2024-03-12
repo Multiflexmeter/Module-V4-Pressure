@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           SensorRegister.h
+  * @brief          header for SensorRegister.c
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #ifndef SENSORREGISTER_H_
 #define SENSORREGISTER_H_
@@ -94,6 +101,11 @@ typedef enum{
   MEDIAN_SAMPLE  = 0x20
 }MeasurementType;
 
+/**
+ * @struct SensorReg
+ * @brief sensor communication registers struct
+ *
+ */
 typedef struct
 {
   const uint8_t adres;

@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           Keller.c
+  * @brief          Keller sensor functions
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #include <string.h>
 #include "Keller.h"
@@ -72,7 +79,13 @@ bool KellerVerifyResultOkay(uint8_t * response, uint8_t functionCode)
 
 
 /* Keller Private Functions */
-
+/**
+ * @fn float KellerArrayToFloat(uint8_t*)
+ * @brief function to convert the data array value of 4 bytes to a float value
+ *
+ * @param array pointer to array of 4 bytes of data
+ * @return value in float32
+ */
 float KellerArrayToFloat(uint8_t *array)
 {
   float f;
@@ -444,6 +457,13 @@ int32_t KellerReadTemperature(uint8_t slaveAddress)
   return KellerReadChannelInt(slaveAddress, CHANNEL_TOB1);
 }
 
+/**
+ * @fn SensorData KellerReadTempAndPressure(uint8_t)
+ * @brief function to read the pressure and temperature data from modbus address 0x100 with word length of 0x04.
+ *
+ * @param slaveAddress : address of the sensor
+ * @return measurement data \ref SensorData
+ */
 SensorData KellerReadTempAndPressure(uint8_t slaveAddress)
 {
   SensorData sensorData;

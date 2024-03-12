@@ -3,6 +3,7 @@
  ******************************************************************************
  * @file           : main.c
  * @brief          : Main program body
+ * @author         : D.Kerstens
  ******************************************************************************
  * @attention
  *
@@ -14,25 +15,6 @@
  * If no LICENSE file comes with this software, it is provided AS-IS.
  *
  ******************************************************************************
- */
-
-/*! \mainpage Main Page
- *
- * \section intro_sec Introduction
- *
- * This is the introduction.
- *
- * \section general_sec General information
- *
- * General information
- *
- * \section install_sec Installation
- *
- * Information for installation.
- *
- * \subsection step1 Step 1: Opening the box
- *
- * etc...
  */
 
 /* USER CODE END Header */
@@ -53,13 +35,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+/**
+ * @enum  state_machine_t
+ * @brief different states
+ *
+ */
 typedef enum
 {
-  POLL_RS485_SENSOR,
-  POLL_ONEWIRE_SENSOR,
-  WRITE_REGISTER,
-  ASSIGN_ADDRESS,
-  SLEEP,
+  POLL_RS485_SENSOR,  /**< POLL_RS485_SENSOR */
+  POLL_ONEWIRE_SENSOR,/**< POLL_ONEWIRE_SENSOR */
+  WRITE_REGISTER,     /**< WRITE_REGISTER */
+  ASSIGN_ADDRESS,     /**< ASSIGN_ADDRESS */
+  SLEEP,              /**< SLEEP */
 } state_machine_t;
 /* USER CODE END PTD */
 
@@ -116,6 +103,13 @@ void OneWireSystemClock_Config(void);
 
 /**
   * @brief  The application entry point.
+  *
+  * - Initialize the IO
+  * - Reads board type \ref variant_t
+  * - Initialize other peripherals
+  * - execute state machine in infinite loop
+  *
+  *
   * @retval int
   */
 int main(void)

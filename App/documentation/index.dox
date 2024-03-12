@@ -1,0 +1,21 @@
+/** \mainpage MFM base module Manual
+<h2>Introdution</h2>
+<p>
+This application is developed on behalf of <a href="https://www.zeeland.nl/" target=_blank>Provincie Zeeland</a> to measure the water depth on many field location in the province.<br>
+More information about this project can be found on <a href="https://www.multiflexmeter.nl/" target=_blank>Multiflexmeter</a> website.<br> 
+</p>
+<p>
+It's developed in STM32CubeIde 1.12.0 with firmware package FW_L0 V1.12.2.<br>
+The project is made completly standalone.<br>
+</p>
+
+<h2>Notes</h2>
+\li \c The use of enter_Sleep() can cause delayed measuring action, for now this is not used anymore.
+
+<h2>Revision</h2>
+<table>
+<tr><th>date</th><th>version</th><th>Changes</th></tr>
+<tr><td>28-02-2024</td><td>0.4</td><td>Initial version for FAT testing</td></tr>
+<tr><td>07-03-2024</td><td>0.5</td><td>Fixes after FAT<br></td></tr>
+</table>
+*/

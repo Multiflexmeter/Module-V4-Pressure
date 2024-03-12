@@ -1,3 +1,11 @@
+/**
+  ******************************************************************************
+  * @file           Keller.h
+  * @brief          header for Keller.c
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
+
 #include <stdbool.h>
 #include "modbus.h"
 #include "SensorRegister.h"

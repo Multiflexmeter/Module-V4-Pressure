@@ -1,9 +1,11 @@
-/*
- * modbus.c
- *
- *  Created on: Sep 7, 2023
- *      Author: danny.kerstens
- */
+/**
+  ******************************************************************************
+  * @file           modbus.c
+  * @brief          modbus functions
+  * @author         D.Kerstens
+  * @date           Sep 7, 2023
+  ******************************************************************************
+  */
 
 #ifndef KELLER_MODBUS_C_
 #define KELLER_MODBUS_C_
@@ -17,7 +19,10 @@ static UART_HandleTypeDef *ModbusHandle;
 static volatile bool modbusRxReady = false;
 
 /**
+ * @fn void ModbusInit(UART_HandleTypeDef*)
  * @brief Initialize the Modbus UART handle
+ *
+ * @param modbusHandle handle pointer
  */
 void ModbusInit(UART_HandleTypeDef *modbusHandle)
 {
@@ -26,7 +31,9 @@ void ModbusInit(UART_HandleTypeDef *modbusHandle)
 }
 
 /**
+ * @fn void ModbusEnableTX(void)
  * @brief Enable the external RS485 TX Transceiver ( and disable RX receiver )
+ *
  */
 void ModbusEnableTX(void)
 {
@@ -35,7 +42,9 @@ void ModbusEnableTX(void)
 }
 
 /**
+ * @fn void ModbusDisableTX(void)
  * @brief Disable the external RS485 TX Transceiver ( and enable RX receiver )
+ *
  */
 void ModbusDisableTX(void)
 {

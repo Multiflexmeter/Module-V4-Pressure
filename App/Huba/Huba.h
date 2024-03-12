@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           Huba.h
+  * @brief          header for Huba.c
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #ifndef HUBA_HUBA_H_
 #define HUBA_HUBA_H_
@@ -8,6 +15,11 @@
 #define TIMEBUFFER_SIZE 30
 #define CLOCK_FREQUENCY
 
+/**
+ * @struct HubaSensor
+ * @brief setting and data structure for Huba measurement
+ *
+ */
 typedef struct
 {
   TIM_HandleTypeDef *htim;
