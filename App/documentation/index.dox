@@ -14,7 +14,7 @@ The project is made completly standalone.<br>
 
 <h2>Revision</h2>
 <table>
-<tr><th>date</th><th>version</th><th>Changes</th></tr></b>
+<tr><th>date</th><th>version</th><th>Changes</th></tr>
 <tr><td>28-02-2024</td><td>0.4</td><td>Initial version for FAT testing</td></tr>
 <tr><td>07-03-2024</td><td>0.5</td><td>Fixes after FAT<br></td></tr>
 </table>

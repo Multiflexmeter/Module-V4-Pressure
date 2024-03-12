@@ -182,10 +182,12 @@ uint8_t readMeasSamples(void)
 }
 
 /**
+ * @fn void storeMeasurementKeller(float, float, uint8_t)
  * @brief Stores the measurement in the designated register
  *
- * @param data is the raw sensor data
- * @param sensor is the sensor the data is taken from
+ * @param pressure : measured pressure
+ * @param temperature : measured temperature in degree celsius
+ * @param sensor : number of sensor 0 or 1
  */
 void storeMeasurementKeller(float pressure, float temperature, uint8_t sensor)
 {
