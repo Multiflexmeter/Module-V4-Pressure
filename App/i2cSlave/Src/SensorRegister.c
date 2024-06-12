@@ -11,6 +11,7 @@
 #include <string.h>
 #include "SensorRegister.h"
 #include "crc16.h"
+#include "main.h"
 
 /* Register Declaration */
 static uint8_t registerFirmwareVersion[10] = DEF_FIRMWARE_VERSION;
@@ -34,6 +35,7 @@ static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
 void updateMeasureTime(void);
+void updateIO(void);
 
 SensorReg registers[] =
 {
@@ -51,7 +53,7 @@ SensorReg registers[] =
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
     {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
-    {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  0},
+    {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  updateIO},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
@@ -384,6 +386,33 @@ void updateMeasureTime(void)
 
       break;
   }
+}
+
+void updateIO(void)
+{
+  // Control Slot GPIO 0
+  if(registerControlIO & 0x01)
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
+
+  // Control Slot GPIO 1
+  if(registerControlIO & 0x02)
+    HAL_GPIO_WritePin(SLOT_GPIO1_GPIO_Port, SLOT_GPIO1_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO1_GPIO_Port, SLOT_GPIO1_Pin, GPIO_PIN_RESET);
+
+  // Control Slot GPIO 2
+  if(registerControlIO & 0x04)
+    HAL_GPIO_WritePin(SLOT_GPIO2_GPIO_Port, SLOT_GPIO2_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO2_GPIO_Port, SLOT_GPIO2_Pin, GPIO_PIN_RESET);
+
+  // Control INT
+  if(registerControlIO & 0x08)
+    HAL_GPIO_WritePin(INT_GPIO_Port, INT_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(INT_GPIO_Port, INT_Pin, GPIO_PIN_RESET);
 }
 
 /**
