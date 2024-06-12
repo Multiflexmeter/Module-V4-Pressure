@@ -623,10 +623,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|DEBUG_LED2_Pin
+                          |DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : DEBUG_SW2_Pin DEBUG_SW1_Pin */
   GPIO_InitStruct.Pin = DEBUG_SW2_Pin|DEBUG_SW1_Pin;
@@ -647,18 +648,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin VARIANT_DETECT_Pin */
-  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|VARIANT_DETECT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
+  /*Configure GPIO pins : SLOT_GPIO0_Pin SLOT_GPIO1_Pin SLOT_GPIO2_Pin SENSOR1_EN_Pin
+                           SENSOR2_EN_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = SLOT_GPIO0_Pin|SLOT_GPIO1_Pin|SLOT_GPIO2_Pin|SENSOR1_EN_Pin
+                          |SENSOR2_EN_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : VARIANT_DETECT_Pin */
+  GPIO_InitStruct.Pin = VARIANT_DETECT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(VARIANT_DETECT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DEBUG_LED1_Pin */
   GPIO_InitStruct.Pin = DEBUG_LED1_Pin;
