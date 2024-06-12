@@ -29,6 +29,7 @@ static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
 static SensorData registerSensorDataKeller = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static SensorDataHuba registerSensorDataHuba = {0xFFFF, 0xFF};
+static uint8_t registerControlIO = 0;
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
@@ -50,6 +51,7 @@ SensorReg registers[] =
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
     {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
+    {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  0},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
