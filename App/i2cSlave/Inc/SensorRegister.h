@@ -25,6 +25,7 @@
 #define REG_MEAS_SAMPLES          0x33
 #define REG_SENSOR_DATA           0x38
 #define REG_CONTROL_IO            0x40
+#define REG_DIRECTION_IO          0x41
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
