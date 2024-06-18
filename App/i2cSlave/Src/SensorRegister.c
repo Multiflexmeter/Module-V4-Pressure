@@ -56,7 +56,7 @@ SensorReg registers[] =
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
     {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
     {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  updateIO},
-    {REG_CONTROL_IO,        &registerDirectionIO,         UINT8_T,  1,  READWRITE,  directionIO},
+    {REG_DIRECTION_IO,      &registerDirectionIO,         UINT8_T,  1,  READWRITE,  directionIO},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
