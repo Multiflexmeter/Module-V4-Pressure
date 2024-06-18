@@ -37,6 +37,7 @@ static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
 void updateMeasureTime(void);
 void updateIO(void);
+void directionIO(void);
 
 SensorReg registers[] =
 {
@@ -55,7 +56,7 @@ SensorReg registers[] =
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
     {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
     {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  updateIO},
-    {REG_CONTROL_IO,        &registerDirectionIO,         UINT8_T,  1,  READWRITE,  0},
+    {REG_CONTROL_IO,        &registerDirectionIO,         UINT8_T,  1,  READWRITE,  directionIO},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
@@ -388,6 +389,27 @@ void updateMeasureTime(void)
 
       break;
   }
+}
+
+void directionIO(void)
+{
+  // Set direction of Slot GPIO 0
+  if(registerDirectionIO & 0x01)
+    SLOT_GPIO0_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  else
+    SLOT_GPIO0_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
+
+  // Set direction of Slot GPIO 1
+  if(registerDirectionIO & 0x02)
+    SLOT_GPIO1_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  else
+    SLOT_GPIO1_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
+
+  // Set direction of Slot GPIO 2
+  if(registerDirectionIO & 0x04)
+    SLOT_GPIO2_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  else
+    SLOT_GPIO2_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
 }
 
 void updateIO(void)
