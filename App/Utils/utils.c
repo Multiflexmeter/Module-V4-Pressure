@@ -20,6 +20,8 @@ extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim21;
 
+extern uint16_t supply3V3;
+
 HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 { //
     { //sensor 1
@@ -467,6 +469,9 @@ void measureKellerSensor(void)
     }
   }
 
+  if(supply3V3 <= 2700 || supply3V3 >= 3900)
+    setErrorCode(VSENSOR_ERROR);
+
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
@@ -520,6 +525,10 @@ void measureHubaSensor(void)
         break;
     }
 
+    // Check the sensor power supply voltage
+    if(supply3V3 <= 4500 || supply3V3 >= 5500)
+      setErrorCode(VSENSOR_ERROR);
+
     hubaStart(&hubaSensor[sensorNr]);
     while(sample < samples)
     {
@@ -545,6 +554,7 @@ void measureHubaSensor(void)
       HAL_Delay(5);
     }
   }
+
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 
   for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)

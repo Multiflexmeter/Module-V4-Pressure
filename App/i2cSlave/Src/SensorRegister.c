@@ -498,3 +498,8 @@ const void setMeasureDataSize(SensorType type)
     registers[indexSensor].regPtr = &registerSensorDataHuba;
   }
 }
+
+void setErrorCode(ErrorCodes errorCode)
+{
+  registerErrorStatus = errorCode;
+}

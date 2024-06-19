@@ -52,7 +52,6 @@ typedef enum
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define DEBUG_MODE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -168,7 +167,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    //ADC_Start(&hadc);
+    ADC_Start(&hadc);
     switch (currentState)
     {
       case POLL_RS485_SENSOR:
@@ -248,6 +247,10 @@ int main(void)
             currentState = POLL_ONEWIRE_SENSOR;
           }
         }
+
+        /* Check the power supply voltage */
+        if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3900)
+          setErrorCode(VCC_ERROR);
 
         break;
     }
