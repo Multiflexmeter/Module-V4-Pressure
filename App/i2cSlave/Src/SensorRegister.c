@@ -393,23 +393,52 @@ void updateMeasureTime(void)
 
 void directionIO(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
   // Set direction of Slot GPIO 0
   if(registerDirectionIO & 0x01)
-    SLOT_GPIO0_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO0_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO0_GPIO_Port, &GPIO_InitStruct);
+  }
   else
-    SLOT_GPIO0_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO0_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO0_GPIO_Port, &GPIO_InitStruct);
+  }
 
   // Set direction of Slot GPIO 1
   if(registerDirectionIO & 0x02)
-    SLOT_GPIO1_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO1_GPIO_Port, &GPIO_InitStruct);
+  }
   else
-    SLOT_GPIO1_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO1_GPIO_Port, &GPIO_InitStruct);
+  }
 
   // Set direction of Slot GPIO 2
   if(registerDirectionIO & 0x04)
-    SLOT_GPIO2_GPIO_Port->MODER |=  (0b01 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Input to Output
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO2_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO2_GPIO_Port, &GPIO_InitStruct);
+  }
   else
-    SLOT_GPIO2_GPIO_Port->MODER &= ~(0b11 << (2 * SLOT_GPIO0_Pin)); // change GPIO from Output to Input
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO2_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO2_GPIO_Port, &GPIO_InitStruct);
+  }
 }
 
 void updateIO(void)
