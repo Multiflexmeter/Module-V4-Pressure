@@ -19,6 +19,7 @@
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim21;
+extern ADC_HandleTypeDef hadc;
 
 extern uint16_t supply3V3;
 
@@ -453,6 +454,9 @@ void measureKellerSensor(void)
     HAL_Delay(2);
   }
 
+  // Start adc measurement for sensor power supply
+  ADC_Start(&hadc);
+
   /* Collect the samples specified in the MeasurementSamples register */
   for (uint8_t sample = 0; sample < samples; ++sample)
   {
@@ -524,10 +528,8 @@ void measureHubaSensor(void)
         //nothing, wrong value
         break;
     }
-
-    // Check the sensor power supply voltage
-    if(supply3V3 <= 4500 || supply3V3 >= 5500)
-      setErrorCode(VSENSOR_ERROR);
+    // Start adc measurement for sensor power supply
+    ADC_Start(&hadc);
 
     hubaStart(&hubaSensor[sensorNr]);
     while(sample < samples)
@@ -545,6 +547,11 @@ void measureHubaSensor(void)
       else if(HAL_GetTick() > timeout)
         break;
     }
+
+    // Check the sensor power supply voltage
+    if(supply3V3 <= 4500 || supply3V3 >= 5500)
+      setErrorCode(VSENSOR_ERROR);
+
     HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
     disableSensors();
 
