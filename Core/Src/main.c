@@ -251,6 +251,7 @@ int main(void)
       MX_I2C1_Init();
       HAL_I2C_EnableListen_IT(&hi2c1);
       setSlaveAddress();
+      setErrorCode(I2C_ERROR);
     }
 
     /* USER CODE END WHILE */
