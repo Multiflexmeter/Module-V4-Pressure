@@ -61,7 +61,6 @@ typedef enum
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
-DMA_HandleTypeDef hdma_adc;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -73,8 +72,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-extern uint16_t supplyVSENSORSLOT;
-extern uint16_t supply3V3;
+extern uint16_t supplyVSENSOR;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -102,13 +100,6 @@ void OneWireSystemClock_Config(void);
 
 /**
   * @brief  The application entry point.
-  *
-  * - Initialize the IO
-  * - Reads board type \ref variant_t
-  * - Initialize other peripherals
-  * - execute state machine in infinite loop
-  *
-  *
   * @retval int
   */
 int main(void)
@@ -167,7 +158,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ADC_Start(&hadc);
     switch (currentState)
     {
       case POLL_RS485_SENSOR:
@@ -247,10 +237,6 @@ int main(void)
             currentState = POLL_ONEWIRE_SENSOR;
           }
         }
-
-        /* Check the power supply voltage */
-        if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3900)
-          setErrorCode(VCC_ERROR);
 
         break;
     }
@@ -347,10 +333,10 @@ static void MX_ADC_Init(void)
   hadc.Init.OversamplingMode = DISABLE;
   hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc.Init.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
+  hadc.Init.SamplingTime = ADC_SAMPLETIME_3CYCLES_5;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc.Init.ContinuousConvMode = DISABLE;
+  hadc.Init.ContinuousConvMode = ENABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -369,14 +355,6 @@ static void MX_ADC_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_7;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -596,9 +574,6 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 2, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel4_5_6_7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);

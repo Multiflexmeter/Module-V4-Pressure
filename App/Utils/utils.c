@@ -15,13 +15,14 @@
 #include "keller.h"
 #include "Huba.h"
 #include "modbus.h"
+#include "adc.h"
 
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim21;
 extern ADC_HandleTypeDef hadc;
 
-extern uint16_t supply3V3;
+extern uint16_t supplyVSENSOR;
 
 HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 { //
@@ -454,9 +455,6 @@ void measureKellerSensor(void)
     HAL_Delay(2);
   }
 
-  // Start adc measurement for sensor power supply
-  ADC_Start(&hadc);
-
   /* Collect the samples specified in the MeasurementSamples register */
   for (uint8_t sample = 0; sample < samples; ++sample)
   {
@@ -473,7 +471,9 @@ void measureKellerSensor(void)
     }
   }
 
-  if(supply3V3 <= 2700 || supply3V3 >= 3900)
+  // Check the sensor power supply voltage
+  supplyVSENSOR = ADC_Vsensor_Measure(&hadc);
+  if(supplyVSENSOR <= 2700 || supplyVSENSOR >= 3900)
     setErrorCode(VSENSOR_ERROR);
 
   /* Disable the buck/boost and store the median in the registers */
@@ -528,8 +528,6 @@ void measureHubaSensor(void)
         //nothing, wrong value
         break;
     }
-    // Start adc measurement for sensor power supply
-    ADC_Start(&hadc);
 
     hubaStart(&hubaSensor[sensorNr]);
     while(sample < samples)
@@ -548,11 +546,14 @@ void measureHubaSensor(void)
         break;
     }
 
+    HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
+
     // Check the sensor power supply voltage
-    if(supply3V3 <= 4500 || supply3V3 >= 5500)
+    //supplyVSENSORSLOT = ADC_VCC_Measure(&hadc);
+    supplyVSENSOR = ADC_Vsensor_Measure(&hadc);
+    if(supplyVSENSOR <= 4500 || supplyVSENSOR >= 5500)
       setErrorCode(VSENSOR_ERROR);
 
-    HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
     disableSensors();
 
     // set delay between, not at last cycle.
