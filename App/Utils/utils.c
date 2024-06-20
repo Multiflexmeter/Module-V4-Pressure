@@ -549,7 +549,6 @@ void measureHubaSensor(void)
     HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
 
     // Check the sensor power supply voltage
-    //supplyVSENSORSLOT = ADC_VCC_Measure(&hadc);
     supplyVSENSOR = ADC_Vsensor_Measure(&hadc);
     if(supplyVSENSOR <= 4500 || supplyVSENSOR >= 5500)
       setErrorCode(VSENSOR_ERROR);
