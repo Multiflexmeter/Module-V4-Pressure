@@ -15,10 +15,14 @@
 #include "keller.h"
 #include "Huba.h"
 #include "modbus.h"
+#include "adc.h"
 
 extern I2C_HandleTypeDef hi2c1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim21;
+extern ADC_HandleTypeDef hadc;
+
+extern uint16_t supplyVSENSOR;
 
 HubaSensor hubaSensor[DEF_SENSOR_AMOUNT] = //
 { //
@@ -467,6 +471,11 @@ void measureKellerSensor(void)
     }
   }
 
+  // Check the sensor power supply voltage
+  supplyVSENSOR = ADC_Vsensor_Measure(&hadc);
+  if(supplyVSENSOR <= 2700 || supplyVSENSOR >= 3900)
+    setErrorCode(VSENSOR_ERROR);
+
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
@@ -536,7 +545,14 @@ void measureHubaSensor(void)
       else if(HAL_GetTick() > timeout)
         break;
     }
+
     HAL_TIM_IC_Stop_IT(hubaSensor[sensorNr].htim, TIM_CHANNEL_1);
+
+    // Check the sensor power supply voltage
+    supplyVSENSOR = ADC_Vsensor_Measure(&hadc);
+    if(supplyVSENSOR <= 4500 || supplyVSENSOR >= 5500)
+      setErrorCode(VSENSOR_ERROR);
+
     disableSensors();
 
     // set delay between, not at last cycle.
@@ -545,6 +561,7 @@ void measureHubaSensor(void)
       HAL_Delay(5);
     }
   }
+
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 
   for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)

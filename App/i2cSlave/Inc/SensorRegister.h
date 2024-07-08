@@ -24,6 +24,8 @@
 #define REG_MEAS_TYPE             0x32
 #define REG_MEAS_SAMPLES          0x33
 #define REG_SENSOR_DATA           0x38
+#define REG_CONTROL_IO            0x40
+#define REG_DIRECTION_IO          0x41
 #define REG_ERROR_COUNT           0x50
 #define REG_ERROR_STATUS          0x51
 
@@ -101,6 +103,13 @@ typedef enum{
   MEDIAN_SAMPLE  = 0x20
 }MeasurementType;
 
+typedef enum{
+  VCC_ERROR = 1,
+  VSENSOR_ERROR,
+  I2C_ERROR,
+
+}ErrorCodes;
+
 /**
  * @struct SensorReg
  * @brief sensor communication registers struct
@@ -135,6 +144,7 @@ void storeMeasurementHuba(uint16_t pressure, uint8_t temperature, uint8_t sensor
 void clearMeasurement( uint8_t sensor);
 void setMeasurementStatus(MeasurementStatus status);
 void storeSelectedSensor(uint8_t sensor);
+void setErrorCode(ErrorCodes errorCode);
 
 const void enableInitFunction(void);
 const bool getInitStartStatus(void);
