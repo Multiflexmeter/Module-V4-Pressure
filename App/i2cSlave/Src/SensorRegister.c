@@ -1,9 +1,17 @@
+/**
+  ******************************************************************************
+  * @file           SensorRegister.c
+  * @brief          SensorRegister functions
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include "SensorRegister.h"
 #include "crc16.h"
+#include "main.h"
 
 /* Register Declaration */
 static uint8_t registerFirmwareVersion[10] = DEF_FIRMWARE_VERSION;
@@ -22,10 +30,14 @@ static uint8_t registerMeasurementType = DEF_MEAS_TYPE;
 static uint8_t registerMeasurementSamples = DEF_MEAS_SAMPLES;
 static SensorData registerSensorDataKeller = {DEF_MEAS_DATA, DEF_MEAS_DATA};
 static SensorDataHuba registerSensorDataHuba = {0xFFFF, 0xFF};
+static uint8_t registerControlIO = 0;
+static uint8_t registerDirectionIO = 0;
 static uint16_t registerErrorCounter[3] = {DEF_ERROR_COUNT, DEF_ERROR_COUNT, DEF_ERROR_COUNT};
 static uint8_t registerErrorStatus = DEF_ERROR_STATUS;
 
 void updateMeasureTime(void);
+void updateIO(void);
+void directionIO(void);
 
 SensorReg registers[] =
 {
@@ -43,6 +55,8 @@ SensorReg registers[] =
     {REG_MEAS_TYPE,         &registerMeasurementType,     UINT8_T,  1,  READWRITE,  0},
     {REG_MEAS_SAMPLES,      &registerMeasurementSamples,  UINT8_T,  1,  READWRITE,  updateMeasureTime},
     {REG_SENSOR_DATA,       &registerSensorDataKeller,          SENSORDATA_KELLER, 1,  READ,     0},
+    {REG_CONTROL_IO,        &registerControlIO,           UINT8_T,  1,  READWRITE,  updateIO},
+    {REG_DIRECTION_IO,      &registerDirectionIO,         UINT8_T,  1,  READWRITE,  directionIO},
     {REG_ERROR_COUNT,       &registerErrorCounter,        UINT16_T, 3,  READ,       0},
     {REG_ERROR_STATUS,      &registerErrorStatus,         UINT8_T,  1,  READ,       0},
 };
@@ -139,10 +153,23 @@ void readRegister(uint8_t regIndex, uint8_t *data, uint8_t size)
   memcpy(data, registers[regIndex].regPtr, size);
 }
 
+/**
+ * @fn SensorType readSensorType(void)
+ * @brief function to return the current sensorTyp value
+ *
+ * @return \ref SensorType
+ */
 SensorType readSensorType(void)
 {
   return registerSensorType;
 }
+
+/**
+ * @fn void setSensorType(SensorType)
+ * @brief function to set the current sensorTyp
+ *
+ * @param type \ref SensorType
+ */
 void setSensorType(SensorType type)
 {
   registerSensorType = type;
@@ -159,6 +186,11 @@ uint8_t readMeasStart(void)
   return registerMeasurementStart;
 }
 
+/**
+ * @fn void stopMeas(void)
+ * @brief function to stop the current measurement
+ *
+ */
 void stopMeas(void)
 {
   registerMeasurementStart = 0;
@@ -175,10 +207,12 @@ uint8_t readMeasSamples(void)
 }
 
 /**
+ * @fn void storeMeasurementKeller(float, float, uint8_t)
  * @brief Stores the measurement in the designated register
  *
- * @param data is the raw sensor data
- * @param sensor is the sensor the data is taken from
+ * @param pressure : measured pressure
+ * @param temperature : measured temperature in degree celsius
+ * @param sensor : number of sensor 0 or 1
  */
 void storeMeasurementKeller(float pressure, float temperature, uint8_t sensor)
 {
@@ -230,6 +264,12 @@ void setMeasurementStatus(MeasurementStatus status)
   registerMeasurementStatus = status;
 }
 
+/**
+ * @fn void storeSelectedSensor(uint8_t)
+ * @brief function to store the selected sensor data
+ *
+ * @param sensor 0 or 1
+ */
 void storeSelectedSensor(uint8_t sensor)
 {
   /* Ignore invalid sensor numbers */
@@ -351,6 +391,83 @@ void updateMeasureTime(void)
   }
 }
 
+void directionIO(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  // Set direction of Slot GPIO 0
+  if(registerDirectionIO & 0x01)
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO0_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO0_GPIO_Port, &GPIO_InitStruct);
+  }
+  else
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO0_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO0_GPIO_Port, &GPIO_InitStruct);
+  }
+
+  // Set direction of Slot GPIO 1
+  if(registerDirectionIO & 0x02)
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO1_GPIO_Port, &GPIO_InitStruct);
+  }
+  else
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO1_GPIO_Port, &GPIO_InitStruct);
+  }
+
+  // Set direction of Slot GPIO 2
+  if(registerDirectionIO & 0x04)
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO2_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    HAL_GPIO_Init(SLOT_GPIO2_GPIO_Port, &GPIO_InitStruct);
+  }
+  else
+  {
+    GPIO_InitStruct.Pin = SLOT_GPIO2_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SLOT_GPIO2_GPIO_Port, &GPIO_InitStruct);
+  }
+}
+
+void updateIO(void)
+{
+  // Control Slot GPIO 0
+  if(registerControlIO & 0x01)
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO0_GPIO_Port, SLOT_GPIO0_Pin, GPIO_PIN_RESET);
+
+  // Control Slot GPIO 1
+  if(registerControlIO & 0x02)
+    HAL_GPIO_WritePin(SLOT_GPIO1_GPIO_Port, SLOT_GPIO1_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO1_GPIO_Port, SLOT_GPIO1_Pin, GPIO_PIN_RESET);
+
+  // Control Slot GPIO 2
+  if(registerControlIO & 0x04)
+    HAL_GPIO_WritePin(SLOT_GPIO2_GPIO_Port, SLOT_GPIO2_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(SLOT_GPIO2_GPIO_Port, SLOT_GPIO2_Pin, GPIO_PIN_RESET);
+
+  // Control INT
+  if(registerControlIO & 0x08)
+    HAL_GPIO_WritePin(INT_GPIO_Port, INT_Pin, GPIO_PIN_SET);
+  else
+    HAL_GPIO_WritePin(INT_GPIO_Port, INT_Pin, GPIO_PIN_RESET);
+}
+
 /**
  * @fn const void setMeasureDataSize(SensorType)
  * @brief function to change measure data size
@@ -380,4 +497,9 @@ const void setMeasureDataSize(SensorType type)
     registers[indexSensor].datatype = SENSORDATA_HUBA;
     registers[indexSensor].regPtr = &registerSensorDataHuba;
   }
+}
+
+void setErrorCode(ErrorCodes errorCode)
+{
+  registerErrorStatus = errorCode;
 }

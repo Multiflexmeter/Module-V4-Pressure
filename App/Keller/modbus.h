@@ -1,9 +1,11 @@
-/*
- * modbus.h
- *
- *  Created on: Sep 7, 2023
- *      Author: danny.kerstens
- */
+/**
+  ******************************************************************************
+  * @file           modbus.h
+  * @brief          header for modbus.c
+  * @author         D.Kerstens
+  * @date           Sep 7, 2023
+  ******************************************************************************
+  */
 
 #ifndef KELLER_MODBUS_H_
 #define KELLER_MODBUS_H_

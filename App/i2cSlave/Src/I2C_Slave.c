@@ -1,3 +1,10 @@
+/**
+  ******************************************************************************
+  * @file           I2C_Slave.c
+  * @brief          I2C slave communication functions
+  * @author         D.Kerstens
+  ******************************************************************************
+  */
 
 #include <string.h>
 #include <stdbool.h>
@@ -23,9 +30,10 @@ volatile bool sensorSlaveErrorFlag = false;
 
 /* Functions */
 
-
 /**
- * @brief Calculate the CRC and transmit the sensor register data
+ * @fn void sensorSlaveTransmit(uint8_t*, uint8_t)
+ * @brief transmit data
+ *
  * @param data The register data to be transmitted
  * @param size The size of the data
  */
@@ -40,13 +48,28 @@ void sensorSlaveTransmit(uint8_t *data, uint8_t size)
   HAL_I2C_Slave_Seq_Transmit_IT(&hi2c1, data, size+CRC_SIZE, I2C_FIRST_AND_LAST_FRAME);
 }
 
-/* Callbacks */
+/**
+ * @fn void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef*)
+ * @brief  Listen Complete callback.
+ *
+ * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+ *                the configuration information for the specified I2C.
+ */
 void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
 {
   // Re-enable the listen interrupt after it has been triggered
   HAL_I2C_EnableListen_IT(hi2c);
 }
 
+/**
+ * @fn void HAL_I2C_AddrCallback(I2C_HandleTypeDef*, uint8_t, uint16_t)
+ * @brief I2C Address capture callback
+ *
+  * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+  *                the configuration information for the specified I2C.
+  * @param  TransferDirection Master request Transfer Direction (Write/Read), value of @ref I2C_XFERDIRECTION
+  * @param  AddrMatchCode Address Match Code
+ */
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
   // The master wants to transmit data
@@ -87,6 +110,12 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
   }
 }
 
+/**
+ * @fn void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef*)
+ * @brief  Slave Rx Transfer completed callback.
+ * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+ *                the configuration information for the specified I2C.
+ */
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
   // Find the register and store the size
@@ -135,6 +164,13 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
   }
 }
 
+/**
+ * @fn void HAL_I2C_ErrorCallback(I2C_HandleTypeDef*)
+ * @brief  I2C error callback.
+ *
+ * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+ *                the configuration information for the specified I2C.
+ */
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
   HAL_I2C_EnableListen_IT(hi2c);
