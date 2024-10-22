@@ -241,7 +241,6 @@ void enableSensor2(void)
  */
 void disableSensors(void)
 {
-  enableCurrentLimit();
   controlSensor1(GPIO_PIN_RESET);
   controlSensor2(GPIO_PIN_RESET);
 }
@@ -498,6 +497,7 @@ void measureKellerSensor(void)
 
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
+  enableCurrentLimit();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
 
@@ -582,6 +582,7 @@ void measureHubaSensor(void)
     }
   }
 
+  enableCurrentLimit();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 
   for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)
