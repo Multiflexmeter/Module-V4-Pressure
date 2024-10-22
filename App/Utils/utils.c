@@ -281,6 +281,7 @@ void switchOnSensor_BothKeller(void)
   HAL_Delay(5); //wait for stable supply for sensors
 
   /* switch on sensors one by one */
+  HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 0);
   enableSensor1(); //first enable sensor 1
   HAL_Delay(2);    //wait short while
   enableSensor2(); //second enable sensor 2
@@ -478,6 +479,7 @@ void measureKellerSensor(void)
 
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
+  HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 1);
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
 
