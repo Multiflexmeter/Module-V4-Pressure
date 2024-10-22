@@ -238,7 +238,7 @@ int main(void)
           else if (variant == ONEWIRE_VARIANT)
           {
             controlBuckConverter( GPIO_PIN_SET); //enable buck converter
-            HAL_Delay(25); //wait for stabilized supply
+            HAL_Delay(25); //wait for stabilized supply. Needs to be 25ms minimum for guaranteeing stable output voltage.
             HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 0);
             currentState = POLL_ONEWIRE_SENSOR;
           }

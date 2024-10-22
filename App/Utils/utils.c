@@ -278,7 +278,7 @@ void switchOnSensor_BothKeller(void)
   /* Enable the buck/boost */
   controlBuckConverter(GPIO_PIN_SET);
 
-  HAL_Delay(5); //wait for stable supply for sensors
+  HAL_Delay(25); //wait for stabilized supply. Needs to be 25ms minimum for guaranteeing stable output voltage.
 
   /* switch on sensors one by one */
   HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 0);
