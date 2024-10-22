@@ -77,6 +77,8 @@ void Error_Handler(void);
 #define SLOT_GPIO2_GPIO_Port GPIOB
 #define VARIANT_DETECT_Pin GPIO_PIN_10
 #define VARIANT_DETECT_GPIO_Port GPIOB
+#define CURRENT_SW_Pin GPIO_PIN_11
+#define CURRENT_SW_GPIO_Port GPIOB
 #define SENSOR1_EN_Pin GPIO_PIN_12
 #define SENSOR1_EN_GPIO_Port GPIOB
 #define SENSOR2_EN_Pin GPIO_PIN_13
