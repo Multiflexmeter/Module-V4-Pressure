@@ -246,6 +246,24 @@ void disableSensors(void)
 }
 
 /**
+ * @brief Enables the current limiting resistor
+ * Only available from PCB revision 1.3
+ */
+void enableCurrentLimit(void)
+{
+  HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 1);
+}
+
+/**
+ * @brief Disables the current limiting resistor
+ * Only available from PCB revision 1.3
+ */
+void disableCurrentLimit(void)
+{
+  HAL_GPIO_WritePin(CURRENT_SW_GPIO_Port, CURRENT_SW_Pin, 0);
+}
+
+/**
  * @brief Enter sleep mode
  */
 void enter_Sleep(void)
@@ -278,9 +296,10 @@ void switchOnSensor_BothKeller(void)
   /* Enable the buck/boost */
   controlBuckConverter(GPIO_PIN_SET);
 
-  HAL_Delay(5); //wait for stable supply for sensors
+  HAL_Delay(25); //wait for stabilized supply. Needs to be 25ms minimum for guaranteeing stable output voltage.
 
   /* switch on sensors one by one */
+  disableCurrentLimit();
   enableSensor1(); //first enable sensor 1
   HAL_Delay(2);    //wait short while
   enableSensor2(); //second enable sensor 2
@@ -478,6 +497,7 @@ void measureKellerSensor(void)
 
   /* Disable the buck/boost and store the median in the registers */
   disableSensors();
+  enableCurrentLimit();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
   ModbusShutdown();
 
@@ -562,6 +582,7 @@ void measureHubaSensor(void)
     }
   }
 
+  enableCurrentLimit();
   controlBuckConverter(GPIO_PIN_RESET); //disable buck converter
 
   for( int sensorNr=0; sensorNr<DEF_SENSOR_AMOUNT; sensorNr++)
