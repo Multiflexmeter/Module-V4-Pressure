@@ -153,10 +153,10 @@ int main(void)
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
 
-  // Check the sensorslot power supply voltage
-  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
-  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
-    setErrorCode(VCC_ERROR);
+//  // Check the sensorslot power supply voltage
+//  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
+//  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
+//    setErrorCode(VCC_ERROR);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -638,11 +638,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CURRENT_SW_Pin SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin
-                           BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = CURRENT_SW_Pin|SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin
-                          |BUCK_EN_Pin;
+  /*Configure GPIO pins : CURRENT_SW_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = CURRENT_SW_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin */
+  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
