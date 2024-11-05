@@ -153,10 +153,10 @@ int main(void)
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
 
-//  // Check the sensorslot power supply voltage
-//  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
-//  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
-//    setErrorCode(VCC_ERROR);
+  // Check the sensorslot power supply voltage
+  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
+  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
+    setErrorCode(VCC_ERROR);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -367,7 +367,8 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC_Init 2 */
-
+  HAL_ADC_Stop(&hadc);
+  HAL_ADC_DeInit(&hadc);
   /* USER CODE END ADC_Init 2 */
 
 }
