@@ -32,6 +32,8 @@ void controlSensor2(GPIO_PinState state);
 void enableSensor1(void);
 void enableSensor2(void);
 void disableSensors(void);
+void enableCurrentLimit(void);
+void disableCurrentLimit(void);
 
 void controlBuckConverter(GPIO_PinState state);
 void switchOnSensor_BothKeller(void);

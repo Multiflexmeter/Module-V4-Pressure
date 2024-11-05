@@ -29,7 +29,6 @@
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "modbus.h"
-#include "adc.h"
 #include "utils.h"
 /* USER CODE END Includes */
 
@@ -73,7 +72,6 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSOR;
-extern uint16_t supplyVSENSORSLOT;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -153,10 +151,6 @@ int main(void)
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
 
-  // Check the sensorslot power supply voltage
-  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
-  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
-    setErrorCode(VCC_ERROR);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -238,7 +232,8 @@ int main(void)
           else if (variant == ONEWIRE_VARIANT)
           {
             controlBuckConverter( GPIO_PIN_SET); //enable buck converter
-            HAL_Delay(2); //wait for stabilized supply
+            HAL_Delay(25); //wait for stabilized supply. Needs to be 25ms minimum for guaranteeing stable output voltage.
+            disableCurrentLimit();
             currentState = POLL_ONEWIRE_SENSOR;
           }
         }
@@ -357,14 +352,14 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
 
-//  /** Configure for the selected ADC regular channel to be converted.
-//  */
-//  sConfig.Channel = ADC_CHANNEL_6;
-//  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-//  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN ADC_Init 2 */
 
   /* USER CODE END ADC_Init 2 */
@@ -607,7 +602,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USART_TX_EN_Pin|INT_Pin|USART_RX_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, CURRENT_SW_Pin|SENSOR1_EN_Pin|SENSOR2_EN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, DEBUG_LED2_Pin|DEBUG_LED1_Pin|BUCK_EN_Pin, GPIO_PIN_RESET);
@@ -637,9 +632,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
-  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
+  /*Configure GPIO pins : CURRENT_SW_Pin DEBUG_LED2_Pin BUCK_EN_Pin */
+  GPIO_InitStruct.Pin = CURRENT_SW_Pin|DEBUG_LED2_Pin|BUCK_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SENSOR1_EN_Pin SENSOR2_EN_Pin */
+  GPIO_InitStruct.Pin = SENSOR1_EN_Pin|SENSOR2_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
