@@ -367,6 +367,11 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC_Init 2 */
+  sConfig.Rank = ADC_RANK_NONE;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   HAL_ADC_Stop(&hadc);
   HAL_ADC_DeInit(&hadc);
   /* USER CODE END ADC_Init 2 */
