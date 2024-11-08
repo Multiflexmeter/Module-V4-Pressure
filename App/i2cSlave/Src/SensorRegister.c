@@ -378,7 +378,7 @@ void updateMeasureTime(void)
 
     case MFM_DRUKMODULE_ONEWIRE:
 
-      newTime = DEF_MEAS_TIME_START_ONEWIRE + samples * DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE;
+      newTime = DEF_MEAS_TIME_PRE_ONEWIRE + (DEF_MEAS_TIME_START_ONEWIRE + samples * DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE) * DEF_SENSOR_AMOUNT;
       registerMeasurementTime = newTime;
 
       break;
