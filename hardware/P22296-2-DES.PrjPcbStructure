@@ -1,0 +1,5 @@
+Record=TopLevelDocument|FileName=Frontpage.SchDoc|SheetNumber=1
+Record=NoMainPathDocument|SourceDocument=Frontpage.SchDoc|FileName=MCU.SchDoc|SheetNumber=2
+Record=NoMainPathDocument|SourceDocument=Frontpage.SchDoc|FileName=Mechanical.SchDoc|SheetNumber=5
+Record=NoMainPathDocument|SourceDocument=Frontpage.SchDoc|FileName=Power.SchDoc|SheetNumber=4
+Record=NoMainPathDocument|SourceDocument=Frontpage.SchDoc|FileName=Sensor Interface.SchDoc|SheetNumber=3
