@@ -29,6 +29,7 @@
 #include "SensorRegister.h"
 #include "I2C_Slave.h"
 #include "modbus.h"
+#include "adc.h"
 #include "utils.h"
 /* USER CODE END Includes */
 
@@ -72,6 +73,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 extern uint16_t supplyVSENSOR;
+extern uint16_t supplyVSENSORSLOT;
 
 state_machine_t currentState = SLEEP;
 variant_t variant;
@@ -151,6 +153,10 @@ int main(void)
   HAL_I2C_EnableListen_IT(&hi2c1);
   setSlaveAddress();
 
+  // Check the sensorslot power supply voltage
+  supplyVSENSORSLOT = ADC_Vsensorslot_Measure(&hadc);
+  if(supplyVSENSORSLOT <= 2700 || supplyVSENSORSLOT >= 3800)
+    setErrorCode(VCC_ERROR);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -361,7 +367,13 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC_Init 2 */
-
+  sConfig.Rank = ADC_RANK_NONE;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  HAL_ADC_Stop(&hadc);
+  HAL_ADC_DeInit(&hadc);
   /* USER CODE END ADC_Init 2 */
 
 }

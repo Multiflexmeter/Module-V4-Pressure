@@ -30,7 +30,7 @@
 #define REG_ERROR_STATUS          0x51
 
 /* Registers Defaults*/
-#define DEF_FIRMWARE_VERSION  "0.7"
+#define DEF_FIRMWARE_VERSION  "0.8"
 #define DEF_PROTOCOL_VERSION  0x00
 #define DEF_SENSOR_TYPE       0x01
 #define DEF_INIT_START        0x00
@@ -39,8 +39,9 @@
 #define DEF_MEAS_STATUS       0x00
 #define DEF_MEAS_TIME         0x007D //125ms for 10 samples
 #define DEF_MEAS_TIME_ONEWIRE (DEF_MEAS_TIME) //for 10 samples
-#define DEF_MEAS_TIME_START_ONEWIRE       0x13 //19
-#define DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE  0x05 //5
+#define DEF_MEAS_TIME_PRE_ONEWIRE         0x23 //35ms
+#define DEF_MEAS_TIME_START_ONEWIRE       0x08 //8ms
+#define DEF_MEAS_TIME_PER_SAMPLE_ONEWIRE  0x03 //3ms
 #define DEF_MEAS_TIME_RS485   0x00E1 //225ms for 10 samples
 #define DEF_MEAS_TIME_START_RS485       0x3C //60
 #define DEF_MEAS_TIME_PER_SAMPLE_RS485  0x10 //16
